@@ -1,0 +1,412 @@
+<?php
+
+namespace App\Entity;
+
+use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
+use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Validator\Constraints as Assert;
+use Doctrine\ORM\Mapping\Table;
+use Symfony\Component\Serializer\Annotation\Groups as Group;
+
+
+#[ORM\Entity(repositoryClass: UserRepository::class)]
+#[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
+#[Table(name: 'utilisateur')]
+class User implements UserInterface, PasswordAuthenticatedUserInterface
+{
+    use TraitEntity; 
+
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    private ?int $id = null;
+
+    #[ORM\Column(type: 'string', unique: true, nullable: true)]
+    private ?string $username = null;
+
+    #[ORM\Column(type: 'string', unique: true, nullable: true)]
+    #[Assert\Email]
+    private ?string $email = null;
+
+    #[ORM\Column]
+    private array $roles = [];
+
+    #[ORM\Column]
+    private ?string $password = null;
+
+
+    
+    #[ORM\OneToOne(mappedBy: 'user', cascade: ['persist', 'remove'])]
+    private ?Entite $entite = null;
+
+    /**
+     * @var Collection<int, Alerte>
+     */
+    #[ORM\OneToMany(targetEntity: Alerte::class, mappedBy: 'user')]
+    private Collection $alertes;
+
+    /**
+     * @var Collection<int, Article>
+     */
+    #[ORM\OneToMany(targetEntity: Article::class, mappedBy: 'user')]
+    private Collection $articles;
+
+    /**
+     * @var Collection<int, Commentaire>
+     */
+    #[ORM\OneToMany(targetEntity: Commentaire::class, mappedBy: 'user')]
+    private Collection $commentaires;
+
+       
+
+    #[ORM\ManyToOne(cascade: ["persist"], fetch: "EAGER")]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Fichier $avatar = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $nom = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $prenoms = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $phone = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $status = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $typeUser = null;
+
+    #[ORM\Column]
+    private ?string $payement = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $data = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $reason = null;
+
+    /**
+     * @var Collection<int, Message>
+     */
+    #[ORM\OneToMany(targetEntity: Message::class, mappedBy: 'sender')]
+    private Collection $messages;
+
+
+    public function __construct()
+    {
+        $this->alertes = new ArrayCollection();
+        $this->articles = new ArrayCollection();
+        $this->commentaires = new ArrayCollection();
+        $this->status = "ENABLE"; //ACTIVE  ACCEPT
+        $this->payement = "init_payement"; // payed payed-inifinty
+        $this->messages = new ArrayCollection();
+      
+    }
+
+
+
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
+    public function getUserIdentifier(): string
+    {
+        return $this->email ?? $this->username ?? '';
+    }
+
+    public function getRoles(): array
+    {
+        $roles = $this->roles;
+        $roles[] = 'ROLE_USER';
+        return array_unique($roles);
+    }
+
+    public function setRoles(array $roles): static
+    {
+        $this->roles = $roles;
+        return $this;
+    }
+
+    public function getUsername(): ?string
+    {
+        return $this->username;
+    }
+
+    public function setUsername(?string $username): self
+    {
+        $this->username = $username;
+        return $this;
+    }
+
+    public function getPassword(): string
+    {
+        return $this->password;
+    }
+
+    public function setPassword(string $password): static
+    {
+        $this->password = $password;
+        return $this;
+    }
+
+    public function eraseCredentials(): void
+    {
+        // Vider les données sensibles
+    }
+
+    
+    
+    public function getEntite(): ?Entite
+    {
+        return $this->entite;
+    }
+
+    public function setEntite(Entite $entite): static
+    {
+        // set the owning side of the relation if necessary
+        if ($entite->getUser() !== $this) {
+            $entite->setUser($this);
+        }
+
+        $this->entite = $entite;
+
+        return $this;
+    }
+
+ 
+
+    /**
+     * @return Collection<int, Alerte>
+     */
+    public function getAlertes(): Collection
+    {
+        return $this->alertes;
+    }
+
+    public function addAlerte(Alerte $alerte): static
+    {
+        if (!$this->alertes->contains($alerte)) {
+            $this->alertes->add($alerte);
+            $alerte->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAlerte(Alerte $alerte): static
+    {
+        if ($this->alertes->removeElement($alerte)) {
+            // set the owning side to null (unless already changed)
+            if ($alerte->getUser() === $this) {
+                $alerte->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Article>
+     */
+    public function getArticles(): Collection
+    {
+        return $this->articles;
+    }
+
+    public function addArticle(Article $article): static
+    {
+        if (!$this->articles->contains($article)) {
+            $this->articles->add($article);
+            $article->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeArticle(Article $article): static
+    {
+        if ($this->articles->removeElement($article)) {
+            // set the owning side to null (unless already changed)
+            if ($article->getUser() === $this) {
+                $article->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Commentaire>
+     */
+    public function getCommentaires(): Collection
+    {
+        return $this->commentaires;
+    }
+
+    public function addCommentaire(Commentaire $commentaire): static
+    {
+        if (!$this->commentaires->contains($commentaire)) {
+            $this->commentaires->add($commentaire);
+            $commentaire->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCommentaire(Commentaire $commentaire): static
+    {
+        if ($this->commentaires->removeElement($commentaire)) {
+            // set the owning side to null (unless already changed)
+            if ($commentaire->getUser() === $this) {
+                $commentaire->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getAvatar(): ?Fichier
+    {
+        return $this->avatar;
+    }
+
+    public function setAvatar(?Fichier $avatar): static
+    {
+        $this->avatar = $avatar;
+        return $this;
+    }
+
+    public function getNom(): ?string
+    {
+        return $this->nom;
+    }
+
+    public function setNom(string $nom): static
+    {
+        $this->nom = $nom;
+
+        return $this;
+    }
+
+    public function getPrenoms(): ?string
+    {
+        return $this->prenoms;
+    }
+
+    public function setPrenoms(string $prenoms): static
+    {
+        $this->prenoms = $prenoms;
+
+        return $this;
+    }
+
+    public function getPhone(): ?string
+    {
+        return $this->phone;
+    }
+
+    public function setPhone(string $phone): static
+    {
+        $this->phone = $phone;
+
+        return $this;
+    }
+
+    public function getStatus(): ?string
+    {
+        return $this->status;
+    }
+
+    public function setStatus(string $status): static
+    {
+        $this->status = $status;
+
+        return $this;
+    }
+
+    public function getTypeUser(): ?string
+    {
+        return $this->typeUser;
+    }
+
+    public function setTypeUser(string $typeUser): static
+    {
+        $this->typeUser = $typeUser;
+
+        return $this;
+    }
+
+    public function isPayement(): ?string
+    {
+        return $this->payement;
+    }
+
+    public function setPayement(string $payement): static
+    {
+        $this->payement = $payement;
+
+        return $this;
+    }
+
+    public function getData(): ?string
+    {
+        return $this->data;
+    }
+
+    public function setData(?string $data): static
+    {
+        $this->data = $data;
+
+        return $this;
+    }
+
+    public function getReason(): ?string
+    {
+        return $this->reason;
+    }
+
+    public function setReason(?string $reason): static
+    {
+        $this->reason = $reason;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Message>
+     */
+    public function getMessages(): Collection
+    {
+        return $this->messages;
+    }
+
+    public function addMessage(Message $message): static
+    {
+        if (!$this->messages->contains($message)) {
+            $this->messages->add($message);
+            $message->setSender($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMessage(Message $message): static
+    {
+        if ($this->messages->removeElement($message)) {
+            // set the owning side to null (unless already changed)
+            if ($message->getSender() === $this) {
+                $message->setSender(null);
+            }
+        }
+
+        return $this;
+    }
+}

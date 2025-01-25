@@ -1,0 +1,69 @@
+# Global options block. Entirely optional, https is on by default
+{
+    email your-email@example.com
+}
+
+# Placeholder for any additional global configuration
+{$CADDY_EXTRA_CONFIG}
+
+# Server configuration
+{$SERVER_NAME:localhost} {
+    log {
+        format filter {
+            fields {
+                request>uri query {
+                    replace authorization REDACTED
+                }
+            }
+        }
+    }
+
+    # Enable compression for responses
+    encode zstd gzip
+
+    # Mercure configuration block
+    mercure {
+        # Transport to use (default to Bolt)
+        transport_url {$MERCURE_TRANSPORT_URL:bolt://mercure.db}
+        
+        # Publisher JWT key and algorithm
+        publisher_jwt {env.MERCURE_PUBLISHER_JWT_KEY} {env.MERCURE_PUBLISHER_JWT_ALG}
+        
+        # Subscriber JWT key and algorithm
+        subscriber_jwt {env.MERCURE_SUBSCRIBER_JWT_KEY} {env.MERCURE_SUBSCRIBER_JWT_ALG}
+        
+        # Extra Mercure directives
+        {$MERCURE_EXTRA_DIRECTIVES}
+    }
+
+    # Placeholder for any additional server-specific configuration
+    {$CADDY_SERVER_EXTRA_DIRECTIVES}
+
+    # Skip logging for certain paths
+    skip_log /robots.txt
+    skip_log /healthz
+    skip_log /favicon.ico
+
+    # Set content-type for the root path response
+    header / Content-Type "text/html; charset=utf-8"
+
+    # Response for root path
+    respond / `<!DOCTYPE html>
+<html lang=en>
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<title>Welcome to Mercure</title>
+<h1>Welcome to Mercure</h1>
+<p>The URL of your hub is <code>/.well-known/mercure</code>.
+Read the documentation on <a href="https://mercure.rocks">Mercure.rocks, real-time apps made easy</a>.`
+
+    # Response for /robots.txt
+    respond /robots.txt `User-agent: *
+Disallow: /`
+
+    # Health check response
+    respond /healthz 200
+
+    # Default response for unhandled routes
+    respond "Not Found" 404
+}

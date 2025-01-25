@@ -1,0 +1,124 @@
+<?php
+
+namespace App\Entity;
+
+use App\Repository\EntiteRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\ORM\Mapping as ORM;
+use Doctrine\ORM\Mapping\DiscriminatorColumn;
+use Doctrine\ORM\Mapping\DiscriminatorMap;
+use Doctrine\ORM\Mapping\InheritanceType;
+use Symfony\Component\Validator\Constraints as Assert;
+use Doctrine\ORM\Mapping\Table;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Serializer\Annotation\Groups as Group;
+
+
+
+
+#[ORM\Entity(repositoryClass: EntiteRepository::class)]
+#[Table(name: 'membre_entite')]
+#[InheritanceType("JOINED")]
+#[DiscriminatorColumn(name: "discr", type: "string", length: 18)]
+#[DiscriminatorMap([
+    'entite' => Entite::class,
+    'professionnel' => Professionnel::class,
+    'etablissement' => Etablissement::class
+])]
+class Entite
+{
+
+    use TraitEntity; 
+
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    private ?int $id = null;
+
+
+   
+    #[ORM\OneToOne(inversedBy: 'user', cascade: ['persist', 'remove'])]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?User $user = null;
+
+   
+    private ?Entite $entite = null;
+
+    #[ORM\Column]
+    private ?bool $appartenirOrganisation = null;
+
+    /**
+     * @var Collection<int, Organisation>
+     */
+    #[ORM\OneToMany(targetEntity: Organisation::class, mappedBy: 'entite')]
+    private Collection $organisations;
+
+    public function __construct()
+    {
+        $this->organisations = new ArrayCollection();
+    }
+
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
+ 
+
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
+
+    public function setUser(User $user): static
+    {
+        $this->user = $user;
+
+        return $this;
+    }
+
+
+    public function isAppartenirOrganisation(): ?bool
+    {
+        return $this->appartenirOrganisation;
+    }
+
+    public function setAppartenirOrganisation(bool $appartenirOrganisation): static
+    {
+        $this->appartenirOrganisation = $appartenirOrganisation;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Organisation>
+     */
+    public function getOrganisations(): Collection
+    {
+        return $this->organisations;
+    }
+
+    public function addOrganisation(Organisation $organisation): static
+    {
+        if (!$this->organisations->contains($organisation)) {
+            $this->organisations->add($organisation);
+            $organisation->setEntite($this);
+        }
+
+        return $this;
+    }
+
+    public function removeOrganisation(Organisation $organisation): static
+    {
+        if ($this->organisations->removeElement($organisation)) {
+            // set the owning side to null (unless already changed)
+            if ($organisation->getEntite() === $this) {
+                $organisation->setEntite(null);
+            }
+        }
+
+        return $this;
+    }
+
+}

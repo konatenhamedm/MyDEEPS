@@ -1,0 +1,62 @@
+# Configuration pour le Hub Mercure.rocks, plus d'infos sur https://mercure.rocks/docs/hub/config
+{
+    # Placeholder pour des options globales Caddy
+    {$GLOBAL_OPTIONS}
+}
+
+# Placeholder pour de la configuration additionnelle de Caddy
+{$CADDY_EXTRA_CONFIG}
+
+# Configuration du serveur, utilisant localhost comme valeur par défaut
+{$SERVER_NAME:localhost} {
+    log {
+        format filter {
+            fields {
+                request>uri query {
+                    replace authorization REDACTED
+                }
+            }
+        }
+    }
+
+    # Activer la compression pour les réponses
+    encode zstd gzip
+
+    # Configuration du hub Mercure
+    mercure {
+        # Transport à utiliser (par défaut Bolt)
+        transport_url {$MERCURE_TRANSPORT_URL:bolt://mercure.db}
+        
+        # Clé JWT pour le publisher
+        publisher_jwt {env.MERCURE_PUBLISHER_JWT_KEY} {env.MERCURE_PUBLISHER_JWT_ALG}
+        
+        # Clé JWT pour le subscriber
+        subscriber_jwt {env.MERCURE_SUBSCRIBER_JWT_KEY} {env.MERCURE_SUBSCRIBER_JWT_ALG}
+        
+        # Configuration permissive pour l'environnement de développement
+        cors_origins *
+        publish_origins *
+        demo
+        anonymous
+        subscriptions
+        
+        # Directives supplémentaires
+        {$MERCURE_EXTRA_DIRECTIVES}
+    }
+
+    # Placeholder pour des directives supplémentaires du serveur
+    {$CADDY_SERVER_EXTRA_DIRECTIVES}
+
+    # Rediriger la racine vers l'interface utilisateur de Mercure
+    redir / /.well-known/mercure/ui/
+
+    # Réponse de vérification de santé
+    respond /healthz 200
+
+    # Réponse pour les robots.txt
+    respond /robots.txt `User-agent: *
+Disallow: /`
+
+    # Réponse par défaut pour les routes non trouvées
+    respond "Not Found" 404
+}

@@ -1,0 +1,84 @@
+<?php
+
+namespace App\Entity;
+
+use App\Repository\OrganisationRepository;
+use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups as Group;
+
+
+#[ORM\Entity(repositoryClass: OrganisationRepository::class)]
+class Organisation
+{
+    use TraitEntity; 
+
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    private ?int $id = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $nom = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $numero = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $annee = null;
+
+    #[ORM\ManyToOne(inversedBy: 'organisations')]
+    private ?Entite $entite = null;
+
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
+    public function getNom(): ?string
+    {
+        return $this->nom;
+    }
+
+    public function setNom(?string $nom): static
+    {
+        $this->nom = $nom;
+
+        return $this;
+    }
+
+    public function getNumero(): ?string
+    {
+        return $this->numero;
+    }
+
+    public function setNumero(?string $numero): static
+    {
+        $this->numero = $numero;
+
+        return $this;
+    }
+
+    public function getAnnee(): ?string
+    {
+        return $this->annee;
+    }
+
+    public function setAnnee(?string $annee): static
+    {
+        $this->annee = $annee;
+
+        return $this;
+    }
+
+    public function getEntite(): ?Entite
+    {
+        return $this->entite;
+    }
+
+    public function setEntite(?Entite $entite): static
+    {
+        $this->entite = $entite;
+
+        return $this;
+    }
+}
