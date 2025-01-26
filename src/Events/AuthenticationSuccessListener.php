@@ -45,6 +45,9 @@ class AuthenticationSuccessListener
                 'id' => $user->getId(),
                 'role' => $userData->getRoles(),
                 'username' => $userData->getUserIdentifier(),
+                'status' => $userData->getStatus(),
+                'payement' => $userData->getPayement(),
+                'type' => $userData->getTypeUser(),
             ];
            
             $event->setData($data);

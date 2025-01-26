@@ -17,31 +17,37 @@ class Alerte
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Group(["group1"])]
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'alertes')]
+    #[Group(["group1"])]
     private ?User $user = null;
 
     #[ORM\Column(type: "string", length: 255)]
+    #[Group(["group1"])]
     private string $objet;
 
     #[ORM\Column(type: Types::TEXT)]
+    #[Group(["group1"])]
     private string $message;
 
-    #[ORM\Column(type: "string", length: 255)]
-    private string $destinateur;
 
     #[ORM\Column(type: "string", length: 255)]
+    #[Group(["group1"])]
     private string $lecteur;
 
-    #[ORM\Column(type: "datetime")]
-    private \DateTimeInterface $date;
+    
+
+    #[ORM\ManyToOne(inversedBy: 'alertes')]
+    #[Group(["group1"])]
+    private ?Destinateur $destinateur = null;
 
 
     public function __construct()
     {
 
-        $this->date = new \DateTime(); // Date par défaut
+       
     }
 
 
@@ -67,16 +73,7 @@ class Alerte
         return $this;
     }
 
-    public function getDestinateur(): string
-    {
-        return $this->destinateur;
-    }
 
-    public function setDestinateur(string $destinateur): self
-    {
-        $this->destinateur = $destinateur;
-        return $this;
-    }
 
     public function getLecteur(): string
     {
@@ -89,17 +86,7 @@ class Alerte
         return $this;
     }
 
-    public function getDate(): \DateTimeInterface
-    {
-        return $this->date;
-    }
-
-    public function setDate(\DateTimeInterface $date): self
-    {
-        $this->date = $date;
-        return $this;
-    }
-
+    
     public function getId(): ?int
     {
         return $this->id;
@@ -113,6 +100,18 @@ class Alerte
     public function setUser(?User $user): static
     {
         $this->user = $user;
+
+        return $this;
+    }
+
+    public function getDestinateur(): ?Destinateur
+    {
+        return $this->destinateur;
+    }
+
+    public function setDestinateur(?Destinateur $destinateur): static
+    {
+        $this->destinateur = $destinateur;
 
         return $this;
     }

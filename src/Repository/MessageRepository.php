@@ -32,6 +32,21 @@ class MessageRepository extends ServiceEntityRepository
             $this->getEntityManager()->flush();
         }
     }
+
+    /**
+     * Récupère les messages entre deux utilisateurs
+     */
+    public function findConversation(string $sender, string $receiver): array
+    {
+        return $this->createQueryBuilder('m')
+            ->where('(m.sender = :sender AND m.receiver = :receiver)')
+            ->orWhere('(m.sender = :receiver AND m.receiver = :sender)')
+            ->setParameter('sender', $sender)
+            ->setParameter('receiver', $receiver)
+            ->orderBy('m.createdAt', 'ASC') // Trie les messages du plus ancien au plus récent
+            ->getQuery()
+            ->getResult();
+    }
     //    /**
     //     * @return Message[] Returns an array of Message objects
     //     */

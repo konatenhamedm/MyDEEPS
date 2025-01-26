@@ -48,19 +48,20 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Group(["group1"])]
+    #[Group(["group1","group_user"])]
     private ?int $id = null;
 
     #[ORM\Column(type: 'string', unique: true, nullable: true)]
-    #[Group(["group1"])]
+    #[Group(["group1","group_user"])]
     private ?string $username = null;
 
     #[ORM\Column(type: 'string', unique: true, nullable: true)]
     #[Assert\Email]
-    #[Group(["group1"])]
+    #[Group(["group1","group_user"])]
     private ?string $email = null;
 
     #[ORM\Column]
+    #[Group(["group_user"])]
     private array $roles = [];
 
     #[ORM\Column]
@@ -96,18 +97,23 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?Fichier $avatar = null;
 
     #[ORM\Column(length: 255)]
+    #[Group(["group_user"])]
     private ?string $nom = null;
 
     #[ORM\Column(length: 255)]
+    #[Group(["group_user"])]
     private ?string $prenoms = null;
 
     #[ORM\Column(length: 255)]
+    #[Group(["group_user"])]
     private ?string $phone = null;
 
     #[ORM\Column(length: 255)]
+    #[Group(["group_user"])]
     private ?string $status = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group_user"])]
     private ?string $typeUser = null;
 
     #[ORM\Column]
@@ -133,8 +139,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->alertes = new ArrayCollection();
         $this->articles = new ArrayCollection();
         $this->commentaires = new ArrayCollection();
-        $this->status = "ENABLE"; //ACTIVE  ACCEPT
-        $this->payement = "init_payement"; // payed payed-inifinty
+        if(in_array("ROLE_ADMIN", $this->getRoles())){
+
+            $this->status = "ACCEPT"; //ACTIVE  ACCEPT
+            $this->payement = "payed_inifinty"; // payed payed-inifinty
+        }else{
+            $this->status = "ENABLE"; //ACTIVE  ACCEPT
+            $this->payement = "init_payement"; // payed payed-inifinty
+
+        }
         $this->messages = new ArrayCollection(); 
     }
 
@@ -381,7 +394,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function isPayement(): ?string
+    public function getPayement(): ?string
     {
         return $this->payement;
     }

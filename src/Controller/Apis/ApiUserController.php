@@ -126,28 +126,114 @@ class ApiUserController extends ApiInterface
     public function create(Request $request, UserRepository $userRepository): Response
     {
 
-        $data = json_decode($request->getContent(), true);
-        $user = new User();
-        $user->setUsername($data['username']);
-        $user->setEmail($data['email']);
-        $user->setPassword($this->hasher->hashPassword($user,  $data['password']));
-        $user->setNom($data['nom']);
-        $user->setPrenoms($data['prenoms']);
-        $user->setPhone($data['phone']);
-        $user->setRoles(['ROLE_ADMIN']);
-        $user->setCreatedBy($this->userRepository->find($data['userUpdate']));
-        $user->setUpdatedBy($this->userRepository->find($data['userUpdate']));
-        $errorResponse = $data['password'] !== $data['confirmPassword'] ?  $this->errorResponse($user,"Les mots de passe ne sont pas identiques") :  $this->errorResponse($user) ;
-        if ($errorResponse !== null) {
-            return $errorResponse; // Retourne la réponse d'erreur si des erreurs sont présentes
-        } else {
+        try {
+            $data = json_decode($request->getContent(), true);
+            $user = new User();
+            $user->setUsername($data['username']);
+            $user->setEmail($data['email']);
+            $user->setPassword($this->hasher->hashPassword($user,  $data['password']));
+            $user->setNom($data['nom']);
+            $user->setPrenoms($data['prenoms']);
+            $user->setPhone($data['phone']);
+            $user->setRoles(['ROLE_ADMIN']);
+            $user->setTypeUser(User::TYPE['ADMINISTRATEUR']);
+            $user->setStatus(User::STATUS['ACCEPT']);
+            $user->setPayement(User::PAYEMENT['payed_inifinty']);
+            $user->setCreatedBy($this->userRepository->find($data['userUpdate']));
+            $user->setUpdatedBy($this->userRepository->find($data['userUpdate']));
+            $errorResponse = $data['password'] !== $data['confirmPassword'] ?  $this->errorResponse($user, "Les mots de passe ne sont pas identiques") :  $this->errorResponse($user);
+            if ($errorResponse !== null) {
+                return $errorResponse; // Retourne la réponse d'erreur si des erreurs sont présentes
+            } else {
 
-            $userRepository->add($user, true);
+                $userRepository->add($user, true);
+            }
+
+            $response = $this->responseData($user, 'group_user', ['Content-Type' => 'application/json']);
+        } catch (\Throwable $th) {
+            $this->setMessage("");
+            $response = $this->response('[]');
         }
 
-        return $this->responseData($user, 'group1', ['Content-Type' => 'application/json']);
+        return $response;
     }
 
+    #[Route('/membre/create',  methods: ['POST'])]
+    /**
+     * Permet de créer un(e) user.
+     */
+    #[OA\Post(
+        summary: "Creation user memnbre",
+        description: "Creation user memnbre",
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                properties: [
+
+                    new OA\Property(property: "password", type: "string"),
+                    new OA\Property(property: "nom", type: "string"),
+                    new OA\Property(property: "prenoms", type: "string"),
+                    new OA\Property(property: "phone", type: "string"),
+                    new OA\Property(property: "confirmPassword", type: "string"),
+                    new OA\Property(property: "email", type: "string"),
+
+                ],
+                type: "object"
+            )
+        ),
+        responses: [
+            new OA\Response(response: 401, description: "Invalid credentials")
+        ]
+    )]
+    #[OA\Tag(name: 'user')]
+    #[Security(name: 'Bearer')]
+    public function createMembre(Request $request, UserRepository $userRepository): Response
+    {
+
+        try {
+            $data = json_decode($request->getContent(), true);
+            $user = new User();
+            $user->setUsername($data['nom'] . " " . $this->numero());
+            $user->setEmail($data['email']);
+            $user->setPassword($this->hasher->hashPassword($user,  $data['password']));
+            $user->setNom($data['nom']);
+            $user->setPrenoms($data['prenoms']);
+            $user->setPhone($data['phone']);
+            $user->setRoles(['ROLE_MEMBRE']);
+
+            $errorResponse = $data['password'] !== $data['confirmPassword'] ?  $this->errorResponse($user, "Les mots de passe ne sont pas identiques") :  $this->errorResponse($user);
+            if ($errorResponse !== null) {
+                return $errorResponse; // Retourne la réponse d'erreur si des erreurs sont présentes
+            } else {
+
+                $userRepository->add($user, true);
+            }
+
+            $response = $this->responseData($user, 'group_user', ['Content-Type' => 'application/json']);
+        } catch (\Throwable $th) {
+            $this->setMessage("");
+            $response = $this->response('[]');
+        }
+
+        return $response;
+    }
+
+
+    private function numero()
+    {
+
+        $query = $this->em->createQueryBuilder();
+        $query->select("count(a.id)")
+            ->from(User::class, 'a');
+
+        $nb = $query->getQuery()->getSingleScalarResult();
+        if ($nb == 0) {
+            $nb = 1;
+        } else {
+            $nb = $nb + 1;
+        }
+        return str_pad($nb, 3, '0', STR_PAD_LEFT);
+    }
 
     #[Route('/admin/update/{id}', methods: ['PUT', 'POST'])]
     #[OA\Post(
@@ -168,12 +254,12 @@ class ApiUserController extends ApiInterface
                         new OA\Property(property: "email", type: "string"),
                         new OA\Property(property: "avatar", type: "string", format: "binary"),
                         new OA\Property(property: "userUpdate", type: "string"),
-                       
+
                     ],
                     type: "object"
                 )
             )
-         
+
         ),
         responses: [
             new OA\Response(response: 401, description: "Invalid credentials")
@@ -193,14 +279,15 @@ class ApiUserController extends ApiInterface
             if ($user != null) {
 
 
-                $user->setUsername($data['username']);
-                $user->setEmail($data['email']);
-                if($data['password'] != null)
-                    $user->setPassword($this->hasher->hashPassword($user,  $data['password']));
-                $user->setNom($data['nom']);
-                $user->setPrenoms($data['prenoms']);
-                $user->setPhone($data['phone']);
-                $user->setUpdatedBy($this->userRepository->find($data->userUpdate));
+                $user->setUsername($request->get('username'));
+                $user->setEmail($request->get('email'));
+                if ($request->get('password') != "")
+                    $user->setPassword($this->hasher->hashPassword($user,  $request->get('password')));
+                $user->setNom($request->get('nom'));
+                $user->setPrenoms($request->get('prenoms'));
+                $user->setPhone($request->get('phone'));
+                $user->setStatus(User::STATUS['ACCEPT']);
+                $user->setUpdatedBy($this->userRepository->find($request->get('userUpdate')));
                 $user->setUpdatedAt(new \DateTime());
 
                 if ($uploadedFile) {
@@ -221,7 +308,7 @@ class ApiUserController extends ApiInterface
 
 
                 // On retourne la confirmation
-                $response = $this->responseData($user, 'group1', ['Content-Type' => 'application/json']);
+                $response = $this->responseData($user, 'group_user', ['Content-Type' => 'application/json']);
             } else {
                 $this->setMessage("Cette ressource est inexsitante");
                 $this->setStatusCode(300);
@@ -234,7 +321,136 @@ class ApiUserController extends ApiInterface
         return $response;
     }
 
-    //const TAB_ID = 'parametre-tabs';
+    #[Route('/membre/update/{id}', methods: ['PUT', 'POST'])]
+    #[OA\Post(
+        summary: "Modification user membre",
+        description: "Permet de modifier un user MEMBRE.",
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\MediaType(
+                mediaType: "multipart/form-data",
+                schema: new OA\Schema(
+                    properties: [
+                        new OA\Property(property: "password", type: "string"),
+                        new OA\Property(property: "nom", type: "string"),
+                        new OA\Property(property: "prenoms", type: "string"),
+                        new OA\Property(property: "phone", type: "string"),
+                        new OA\Property(property: "email", type: "string"),
+                        new OA\Property(property: "avatar", type: "string", format: "binary"),
+                        new OA\Property(property: "userUpdate", type: "string"),
+
+                    ],
+                    type: "object"
+                )
+            )
+
+        ),
+        responses: [
+            new OA\Response(response: 401, description: "Invalid credentials")
+        ]
+    )]
+    #[OA\Tag(name: 'user')]
+    #[Security(name: 'Bearer')]
+    public function updateMembre(Request $request, User $user, UserRepository $userRepository): Response
+    {
+        try {
+            $data = json_decode($request->getContent());
+            $names = 'document_' . '01';
+            $filePrefix  = str_slug($names);
+            $filePath = $this->getUploadDir(self::UPLOAD_PATH, true);
+            $uploadedFile = $request->files->get('avatar');
+
+            if ($user != null) {
+
+
+
+                $user->setEmail($request->get('email'));
+                if ($request->get('password') != "")
+                    $user->setPassword($this->hasher->hashPassword($user,  $request->get('password')));
+                $user->setNom($request->get('nom'));
+                $user->setPrenoms($request->get('prenoms'));
+                $user->setPhone($request->get('phone'));
+                $user->setUpdatedBy($this->userRepository->find($request->get('userUpdate')));
+                $user->setUpdatedAt(new \DateTime());
+
+                if ($uploadedFile) {
+                    $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedFile, self::UPLOAD_PATH);
+                    if ($fichier) {
+                        $user->setAvatar($fichier);
+                    }
+                }
+
+                $errorResponse = $this->errorResponse($user);
+
+                if ($errorResponse !== null) {
+                    return $errorResponse; // Retourne la réponse d'erreur si des erreurs sont présentes
+                } else {
+                    $userRepository->add($user, true);
+                }
+
+
+
+                // On retourne la confirmation
+                $response = $this->responseData($user, 'group_user', ['Content-Type' => 'application/json']);
+            } else {
+                $this->setMessage("Cette ressource est inexsitante");
+                $this->setStatusCode(300);
+                $response = $this->response('[]');
+            }
+        } catch (\Exception $exception) {
+            $this->setMessage("");
+            $response = $this->response('[]');
+        }
+        return $response;
+    }
+
+    #[Route('/membre/mot/passe/oublie', methods: ['PUT', 'POST'])]
+    #[OA\Post(
+        summary: "Mot passe oublié",
+        description: "Permet de modifier le mot de passe.",
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: "newPassword", type: "string"),
+                    new OA\Property(property: "email", type: "string"),
+
+                ],
+                type: "object"
+            )
+        ),
+        responses: [
+            new OA\Response(response: 401, description: "Invalid credentials")
+        ]
+    )]
+    #[OA\Tag(name: 'user')]
+    #[Security(name: 'Bearer')]
+    public function motPasseOublie(Request $request, UserRepository $userRepository): Response
+    {
+        try {
+            $data = json_decode($request->getContent());
+
+            $user = $userRepository->findOneBy(['email' => $data["email"]]);
+
+            if ($user != null) {
+                $user->setPassword($this->hasher->hashPassword($user, $data["newPassword"]));
+                $userRepository->add($user, true);
+                $response = $this->responseData($user, 'group_user', ['Content-Type' => 'application/json']);
+            } else {
+                $this->setMessage("Cet email n'existe pas");
+                $this->setStatusCode(300);
+                $response = $this->response('[]');
+            }
+
+        } catch (\Throwable $th) {
+            $this->setMessage("erreur serveur");
+            $response = $this->response('[]');
+        }
+
+        return $response;
+    }
+
+
 
     #[Route('/delete/{id}',  methods: ['DELETE'])]
     /**

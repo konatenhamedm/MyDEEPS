@@ -101,8 +101,8 @@ class ApiArticleController extends ApiInterface
      * Permet de créer un(e) article.
      */
     #[OA\Post(
-        summary: "Authentification admin",
-        description: "Génère un token JWT pour les administrateurs.",
+        summary: "Permet de créer un(e) article.",
+        description: "Permet de créer un(e) article.",
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\MediaType(

@@ -1,9 +1,9 @@
 api_login_check:
-    path: /api/login_check_user_front
+    path: /api/login_check
     methods: ['POST']
 
-api_api_login_check:
-    path: /api/auth/login_check_admin
+api_auth_login_check:
+    path: /api/auth/login_check
     methods: ['POST']
     
 controllers:

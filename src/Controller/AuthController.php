@@ -12,9 +12,9 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 class AuthController extends AbstractController
 {
-    #[Route('/api/login_check_user_front', name: 'api_login_check', methods: ['POST'])]
+    #[Route('/api/login_check', name: 'api_login_check', methods: ['POST'])]
     #[OA\Post(
-        summary: "Authentification utilisateur",
+        summary: "Authentification utilisateur membre",
         description: "Génère un token JWT pour les utilisateurs du front.",
         requestBody: new OA\RequestBody(
             required: true,
@@ -40,12 +40,13 @@ class AuthController extends AbstractController
             new OA\Response(response: 401, description: "Invalid credentials")
         ]
     )]
+    #[OA\Tag(name: 'authentification')]
     public function loginUser(Request $request): JsonResponse
     {
         return new JsonResponse(['message' => 'Cette route est gérée par LexikJWTAuthenticationBundle'], 200);
     }
 
-    #[Route('/api/auth/login_check_admin', name: 'api_api_login_check', methods: ['POST'])]
+    #[Route('/api/auth/login_check', name: 'api_auth_login_check', methods: ['POST'])]
     #[OA\Post(
         summary: "Authentification admin",
         description: "Génère un token JWT pour les administrateurs.",
@@ -73,6 +74,7 @@ class AuthController extends AbstractController
             new OA\Response(response: 401, description: "Invalid credentials")
         ]
     )]
+    #[OA\Tag(name: 'authentification')]
     public function loginAdmin(Request $request): JsonResponse
     {
         return new JsonResponse(['message' => 'Cette route est gérée par LexikJWTAuthenticationBundle'], 200);

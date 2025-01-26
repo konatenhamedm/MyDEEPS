@@ -17,15 +17,19 @@ class Message
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Group(["group1"])]
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'messages')]
+    #[Group(["group1"])]
     private ?User $sender = null;
 
     #[ORM\ManyToOne(inversedBy: 'messages')]
+    #[Group(["group1"])]
     private ?User $receiver = null;
 
     #[ORM\Column(type: Types::TEXT)]
+    #[Group(["group1"])]
     private ?string $message = null;
 
     public function getId(): ?int

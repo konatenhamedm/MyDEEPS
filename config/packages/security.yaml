@@ -25,9 +25,9 @@ security:
         login:
             pattern: ^/api/login
             stateless: true
-            provider: app_user_admin_provider
+            provider: app_user_front_provider
             json_login:
-                check_path: /api/login_check_admin 
+                check_path: /api/login_check 
                 success_handler: lexik_jwt_authentication.handler.authentication_success
                 failure_handler: lexik_jwt_authentication.handler.authentication_failure
         
@@ -35,9 +35,9 @@ security:
         login1:
             pattern: ^/api/auth/login
             stateless: true
-            provider: app_user_front_provider
+            provider: app_user_admin_provider
             json_login:
-                check_path: /api/auth/login_check_user_front 
+                check_path: /api/auth/login_check 
                 success_handler: lexik_jwt_authentication.handler.authentication_success
                 failure_handler: lexik_jwt_authentication.handler.authentication_failure
 
@@ -48,7 +48,7 @@ security:
 
         # Protected API endpoints with JWT
         api:  # Correction d'indentation ici
-            pattern: ^/api
+            pattern: ^/api/
             stateless: true
             jwt: ~
             provider: app_users
