@@ -3,12 +3,15 @@
 namespace App\Controller\Apis\Config;
 
 use App\Controller\FileTrait;
+use App\Repository\UserRepository;
 use App\Service\Menu;
 use App\Service\Utils;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\PasswordHasher\PasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
@@ -24,11 +27,13 @@ class ApiInterface extends AbstractController
 {
     use FileTrait;
 
-    protected const UPLOAD_PATH = 'media_entreprise';
+    protected const UPLOAD_PATH = 'media_deeps';
     protected $security;
     protected $validator;
     protected $userInterface;
     protected  $hasher;
+    protected  $userRepository;
+    protected  $utils;
     //protected  $utils;
     protected $em;
 
@@ -36,13 +41,16 @@ class ApiInterface extends AbstractController
 
     protected $serializer;
 
-    public function __construct(EntityManagerInterface $em, HttpClientInterface $client, SerializerInterface $serializer, ValidatorInterface $validator)
+    public function __construct(EntityManagerInterface $em, Utils $utils,UserPasswordHasherInterface $hasher, HttpClientInterface $client, SerializerInterface $serializer, ValidatorInterface $validator, UserRepository $userRepository)
     {
 
         $this->client = $client;
         $this->em = $em;
         $this->serializer = $serializer;
         $this->validator = $validator;
+        $this->userRepository = $userRepository;
+        $this->utils = $utils;
+        $this->hasher = $hasher;
     }
 
 
@@ -224,7 +232,7 @@ class ApiInterface extends AbstractController
         return $response;
     }
 
-    public function errorResponse($DTO): ?JsonResponse
+    public function errorResponse($DTO,string $customMessage = ''): ?JsonResponse
     {
         $errors = $this->validator->validate($DTO);
 
@@ -234,6 +242,17 @@ class ApiInterface extends AbstractController
                 $errorMessages[] = $error->getMessage();
             }
 
+            //array_push($arerrorMessagesray, 4)
+
+            $response = [
+                'code' => 400,
+                'message' => 'Validation failed',
+                'errors' => $errorMessages
+            ];
+            
+            return new JsonResponse($response, 400);
+        }elseif ($customMessage != '') {
+            $errorMessages[] = $customMessage;
             $response = [
                 'code' => 400,
                 'message' => 'Validation failed',

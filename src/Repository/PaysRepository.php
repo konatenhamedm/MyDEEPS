@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\DTO\PaysDTO;
 use App\Entity\Pays;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -17,6 +18,14 @@ class PaysRepository extends ServiceEntityRepository
     }
 
     public function add(Pays $entity, bool $flush = false): void
+    {
+        $this->getEntityManager()->persist($entity);
+
+        if ($flush) {
+            $this->getEntityManager()->flush();
+        }
+    }
+    public function addDTO(PaysDTO $entity, bool $flush = false): void
     {
         $this->getEntityManager()->persist($entity);
 

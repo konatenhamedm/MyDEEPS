@@ -12,25 +12,52 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 use Doctrine\ORM\Mapping\Table;
 use Symfony\Component\Serializer\Annotation\Groups as Group;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
 #[Table(name: 'utilisateur')]
+#[UniqueEntity(fields: 'email', message: 'Ce email est déjà utilisé')]
+#[UniqueEntity(fields: 'username', message: 'Ce username est déjà utilisé')]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
+
+    const STATUS = [
+        'ENABLE' => "ENABLE",
+        'ACTIVE' => "ACTIVE",
+        'ACCEPT' => "ACCEPT",
+
+    ];
+
+    const PAYEMENT = [
+        'init_payement' => "init_payement",
+        'payed' => "payed",
+        'payed_inifinty' => "payed_inifinty",
+
+    ];
+    const TYPE = [
+        'ETABLISSEMENT' => "ETABLISSEMENT",
+        'PROFESSIONNEL' => "PROFESSIONNEL",
+        'ADMINISTRATEUR' => "ADMINISTRATEUR",
+    ];
+
+
     use TraitEntity; 
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Group(["group1"])]
     private ?int $id = null;
 
     #[ORM\Column(type: 'string', unique: true, nullable: true)]
+    #[Group(["group1"])]
     private ?string $username = null;
 
     #[ORM\Column(type: 'string', unique: true, nullable: true)]
     #[Assert\Email]
+    #[Group(["group1"])]
     private ?string $email = null;
 
     #[ORM\Column]
@@ -92,6 +119,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $reason = null;
 
+
+
     /**
      * @var Collection<int, Message>
      */
@@ -106,8 +135,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->commentaires = new ArrayCollection();
         $this->status = "ENABLE"; //ACTIVE  ACCEPT
         $this->payement = "init_payement"; // payed payed-inifinty
-        $this->messages = new ArrayCollection();
-      
+        $this->messages = new ArrayCollection(); 
     }
 
 
@@ -120,6 +148,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getUserIdentifier(): string
     {
         return $this->email ?? $this->username ?? '';
+    }
+    public function setEmail(?string $email): self
+    {
+        $this->email = $email;
+        return $this;
+    }
+    public function getEmail() : ?string
+    {
+        return $this->email ?? '';
     }
 
     public function getRoles(): array

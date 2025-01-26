@@ -3,10 +3,10 @@
 namespace  App\Controller\Apis;
 
 use App\Controller\Apis\Config\ApiInterface;
-use App\DTO\PaysDTO;
+use App\DTO\CiviliteDTO;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use App\Entity\Pays;
-use App\Repository\PaysRepository;
+use App\Entity\Civilite;
+use App\Repository\CiviliteRepository;
 use App\Repository\UserRepository;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -16,15 +16,15 @@ use Nelmio\ApiDocBundle\Annotation\Security;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 
-#[Route('/api/pays')]
-class ApiPaysController extends ApiInterface
+#[Route('/api/civilite')]
+class ApiCiviliteController extends ApiInterface
 {
 
 
 
     #[Route('/', methods: ['GET'])]
     /**
-     * Retourne la liste des pays.
+     * Retourne la liste des civilites.
      * 
      */
     #[OA\Response(
@@ -32,19 +32,19 @@ class ApiPaysController extends ApiInterface
         description: 'Returns the rewards of an user',
         content: new OA\JsonContent(
             type: 'array',
-            items: new OA\Items(ref: new Model(type: Pays::class, groups: ['full']))
+            items: new OA\Items(ref: new Model(type: Civilite::class, groups: ['full']))
         )
     )]
-    #[OA\Tag(name: 'pays')]
+    #[OA\Tag(name: 'civilite')]
     // #[Security(name: 'Bearer')]
-    public function index(PaysRepository $paysRepository): Response
+    public function index(CiviliteRepository $civiliteRepository): Response
     {
         try {
 
-            $pays = $paysRepository->findAll();
+            $civilites = $civiliteRepository->findAll();
 
             $context = [AbstractNormalizer::GROUPS => 'group1'];
-            $json = $this->serializer->serialize($pays, 'json', $context);
+            $json = $this->serializer->serialize($civilites, 'json', $context);
 
             return new JsonResponse(['code' => 200, 'data' => json_decode($json)]);
         } catch (\Exception $exception) {
@@ -59,14 +59,14 @@ class ApiPaysController extends ApiInterface
 
     #[Route('/get/one/{id}', methods: ['GET'])]
     /**
-     * Affiche un(e) pays en offrant un identifiant.
+     * Affiche un(e) civilite en offrant un identifiant.
      */
     #[OA\Response(
         response: 200,
-        description: 'Affiche un(e) pays en offrant un identifiant',
+        description: 'Affiche un(e) civilite en offrant un identifiant',
         content: new OA\JsonContent(
             type: 'array',
-            items: new OA\Items(ref: new Model(type: Pays::class, groups: ['full']))
+            items: new OA\Items(ref: new Model(type: Civilite::class, groups: ['full']))
         )
     )]
     #[OA\Parameter(
@@ -74,17 +74,17 @@ class ApiPaysController extends ApiInterface
         in: 'query',
         schema: new OA\Schema(type: 'string')
     )]
-    #[OA\Tag(name: 'pays')]
+    #[OA\Tag(name: 'civilite')]
     //#[Security(name: 'Bearer')]
-    public function getOne(?Pays $pays)
+    public function getOne(?Civilite $civilite)
     {
         try {
-            if ($pays) {
-                $response = $this->response($pays);
+            if ($civilite) {
+                $response = $this->response($civilite);
             } else {
                 $this->setMessage('Cette ressource est inexistante');
                 $this->setStatusCode(300);
-                $response = $this->response($pays);
+                $response = $this->response($civilite);
             }
         } catch (\Exception $exception) {
             $this->setMessage($exception->getMessage());
@@ -98,7 +98,7 @@ class ApiPaysController extends ApiInterface
 
     #[Route('/create',  methods: ['POST'])]
     /**
-     * Permet de créer un(e) pays.
+     * Permet de créer un(e) civilite.
      */
     #[OA\Post(
         summary: "Authentification admin",
@@ -108,6 +108,7 @@ class ApiPaysController extends ApiInterface
             content: new OA\JsonContent(
                 properties: [
                     new OA\Property(property: "libelle", type: "string"),
+                    new OA\Property(property: "code", type: "string"),
                     new OA\Property(property: "userUpdate", type: "string"),
 
                 ],
@@ -118,37 +119,40 @@ class ApiPaysController extends ApiInterface
             new OA\Response(response: 401, description: "Invalid credentials")
         ]
     )]
-    #[OA\Tag(name: 'pays')]
+    #[OA\Tag(name: 'civilite')]
     #[Security(name: 'Bearer')]
-    public function create(Request $request, PaysRepository $paysRepository): Response
+    public function create(Request $request, CiviliteRepository $civiliteRepository): Response
     {
 
         $data = json_decode($request->getContent(), true);
-        $pays = new Pays();
-        $pays->setLibelle($data['libelle']);
-        $pays->setCreatedBy($this->userRepository->find($data['userUpdate']));
-        $pays->setUpdatedBy($this->userRepository->find($data['userUpdate']));
-        $errorResponse = $this->errorResponse($pays);
+        $civilite = new Civilite();
+        $civilite->setLibelle($data['libelle']);
+        $civilite->setCode($data['code']);
+        $civilite->setCreatedBy($this->userRepository->find($data['userUpdate']));
+        $civilite->setUpdatedBy($this->userRepository->find($data['userUpdate']));
+        $errorResponse = $this->errorResponse($civilite);
         if ($errorResponse !== null) {
             return $errorResponse; // Retourne la réponse d'erreur si des erreurs sont présentes
         } else {
 
-            $paysRepository->add($pays, true);
+            $civiliteRepository->add($civilite, true);
         }
 
-        return $this->responseData($pays, 'group1', ['Content-Type' => 'application/json']);
+        return $this->responseData($civilite, 'group1', ['Content-Type' => 'application/json']);
     }
 
 
     #[Route('/update/{id}', methods: ['PUT', 'POST'])]
     #[OA\Post(
-        summary: "Creation de pays",
-        description: "Permet de créer un pays.",
+        summary: "Creation de civilite",
+        description: "Permet de créer un civilite.",
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
                 properties: [
                     new OA\Property(property: "libelle", type: "string"),
+                    new OA\Property(property: "code", type: "string"),
+
                     new OA\Property(property: "userUpdate", type: "string"),
 
                 ],
@@ -159,30 +163,30 @@ class ApiPaysController extends ApiInterface
             new OA\Response(response: 401, description: "Invalid credentials")
         ]
     )]
-    #[OA\Tag(name: 'pays')]
+    #[OA\Tag(name: 'civilite')]
     #[Security(name: 'Bearer')]
-    public function update(Request $request, Pays $pays, PaysRepository $paysRepository): Response
+    public function update(Request $request, Civilite $civilite, CiviliteRepository $civiliteRepository): Response
     {
         try {
             $data = json_decode($request->getContent());
-            if ($pays != null) {
+            if ($civilite != null) {
 
-                $pays->setLibelle($data->libelle);
-                $pays->setUpdatedBy($this->userRepository->find($data->userUpdate));
-                $pays->setUpdatedAt(new \DateTime());
-
-                $errorResponse = $this->errorResponse($pays);
+                $civilite->setLibelle($data->libelle);
+                $civilite->setCode($data->code);
+                $civilite->setUpdatedBy($this->userRepository->find($data->userUpdate));
+                $civilite->setUpdatedAt(new \DateTime());
+                $errorResponse = $this->errorResponse($civilite);
 
                 if ($errorResponse !== null) {
                     return $errorResponse; // Retourne la réponse d'erreur si des erreurs sont présentes
                 } else {
-                    $paysRepository->add($pays, true);
+                    $civiliteRepository->add($civilite, true);
                 }
 
 
 
                 // On retourne la confirmation
-                $response = $this->responseData($pays, 'group1', ['Content-Type' => 'application/json']);
+                $response = $this->responseData($civilite, 'group1', ['Content-Type' => 'application/json']);
             } else {
                 $this->setMessage("Cette ressource est inexsitante");
                 $this->setStatusCode(300);
@@ -199,29 +203,29 @@ class ApiPaysController extends ApiInterface
 
     #[Route('/delete/{id}',  methods: ['DELETE'])]
     /**
-     * permet de supprimer un(e) pays.
+     * permet de supprimer un(e) civilite.
      */
     #[OA\Response(
         response: 200,
-        description: 'permet de supprimer un(e) pays',
+        description: 'permet de supprimer un(e) civilite',
         content: new OA\JsonContent(
             type: 'array',
-            items: new OA\Items(ref: new Model(type: Pays::class, groups: ['full']))
+            items: new OA\Items(ref: new Model(type: Civilite::class, groups: ['full']))
         )
     )]
-    #[OA\Tag(name: 'pays')]
+    #[OA\Tag(name: 'civilite')]
     //#[Security(name: 'Bearer')]
-    public function delete(Request $request, Pays $pays, PaysRepository $villeRepository): Response
+    public function delete(Request $request, Civilite $civilite, CiviliteRepository $villeRepository): Response
     {
         try {
 
-            if ($pays != null) {
+            if ($civilite != null) {
 
-                $villeRepository->remove($pays, true);
+                $villeRepository->remove($civilite, true);
 
                 // On retourne la confirmation
                 $this->setMessage("Operation effectuées avec success");
-                $response = $this->response($pays);
+                $response = $this->response($civilite);
             } else {
                 $this->setMessage("Cette ressource est inexistante");
                 $this->setStatusCode(300);
@@ -236,28 +240,28 @@ class ApiPaysController extends ApiInterface
 
     #[Route('/delete/all',  methods: ['DELETE'])]
     /**
-     * Permet de supprimer plusieurs pays.
+     * Permet de supprimer plusieurs civilite.
      */
     #[OA\Response(
         response: 200,
         description: 'Returns the rewards of an user',
         content: new OA\JsonContent(
             type: 'array',
-            items: new OA\Items(ref: new Model(type: Pays::class, groups: ['full']))
+            items: new OA\Items(ref: new Model(type: Civilite::class, groups: ['full']))
         )
     )]
-    #[OA\Tag(name: 'pays')]
+    #[OA\Tag(name: 'civilite')]
     #[Security(name: 'Bearer')]
-    public function deleteAll(Request $request, PaysRepository $villeRepository): Response
+    public function deleteAll(Request $request, CiviliteRepository $villeRepository): Response
     {
         try {
             $data = json_decode($request->getContent());
 
             foreach ($data->ids as $key => $value) {
-                $pays = $villeRepository->find($value['id']);
+                $civilite = $villeRepository->find($value['id']);
 
-                if ($pays != null) {
-                    $villeRepository->remove($pays);
+                if ($civilite != null) {
+                    $villeRepository->remove($civilite);
                 }
             }
             $this->setMessage("Operation effectuées avec success");

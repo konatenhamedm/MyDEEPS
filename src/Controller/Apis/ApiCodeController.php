@@ -3,10 +3,10 @@
 namespace  App\Controller\Apis;
 
 use App\Controller\Apis\Config\ApiInterface;
-use App\DTO\PaysDTO;
+use App\DTO\CodeDTO;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use App\Entity\Pays;
-use App\Repository\PaysRepository;
+use App\Entity\Code;
+use App\Repository\CodeRepository;
 use App\Repository\UserRepository;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -16,15 +16,15 @@ use Nelmio\ApiDocBundle\Annotation\Security;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 
-#[Route('/api/pays')]
-class ApiPaysController extends ApiInterface
+#[Route('/api/code')]
+class ApiCodeController extends ApiInterface
 {
 
 
 
     #[Route('/', methods: ['GET'])]
     /**
-     * Retourne la liste des pays.
+     * Retourne la liste des codes.
      * 
      */
     #[OA\Response(
@@ -32,19 +32,19 @@ class ApiPaysController extends ApiInterface
         description: 'Returns the rewards of an user',
         content: new OA\JsonContent(
             type: 'array',
-            items: new OA\Items(ref: new Model(type: Pays::class, groups: ['full']))
+            items: new OA\Items(ref: new Model(type: Code::class, groups: ['full']))
         )
     )]
-    #[OA\Tag(name: 'pays')]
+    #[OA\Tag(name: 'code')]
     // #[Security(name: 'Bearer')]
-    public function index(PaysRepository $paysRepository): Response
+    public function index(CodeRepository $codeRepository): Response
     {
         try {
 
-            $pays = $paysRepository->findAll();
+            $codes = $codeRepository->findAll();
 
             $context = [AbstractNormalizer::GROUPS => 'group1'];
-            $json = $this->serializer->serialize($pays, 'json', $context);
+            $json = $this->serializer->serialize($codes, 'json', $context);
 
             return new JsonResponse(['code' => 200, 'data' => json_decode($json)]);
         } catch (\Exception $exception) {
@@ -59,14 +59,14 @@ class ApiPaysController extends ApiInterface
 
     #[Route('/get/one/{id}', methods: ['GET'])]
     /**
-     * Affiche un(e) pays en offrant un identifiant.
+     * Affiche un(e) code en offrant un identifiant.
      */
     #[OA\Response(
         response: 200,
-        description: 'Affiche un(e) pays en offrant un identifiant',
+        description: 'Affiche un(e) code en offrant un identifiant',
         content: new OA\JsonContent(
             type: 'array',
-            items: new OA\Items(ref: new Model(type: Pays::class, groups: ['full']))
+            items: new OA\Items(ref: new Model(type: Code::class, groups: ['full']))
         )
     )]
     #[OA\Parameter(
@@ -74,17 +74,17 @@ class ApiPaysController extends ApiInterface
         in: 'query',
         schema: new OA\Schema(type: 'string')
     )]
-    #[OA\Tag(name: 'pays')]
+    #[OA\Tag(name: 'code')]
     //#[Security(name: 'Bearer')]
-    public function getOne(?Pays $pays)
+    public function getOne(?Code $code)
     {
         try {
-            if ($pays) {
-                $response = $this->response($pays);
+            if ($code) {
+                $response = $this->response($code);
             } else {
                 $this->setMessage('Cette ressource est inexistante');
                 $this->setStatusCode(300);
-                $response = $this->response($pays);
+                $response = $this->response($code);
             }
         } catch (\Exception $exception) {
             $this->setMessage($exception->getMessage());
@@ -98,7 +98,7 @@ class ApiPaysController extends ApiInterface
 
     #[Route('/create',  methods: ['POST'])]
     /**
-     * Permet de créer un(e) pays.
+     * Permet de créer un(e) code.
      */
     #[OA\Post(
         summary: "Authentification admin",
@@ -118,32 +118,33 @@ class ApiPaysController extends ApiInterface
             new OA\Response(response: 401, description: "Invalid credentials")
         ]
     )]
-    #[OA\Tag(name: 'pays')]
+    #[OA\Tag(name: 'code')]
     #[Security(name: 'Bearer')]
-    public function create(Request $request, PaysRepository $paysRepository): Response
+    public function create(Request $request, CodeRepository $codeRepository): Response
     {
 
         $data = json_decode($request->getContent(), true);
-        $pays = new Pays();
-        $pays->setLibelle($data['libelle']);
-        $pays->setCreatedBy($this->userRepository->find($data['userUpdate']));
-        $pays->setUpdatedBy($this->userRepository->find($data['userUpdate']));
-        $errorResponse = $this->errorResponse($pays);
+        $code = new Code();
+
+        $code->setCode($data['code']);
+        $code->setCreatedBy($this->userRepository->find($data['userUpdate']));
+        $code->setUpdatedBy($this->userRepository->find($data['userUpdate']));
+        $errorResponse = $this->errorResponse($code);
         if ($errorResponse !== null) {
             return $errorResponse; // Retourne la réponse d'erreur si des erreurs sont présentes
         } else {
 
-            $paysRepository->add($pays, true);
+            $codeRepository->add($code, true);
         }
 
-        return $this->responseData($pays, 'group1', ['Content-Type' => 'application/json']);
+        return $this->responseData($code, 'group1', ['Content-Type' => 'application/json']);
     }
 
 
     #[Route('/update/{id}', methods: ['PUT', 'POST'])]
     #[OA\Post(
-        summary: "Creation de pays",
-        description: "Permet de créer un pays.",
+        summary: "Creation de code",
+        description: "Permet de créer un code.",
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
@@ -159,30 +160,30 @@ class ApiPaysController extends ApiInterface
             new OA\Response(response: 401, description: "Invalid credentials")
         ]
     )]
-    #[OA\Tag(name: 'pays')]
+    #[OA\Tag(name: 'code')]
     #[Security(name: 'Bearer')]
-    public function update(Request $request, Pays $pays, PaysRepository $paysRepository): Response
+    public function update(Request $request, Code $code, CodeRepository $codeRepository): Response
     {
         try {
             $data = json_decode($request->getContent());
-            if ($pays != null) {
+            if ($code != null) {
 
-                $pays->setLibelle($data->libelle);
-                $pays->setUpdatedBy($this->userRepository->find($data->userUpdate));
-                $pays->setUpdatedAt(new \DateTime());
+                $code->setCode($data['code']);
+                $code->setUpdatedBy($this->userRepository->find($data->userUpdate));
+                $code->setUpdatedAt(new \DateTime());
 
-                $errorResponse = $this->errorResponse($pays);
+                $errorResponse = $this->errorResponse($code);
 
                 if ($errorResponse !== null) {
                     return $errorResponse; // Retourne la réponse d'erreur si des erreurs sont présentes
                 } else {
-                    $paysRepository->add($pays, true);
+                    $codeRepository->add($code, true);
                 }
 
 
 
                 // On retourne la confirmation
-                $response = $this->responseData($pays, 'group1', ['Content-Type' => 'application/json']);
+                $response = $this->responseData($code, 'group1', ['Content-Type' => 'application/json']);
             } else {
                 $this->setMessage("Cette ressource est inexsitante");
                 $this->setStatusCode(300);
@@ -199,29 +200,29 @@ class ApiPaysController extends ApiInterface
 
     #[Route('/delete/{id}',  methods: ['DELETE'])]
     /**
-     * permet de supprimer un(e) pays.
+     * permet de supprimer un(e) code.
      */
     #[OA\Response(
         response: 200,
-        description: 'permet de supprimer un(e) pays',
+        description: 'permet de supprimer un(e) code',
         content: new OA\JsonContent(
             type: 'array',
-            items: new OA\Items(ref: new Model(type: Pays::class, groups: ['full']))
+            items: new OA\Items(ref: new Model(type: Code::class, groups: ['full']))
         )
     )]
-    #[OA\Tag(name: 'pays')]
+    #[OA\Tag(name: 'code')]
     //#[Security(name: 'Bearer')]
-    public function delete(Request $request, Pays $pays, PaysRepository $villeRepository): Response
+    public function delete(Request $request, Code $code, CodeRepository $villeRepository): Response
     {
         try {
 
-            if ($pays != null) {
+            if ($code != null) {
 
-                $villeRepository->remove($pays, true);
+                $villeRepository->remove($code, true);
 
                 // On retourne la confirmation
                 $this->setMessage("Operation effectuées avec success");
-                $response = $this->response($pays);
+                $response = $this->response($code);
             } else {
                 $this->setMessage("Cette ressource est inexistante");
                 $this->setStatusCode(300);
@@ -236,28 +237,28 @@ class ApiPaysController extends ApiInterface
 
     #[Route('/delete/all',  methods: ['DELETE'])]
     /**
-     * Permet de supprimer plusieurs pays.
+     * Permet de supprimer plusieurs code.
      */
     #[OA\Response(
         response: 200,
         description: 'Returns the rewards of an user',
         content: new OA\JsonContent(
             type: 'array',
-            items: new OA\Items(ref: new Model(type: Pays::class, groups: ['full']))
+            items: new OA\Items(ref: new Model(type: Code::class, groups: ['full']))
         )
     )]
-    #[OA\Tag(name: 'pays')]
+    #[OA\Tag(name: 'code')]
     #[Security(name: 'Bearer')]
-    public function deleteAll(Request $request, PaysRepository $villeRepository): Response
+    public function deleteAll(Request $request, CodeRepository $villeRepository): Response
     {
         try {
             $data = json_decode($request->getContent());
 
             foreach ($data->ids as $key => $value) {
-                $pays = $villeRepository->find($value['id']);
+                $code = $villeRepository->find($value['id']);
 
-                if ($pays != null) {
-                    $villeRepository->remove($pays);
+                if ($code != null) {
+                    $villeRepository->remove($code);
                 }
             }
             $this->setMessage("Operation effectuées avec success");

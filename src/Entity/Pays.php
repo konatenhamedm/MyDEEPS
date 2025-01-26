@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups as Group;
+use Symfony\Component\Validator\Constraints as Assert;
 
 
 #[ORM\Entity(repositoryClass: PaysRepository::class)]
@@ -22,6 +23,7 @@ class Pays
 
     #[ORM\Column(length: 255)]
     #[Group(["group1"])]
+    #[Assert\NotBlank(message: 'Veuillez rensigner le libellé')]
     private ?string $libelle = null;
 
     /**
@@ -33,6 +35,8 @@ class Pays
     public function __construct()
     {
         $this->professionnels = new ArrayCollection();
+        $this->createdAt = new \DateTimeImmutable(); 
+        $this->updatedAt = new \DateTimeImmutable(); 
     }
 
     public function getId(): ?int

@@ -7,7 +7,7 @@ use DateTimeImmutable;
 
 trait TraitEntity
 {
-    #[ORM\Column(type: 'datetime_immutable', options: ['default' => 'CURRENT_TIMESTAMP'])]
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
@@ -21,14 +21,21 @@ trait TraitEntity
     #[ORM\JoinColumn(nullable: true)]
     private ?User $updatedBy = null;
 
+    public function __construct()
+    {
+       
+    }
+
     #[ORM\PrePersist]
     public function setCreatedAtValue(): void
     {
-        $this->createdAt = new DateTimeImmutable();
+        if ($this->createdAt === null) {
+            $this->createdAt = new DateTimeImmutable();
+        }
     }
 
     #[ORM\PreUpdate]
-    public function setUpdatedAtValue(): void
+    public function setUpdatedAt(): void
     {
         $this->updatedAt = new DateTimeImmutable();
     }

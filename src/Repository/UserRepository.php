@@ -35,7 +35,7 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         if ($flush) {
             $this->getEntityManager()->flush();
         }
-    }
+    } 
     /**
      * Used to upgrade (rehash) the user's password automatically over time.
      */

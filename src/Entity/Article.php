@@ -8,6 +8,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups as Group;
+use Symfony\Component\Validator\Constraints as Assert;
 
 
 #[ORM\Entity(repositoryClass: ArticleRepository::class)]
@@ -18,23 +19,31 @@ class Article
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Group(["group1"])]
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'articles')]
+    #[Group(["group1"])]
     private ?User $user = null;
 
     #[ORM\ManyToOne(cascade: ["persist"], fetch: "EAGER")]
-    #[ORM\JoinColumn(nullable: true)]
+    #[ORM\JoinColumn(nullable: false)]
+    #[Assert\NotBlank(message: 'Veuillez rensigner image')]
     private ?Fichier $image = null;
 
 
     #[ORM\Column(type: "string", length: 255)]
+    #[Group(["group1"])]
+    #[Assert\NotBlank(message: 'Veuillez rensigner le titre')]
     private string $titre;
 
     #[ORM\Column(type: "integer")]
+    #[Group(["group1"])]
     private int $status;
 
     #[ORM\Column(type: Types::TEXT)]
+    #[Group(["group1"])]
+    #[Assert\NotBlank(message: 'Veuillez rensigner le text')]
     private string $text;
 
     /**
