@@ -1,0 +1,27 @@
+framework:
+    workflows: 
+        validation_compte:
+            type: 'state_machine'
+            audit_trail:
+                enabled: true
+            marking_store:
+                type: 'method'
+                property: 'status'
+            supports:
+                - App\Entity\User
+            initial_marking: enable
+            places:
+                - enable
+                - accept
+                - active
+                - rejet
+            transitions:
+                acceptation:
+                    from: enable
+                    to: accept
+                rejet:
+                    from: enable
+                    to: rejet
+                activation:
+                    from: enable
+                    to: active
