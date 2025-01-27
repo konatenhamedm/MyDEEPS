@@ -14,79 +14,111 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[Table(name: 'membre_professionnel')]
 class Professionnel extends Entite
 {
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group_pro"])]
     private ?string $number = null;
 
-    #[ORM\Column(length: 255)]
-    private ?string $fullName = null;
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group_pro"])]
+    private ?string $nom = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group_pro"])]
+    private ?string $prenoms = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group_pro"])]
     private ?string $emailPro = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group_pro"])]
     private ?string $address = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group_pro"])]
     private ?string $professionnel = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group_pro"])]
     private ?string $addressPro = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group_pro"])]
     private ?string $profession = null;
 
     #[ORM\ManyToOne(inversedBy: 'professionnels')]
+    #[Group(["group_pro"])]
     private ?Civilite $civilite = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    #[Group(["group_pro"])]
     private ?\DateTimeInterface $dateNaissance = null;
 
     #[ORM\ManyToOne(inversedBy: 'professionnels')]
     private ?Pays $nationate = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group_pro"])]
     private ?string $lieuResidence = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group_pro"])]
     private ?string $adresseEmail = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group_pro"])]
     private ?string $contactPro = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group_pro"])]
     private ?string $situation = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group_pro"])]
     private ?string $diplome = null;
 
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $dateDiplome = null;
+   
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    #[Group(["group_pro"])]
+    private ?\DateTimeInterface $dateDiplome = null;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    #[Group(["group_pro"])]
+    private ?\DateTimeInterface $dateEmploi = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group_pro"])]
     private ?string $situationPro = null;
 
     #[ORM\ManyToOne(cascade: ["persist"], fetch: "EAGER")]
     #[ORM\JoinColumn(nullable: true)]
+    #[Group(["fichier","group_pro"])]
     private ?Fichier $photo = null;
 
     #[ORM\ManyToOne(cascade: ["persist"], fetch: "EAGER")]
     #[ORM\JoinColumn(nullable: true)]
+    #[Group(["fichier","group_pro"])]
     private ?Fichier $diplomeFile = null;
 
     #[ORM\ManyToOne(cascade: ["persist"], fetch: "EAGER")]
     #[ORM\JoinColumn(nullable: true)]
+    #[Group(["fichier","group_pro"])]
     private ?Fichier $cni = null;
 
     #[ORM\ManyToOne(cascade: ["persist"], fetch: "EAGER")]
     #[ORM\JoinColumn(nullable: true)]
+    #[Group(["fichier","group_pro"])]
     private ?Fichier $cv = null;
 
     #[ORM\ManyToOne(cascade: ["persist"], fetch: "EAGER")]
     #[ORM\JoinColumn(nullable: true)]
+    #[Group(["fichier","group_pro"])]
     private ?Fichier $casier = null;
 
     #[ORM\ManyToOne(cascade: ["persist"], fetch: "EAGER")]
     #[ORM\JoinColumn(nullable: true)]
+    #[Group(["fichier","group_pro"])]
     private ?Fichier $certificat = null;
 
     public function getNumber(): ?string
@@ -101,14 +133,14 @@ class Professionnel extends Entite
         return $this;
     }
 
-    public function getFullName(): ?string
+    public function getNom(): ?string
     {
-        return $this->fullName;
+        return $this->nom;
     }
 
-    public function setFullName(string $fullName): static
+    public function setNom(string $nom): static
     {
-        $this->fullName = $fullName;
+        $this->nom = $nom;
 
         return $this;
     }
@@ -269,12 +301,12 @@ class Professionnel extends Entite
         return $this;
     }
 
-    public function getDateDiplome(): ?string
+    public function getDateDiplome(): ?\DateTimeInterface
     {
         return $this->dateDiplome;
     }
 
-    public function setDateDiplome(string $dateDiplome): static
+    public function setDateDiplome(?\DateTimeInterface $dateDiplome): static
     {
         $this->dateDiplome = $dateDiplome;
 
@@ -361,6 +393,37 @@ class Professionnel extends Entite
     public function setCertificat(?Fichier $certificat): static
     {
         $this->certificat = $certificat;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of prenoms
+     */ 
+    public function getPrenoms()
+    {
+        return $this->prenoms;
+    }
+
+    /**
+     * Set the value of prenoms
+     *
+     * @return  self
+     */ 
+    public function setPrenoms($prenoms)
+    {
+        $this->prenoms = $prenoms;
+
+        return $this;
+    }
+    public function getDateEmploi(): ?\DateTimeInterface
+    {
+        return $this->dateEmploi;
+    }
+
+    public function setDateEmploi(?\DateTimeInterface $dateEmploi): static
+    {
+        $this->dateEmploi = $dateEmploi;
 
         return $this;
     }

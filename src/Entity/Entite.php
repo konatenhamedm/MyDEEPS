@@ -34,19 +34,20 @@ class Entite
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Group(['group_pro'])]
     private ?int $id = null;
 
 
    
     #[ORM\OneToOne(inversedBy: 'user', cascade: ['persist', 'remove'])]
     #[ORM\JoinColumn(nullable: true)]
+    #[Group(['group_pro'])]
     private ?User $user = null;
 
-   
-    private ?Entite $entite = null;
 
     #[ORM\Column]
-    private ?bool $appartenirOrganisation = null;
+    #[Group(['group_pro'])]
+    private ?string $appartenirOrganisation = null;
 
     /**
      * @var Collection<int, Organisation>
@@ -79,12 +80,12 @@ class Entite
     }
 
 
-    public function isAppartenirOrganisation(): ?bool
+    public function getAppartenirOrganisation(): ?string
     {
         return $this->appartenirOrganisation;
     }
 
-    public function setAppartenirOrganisation(bool $appartenirOrganisation): static
+    public function setAppartenirOrganisation(string $appartenirOrganisation): static
     {
         $this->appartenirOrganisation = $appartenirOrganisation;
 

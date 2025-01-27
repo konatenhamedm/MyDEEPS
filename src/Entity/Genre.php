@@ -17,9 +17,11 @@ class Genre
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Group(["group1","group_pro"])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Group(["group1","group_pro"])]
     private ?string $libelle = null;
 
     /**

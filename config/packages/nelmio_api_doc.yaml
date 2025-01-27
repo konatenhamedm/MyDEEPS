@@ -3,8 +3,8 @@ nelmio_api_doc:
     servers:
       - url: http://127.0.0.1:8000
     info:
-      title: Documentation API Application Bedoo
-      description: APIs pour toute la gestion du projet Bedoo
+      title: Documentation API Application MyDepps
+      description: APIs pour toute la gestion du projet MyDepps
       version: 1.0.0
 
     # Définir le schéma de sécurité pour Bearer

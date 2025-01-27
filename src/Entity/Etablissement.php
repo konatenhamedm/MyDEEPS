@@ -14,55 +14,70 @@ use Symfony\Component\Validator\Constraints as Assert;
 class Etablissement extends Entite
 {
     #[ORM\ManyToOne(inversedBy: 'etablissements')]
+    #[Group(["group_pro"])]
     private ?TypePersonne $typePersonne = null;
 
     #[ORM\ManyToOne(inversedBy: 'etablissements')]
+    #[Group(["group_pro"])]
     private ?Genre $genre = null;
 
 
     #[ORM\Column(type: "string", length: 255, nullable: true)]
+    #[Group(["group_pro"])]
     private ?string $entrepriseName = null;
 
     #[ORM\Column(type: "string", length: 255, nullable: true)]
+    #[Group(["group_pro"])]
     private ?string $contact = null;
 
     #[ORM\Column(type: "string", length: 255, nullable: true)]
+    #[Group(["group_pro"])]
     private ?string $niveau = null;
 
     #[ORM\Column(type: "string", length: 255, nullable: true)]
+    #[Group(["group_pro"])]
     private ?string $gps = null;
 
     #[ORM\Column(type: "string", length: 255, nullable: true)]
+    #[Group(["group_pro"])]
     private ?string $nature = null;
 
     #[ORM\Column(type: "string", length: 255, nullable: true)]
+    #[Group(["group_pro"])]
     private ?string $type = null;
 
     #[ORM\Column(type: "string", length: 255, nullable: true)]
+    #[Group(["group_pro"])]
     private ?string $emailEntreprise = null;
 
     #[ORM\Column(type: "string", length: 255, nullable: true)]
     private ?string $space = null;
 
     #[ORM\Column(type: "string", length: 255, nullable: true)]
+    #[Group(["group_pro"])]
     private ?string $nomComplet = null;
 
     #[ORM\Column(type: "string", length: 255, nullable: true)]
+    #[Group(["group_pro"])]
     private ?string $emailPro = null;
 
     #[ORM\Column(type: "string", length: 255, nullable: true)]
+    #[Group(["group_pro"])]
     private ?string $prefession = null;
 
     #[ORM\Column(type: "string", length: 255, nullable: true)]
     private ?string $contactPro = null;
 
     #[ORM\Column(type: "string", length: 255, nullable: true)]
+    #[Group(["group_pro"])]
     private ?string $lieuResidence = null;
 
     #[ORM\Column(type: "string", length: 255, nullable: true)]
+    #[Group(["group_pro"])]
     private ?string $numeroCni = null;
 
     #[ORM\Column(type: "string", length: 255, nullable: true)]
+    #[Group(["group_pro"])]
     private ?string $nomCompletTechnique = null;
 
     #[ORM\Column(type: "string", length: 255, nullable: true)]
@@ -154,26 +169,32 @@ class Etablissement extends Entite
 
     #[ORM\ManyToOne(cascade: ["persist"], fetch: "EAGER")]
     #[ORM\JoinColumn(nullable: true)]
+    #[Group(["fichier","group_pro"])]
     private ?Fichier $inscriptionProfession = null;
 
     #[ORM\ManyToOne(cascade: ["persist"], fetch: "EAGER")]
     #[ORM\JoinColumn(nullable: true)]
+    #[Group(["fichier","group_pro"])]
     private ?Fichier $photoPhysique = null;
 
     #[ORM\ManyToOne(cascade: ["persist"], fetch: "EAGER")]
     #[ORM\JoinColumn(nullable: true)]
+    #[Group(["fichier","group_pro"])]
     private ?Fichier $cniPhysique = null;
 
     #[ORM\ManyToOne(cascade: ["persist"], fetch: "EAGER")]
     #[ORM\JoinColumn(nullable: true)]
+    #[Group(["fichier","group_pro"])]
     private ?Fichier $diplomeFilePhysique = null;
 
     #[ORM\ManyToOne(cascade: ["persist"], fetch: "EAGER")]
     #[ORM\JoinColumn(nullable: true)]
+    #[Group(["fichier","group_pro"])]
     private ?Fichier $cvPhysique = null;
 
     #[ORM\ManyToOne(cascade: ["persist"], fetch: "EAGER")]
     #[ORM\JoinColumn(nullable: true)]
+    #[Group(["fichier","group_pro"])]
     private ?Fichier $dfePhysique = null;
 
     #[ORM\Column(length: 255, nullable: true)]

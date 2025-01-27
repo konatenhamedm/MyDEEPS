@@ -414,7 +414,6 @@ class ApiUserController extends ApiInterface
                 properties: [
                     new OA\Property(property: "newPassword", type: "string"),
                     new OA\Property(property: "email", type: "string"),
-
                 ],
                 type: "object"
             )
