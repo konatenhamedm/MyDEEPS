@@ -34,11 +34,11 @@ class Fichier implements \Serializable
     private ?int $size = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Group(["fichier", "groupe_batis"])]
+    #[Group(["fichier", "groupe_batis",'group_user','group_pro'])]
     private ?string $path = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Group(["fichier", "groupe_batis"])]
+    #[Group(["fichier", "groupe_batis",'group_user','group_pro'])]
     private ?string $alt = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
@@ -46,7 +46,7 @@ class Fichier implements \Serializable
     private ?\DateTimeInterface $dateCreation = null;
 
     #[ORM\Column(length: 5, nullable: true)]
-    #[Group(["fichier", "groupe_batis"])]
+    #[Group(["fichier", "groupe_batis",'group_pro'])]
     private ?string $url = null;
 
     #[Assert\NotNull(message: "Veuillez sélectionner un fichier", groups: ["FileRequired"])]

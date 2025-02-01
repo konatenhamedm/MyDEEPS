@@ -52,6 +52,36 @@ class ApiUserController extends ApiInterface
         // On envoie la réponse
         return $response;
     }
+    #[Route('/get/admin', methods: ['GET'])]
+    /**
+     * Retourne la liste des users admin.
+     * 
+     */
+    #[OA\Response(
+        response: 200,
+        description: 'Returns the rewards of an user',
+        content: new OA\JsonContent(
+            type: 'array',
+            items: new OA\Items(ref: new Model(type: User::class, groups: ['full']))
+        )
+    )]
+    #[OA\Tag(name: 'user')]
+    // #[Security(name: 'Bearer')]
+    public function indexAdmin(UserRepository $userRepository): Response
+    {
+        try {
+
+            $users = $userRepository->findBy(['typeUser' => 'ADMINISTRATEUR']);
+
+            $response = $this->responseData($users, 'group_user', ['Content-Type' => 'application/json']);
+        } catch (\Exception $exception) {
+            $this->setMessage("");
+            $response = $this->response('[]');
+        }
+
+        // On envoie la réponse
+        return $response;
+    }
 
 
     #[Route('/get/one/{id}', methods: ['GET'])]
@@ -102,19 +132,24 @@ class ApiUserController extends ApiInterface
         description: "Génère un token JWT pour les administrateurs.",
         requestBody: new OA\RequestBody(
             required: true,
-            content: new OA\JsonContent(
-                properties: [
-                    new OA\Property(property: "username", type: "string"),
-                    new OA\Property(property: "password", type: "string"),
-                    new OA\Property(property: "nom", type: "string"),
-                    new OA\Property(property: "prenoms", type: "string"),
-                    new OA\Property(property: "phone", type: "string"),
-                    new OA\Property(property: "confirmPassword", type: "string"),
-                    new OA\Property(property: "email", type: "string"),
-                    new OA\Property(property: "userUpdate", type: "string"),
 
-                ],
-                type: "object"
+            content: new OA\MediaType(
+                mediaType: "multipart/form-data",
+                schema: new OA\Schema(
+                    properties: [
+
+                        new OA\Property(property: "username", type: "string"),
+                        new OA\Property(property: "password", type: "string"),
+                        new OA\Property(property: "nom", type: "string"),
+                        new OA\Property(property: "prenoms", type: "string"),
+                        new OA\Property(property: "phone", type: "string"),
+                        new OA\Property(property: "email", type: "string"),
+                        new OA\Property(property: "avatar", type: "string", format: "binary"),
+                        new OA\Property(property: "userUpdate", type: "string"),
+
+                    ],
+                    type: "object"
+                )
             )
         ),
         responses: [
@@ -126,21 +161,36 @@ class ApiUserController extends ApiInterface
     public function create(Request $request, UserRepository $userRepository): Response
     {
 
+        $names = 'document_' . '01';
+        $filePrefix  = str_slug($names);
+        $filePath = $this->getUploadDir(self::UPLOAD_PATH, true);
+        $uploadedFile = $request->files->get('avatar');
+
         try {
             $data = json_decode($request->getContent(), true);
             $user = new User();
-            $user->setUsername($data['username']);
-            $user->setEmail($data['email']);
-            $user->setPassword($this->hasher->hashPassword($user,  $data['password']));
-            $user->setNom($data['nom']);
-            $user->setPrenoms($data['prenoms']);
-            $user->setPhone($data['phone']);
-            $user->setRoles(['ROLE_ADMIN']);
-            $user->setTypeUser(User::TYPE['ADMINISTRATEUR']);
+            $user->setUsername($request->get('username'));
+            $user->setEmail($request->get('email'));
+            if ($request->get('password') != "")
+                $user->setPassword($this->hasher->hashPassword($user,  $request->get('password')));
+            $user->setNom($request->get('nom'));
+            $user->setPrenoms($request->get('prenoms'));
+            $user->setPhone($request->get('phone'));
             $user->setStatus(User::STATUS['ACCEPT']);
-            $user->setPayement(User::PAYEMENT['payed_inifinty']);
-            $user->setCreatedBy($this->userRepository->find($data['userUpdate']));
-            $user->setUpdatedBy($this->userRepository->find($data['userUpdate']));
+            $user->setUpdatedBy($this->userRepository->find($request->get('userUpdate')));
+            $user->setUpdatedAt(new \DateTime());
+            $user->setCreatedAtValue(new \DateTime());
+            $user->setCreatedBy($this->userRepository->find($request->get('userUpdate')));
+
+            if ($uploadedFile) {
+                $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedFile, self::UPLOAD_PATH);
+                if ($fichier) {
+                    $user->setAvatar($fichier);
+                }
+            }
+
+            $errorResponse = $this->errorResponse($user);
+
             $errorResponse = $data['password'] !== $data['confirmPassword'] ?  $this->errorResponse($user, "Les mots de passe ne sont pas identiques") :  $this->errorResponse($user);
             if ($errorResponse !== null) {
                 return $errorResponse; // Retourne la réponse d'erreur si des erreurs sont présentes
@@ -440,7 +490,6 @@ class ApiUserController extends ApiInterface
                 $this->setStatusCode(300);
                 $response = $this->response('[]');
             }
-
         } catch (\Throwable $th) {
             $this->setMessage("erreur serveur");
             $response = $this->response('[]');

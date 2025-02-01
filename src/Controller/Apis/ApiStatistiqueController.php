@@ -1,0 +1,61 @@
+<?php
+
+
+namespace App\Controller\Apis;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Attribute\Route;
+use OpenApi\Attributes as OA;
+use Nelmio\ApiDocBundle\Annotation\Model;
+use Nelmio\ApiDocBundle\Annotation\Security;
+use Symfony\Component\HttpFoundation\Request;
+use App\Controller\Apis\Config\ApiInterface;
+use App\Entity\Etablissement;
+use App\Entity\Transaction;
+use App\Repository\EtablissementRepository;
+use App\Repository\ProfessionnelRepository;
+
+#[Route('/api/statistique')]
+class ApiStatistiqueController extends ApiInterface
+{
+
+
+    #[Route('/info-dashboard', methods: ['GET'])]
+    /**
+     * Retourne les stats du dashboard.
+     * 
+     */
+    #[OA\Response(
+        response: 200,
+        description: 'Returns the rewards of an user',
+        content: new OA\JsonContent(
+            type: 'array',
+            items: new OA\Items(ref: new Model(type: Transaction::class, groups: ['full']))
+        )
+    )]
+    #[OA\Tag(name: 'statistiques')]
+    // #[Security(name: 'Bearer')]
+    public function index(EtablissementRepository $etablissementRepository,ProfessionnelRepository $professionnelRepository): Response
+    {
+        try {
+
+           
+            $tab = [
+                'countEtablissement' => $etablissementRepository->count([]),
+                'countProfessionnel' => $professionnelRepository->count([]),
+                'professionnelAjour' => count($professionnelRepository->allProfAjour())
+            ];
+
+            $response = $this->response($tab);
+           
+          
+        } catch (\Exception $exception) {
+            $this->setMessage("");
+            $response = $this->response('[]');
+        }
+
+        // On envoie la réponse
+        return $response;
+    }
+
+
+}

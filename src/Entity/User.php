@@ -68,10 +68,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $password = null;
 
 
-    
-    #[ORM\OneToOne(mappedBy: 'user', cascade: ['persist', 'remove'])]
-    private ?Entite $entite = null;
-
     /**
      * @var Collection<int, Alerte>
      */
@@ -94,6 +90,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\ManyToOne(cascade: ["persist"], fetch: "EAGER")]
     #[ORM\JoinColumn(nullable: true)]
+    #[Group(["group_user"])]
     private ?Fichier $avatar = null;
 
     #[ORM\Column(length: 255)]
@@ -113,7 +110,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $status = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Group(["group_user"])]
+    #[Group(["group_user",'group_pro'])]
     private ?string $typeUser = null;
 
     #[ORM\Column]
@@ -219,26 +216,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         // Vider les données sensibles
     }
 
-    
-    
-    public function getEntite(): ?Entite
-    {
-        return $this->entite;
-    }
-
-    public function setEntite(Entite $entite): static
-    {
-        // set the owning side of the relation if necessary
-        if ($entite->getUser() !== $this) {
-            $entite->setUser($this);
-        }
-
-        $this->entite = $entite;
-
-        return $this;
-    }
-
- 
 
     /**
      * @return Collection<int, Alerte>

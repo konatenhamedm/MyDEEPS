@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\TransactionRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups as Group;
 
 #[ORM\Entity(repositoryClass: TransactionRepository::class)]
 class Transaction
@@ -16,24 +17,31 @@ class Transaction
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'transactions')]
+    #[Group(["group_user"])]
     private ?User $user = null;
 
     #[ORM\Column(length: 255)]
+    #[Group(["group_user"])]
     private ?string $montant = null;
 
     #[ORM\Column(length: 255)]
+    #[Group(["group_user"])]
     private ?string $reference = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255,nullable:true)]
+    #[Group(["group_user"])]
     private ?string $reference_channel = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255,nullable:true)]
+    #[Group(["group_user"])]
     private ?string $channel = null;
 
     #[ORM\Column(length: 255)]
+    #[Group(["group_user"])]
     private ?string $type = null;
 
     #[ORM\Column]
+    #[Group(["group_user"])]
     private ?int $state = null;
 
     public function getId(): ?int

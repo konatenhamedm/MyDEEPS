@@ -33,6 +33,29 @@ class ProfessionnelRepository extends ServiceEntityRepository
             $this->getEntityManager()->flush();
         }
     }
+
+    public function getProfessionnelByetat($status)
+    {
+
+        return $this->createQueryBuilder('p')
+            ->innerJoin('p.user', 'user')
+            ->andWhere('user.status = :val')
+            ->setParameter('val', $status)
+            ->getQuery()
+            ->getResult();
+    }
+    public function allProfAjour()
+    {
+
+        return $this->createQueryBuilder('p')
+            ->innerJoin('p.user', 'user')
+            ->andWhere('user.status = :val')
+            ->andWhere('user.payement = :payement')
+            ->setParameter('payement', 'payed')
+            ->setParameter('val', 'ACCEPT')
+            ->getQuery()
+            ->getResult();
+    }
     //    /**
     //     * @return Professionnel[] Returns an array of Professionnel objects
     //     */

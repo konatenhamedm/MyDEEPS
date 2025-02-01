@@ -38,11 +38,7 @@ class Entite
     private ?int $id = null;
 
 
-   
-    #[ORM\OneToOne(inversedBy: 'user', cascade: ['persist', 'remove'])]
-    #[ORM\JoinColumn(nullable: true)]
-    #[Group(['group_pro'])]
-    private ?User $user = null;
+
 
 
     #[ORM\Column]
@@ -55,6 +51,10 @@ class Entite
     #[ORM\OneToMany(targetEntity: Organisation::class, mappedBy: 'entite')]
     private Collection $organisations;
 
+    #[ORM\OneToOne(cascade: ['persist', 'remove'])]
+    #[Group(['group_pro'])]
+    private ?User $user = null;
+
     public function __construct()
     {
         $this->organisations = new ArrayCollection();
@@ -65,19 +65,7 @@ class Entite
         return $this->id;
     }
 
- 
 
-    public function getUser(): ?User
-    {
-        return $this->user;
-    }
-
-    public function setUser(User $user): static
-    {
-        $this->user = $user;
-
-        return $this;
-    }
 
 
     public function getAppartenirOrganisation(): ?string
@@ -118,6 +106,18 @@ class Entite
                 $organisation->setEntite(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
+
+    public function setUser(?User $user): static
+    {
+        $this->user = $user;
 
         return $this;
     }

@@ -55,7 +55,7 @@ security:
 
     # Access control to secure routes
     access_control:
-        - { path: ^/api/(login_check_user_front|auth/login_check_admin), roles: PUBLIC_ACCESS }
+        - { path: ^/api/(login_check|auth/login_check), roles: PUBLIC_ACCESS }
         #- { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
 
 # Configuration pour les tests (hashing faible coût)
