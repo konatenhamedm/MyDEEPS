@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Civilite;
 use App\Entity\Professionnel;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -55,6 +56,18 @@ class ProfessionnelRepository extends ServiceEntityRepository
             ->setParameter('val', 'ACCEPT')
             ->getQuery()
             ->getResult();
+    }
+    public function countProByCivilite()
+    {
+
+        return $this->getEntityManager()->createQueryBuilder()
+        ->select('c.libelle AS civilite, COUNT(e.id) AS nombre')
+        ->from(Civilite::class, 'c')
+        ->leftJoin(Professionnel::class, 'e', 'WITH', 'e.civilite = c.id')
+        ->groupBy('c.id')
+        ->getQuery()
+        ->getResult();
+
     }
     //    /**
     //     * @return Professionnel[] Returns an array of Professionnel objects

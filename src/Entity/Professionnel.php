@@ -121,6 +121,14 @@ class Professionnel extends Entite
     #[Group(["fichier","group_pro"])]
     private ?Fichier $certificat = null;
 
+    #[ORM\ManyToOne(inversedBy: 'professionnels')]
+    #[Group(["group_pro"])]
+    private ?Specialite $specialite = null;
+
+    #[ORM\ManyToOne(inversedBy: 'professionnels')]
+    #[Group(["group_pro"])]
+    private ?Genre $genre = null;
+
     public function getNumber(): ?string
     {
         return $this->number;
@@ -424,6 +432,30 @@ class Professionnel extends Entite
     public function setDateEmploi(?\DateTimeInterface $dateEmploi): static
     {
         $this->dateEmploi = $dateEmploi;
+
+        return $this;
+    }
+
+    public function getSpecialite(): ?Specialite
+    {
+        return $this->specialite;
+    }
+
+    public function setSpecialite(?Specialite $specialite): static
+    {
+        $this->specialite = $specialite;
+
+        return $this;
+    }
+
+    public function getGenre(): ?Genre
+    {
+        return $this->genre;
+    }
+
+    public function setGenre(?Genre $genre): static
+    {
+        $this->genre = $genre;
 
         return $this;
     }

@@ -8,8 +8,10 @@ use App\DTO\ProfessionnelDTO;
 use App\Entity\Organisation;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Entity\Professionnel;
+use App\Repository\GenreRepository;
 use App\Repository\OrganisationRepository;
 use App\Repository\ProfessionnelRepository;
+use App\Repository\SpecialiteRepository;
 use App\Repository\UserRepository;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -44,7 +46,6 @@ class ApiProfessionnelController extends ApiInterface
         try {
 
             $professionnels = $professionnelRepository->findAll();
-
             $context = [AbstractNormalizer::GROUPS => 'group_pro'];
             $json = $this->serializer->serialize($professionnels, 'json', $context);
 
@@ -208,6 +209,8 @@ class ApiProfessionnelController extends ApiInterface
                         new OA\Property(property: "addressPro", type: "string"), //address_pro
 
                         new OA\Property(property: "profession", type: "string"), //profession
+                        new OA\Property(property: "specialite", type: "string"), //specialite
+                        new OA\Property(property: "genre", type: "string"), //genre
                         new OA\Property(property: "civilite", type: "string"), //civilite
                         new OA\Property(property: "adresseEmail", type: "string"), //adresseEmail
                         new OA\Property(property: "dateDiplome", type: "string"), //dateDiplome
@@ -246,7 +249,7 @@ class ApiProfessionnelController extends ApiInterface
     )]
     #[OA\Tag(name: 'professionnel')]
     #[Security(name: 'Bearer')]
-    public function create(Request $request, ProfessionnelRepository $professionnelRepository, OrganisationRepository $organisationRepository): Response
+    public function create(Request $request,SpecialiteRepository $specialiteRepository,GenreRepository $genreRepository, ProfessionnelRepository $professionnelRepository, OrganisationRepository $organisationRepository): Response
     {
 
         $names = 'document_' . '01';
@@ -274,6 +277,8 @@ class ApiProfessionnelController extends ApiInterface
         $professionnel->setNationate($request->get('nationate'));
         $professionnel->setDiplome($request->get('diplome'));
         $professionnel->setSituationPro($request->get('situationPro'));
+        $professionnel->setSpecialite($specialiteRepository->find($request->get('specialite')));
+        $professionnel->setGenre($genreRepository->find($request->get('genre')));
 
 
         $uploadedPhoto = $request->files->get('photo');
@@ -372,6 +377,8 @@ class ApiProfessionnelController extends ApiInterface
                         new OA\Property(property: "addressPro", type: "string"), //address_pro
 
                         new OA\Property(property: "profession", type: "string"), //profession
+                        new OA\Property(property: "specialite", type: "string"), //specialite
+                        new OA\Property(property: "genre", type: "string"), //genre
                         new OA\Property(property: "civilite", type: "string"), //civilite
                         new OA\Property(property: "adresseEmail", type: "string"), //adresseEmail
                         new OA\Property(property: "dateDiplome", type: "string"), //dateDiplome
@@ -408,7 +415,7 @@ class ApiProfessionnelController extends ApiInterface
     )]
     #[OA\Tag(name: 'professionnel')]
     #[Security(name: 'Bearer')]
-    public function update(Request $request, Professionnel $professionnel, ProfessionnelRepository $professionnelRepository, OrganisationRepository $organisationRepository): Response
+    public function update(Request $request, Professionnel $professionnel,SpecialiteRepository $specialiteRepository,GenreRepository $genreRepository, ProfessionnelRepository $professionnelRepository, OrganisationRepository $organisationRepository): Response
     {
         try {
             $names = 'document_' . '01';
@@ -435,6 +442,8 @@ class ApiProfessionnelController extends ApiInterface
                 $professionnel->setNationate($request->get('nationate'));
                 $professionnel->setDiplome($request->get('diplome'));
                 $professionnel->setSituationPro($request->get('situationPro'));
+                $professionnel->setSpecialite($specialiteRepository->find($request->get('specialite')));
+                $professionnel->setGenre($genreRepository->find($request->get('genre')));
 
 
                 $uploadedPhoto = $request->files->get('photo');

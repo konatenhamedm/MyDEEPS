@@ -29,6 +29,8 @@ class Civilite
     #[Group(["group1","group_pro"])]
     private ?string $libelle = null;
 
+    private int $nombre ;
+
     /**
      * @var Collection<int, Professionnel>
      */
@@ -97,5 +99,15 @@ class Civilite
         }
 
         return $this;
+    }
+
+    /**
+     * Get the value of nombre
+     */ 
+    public function getNombre()
+    {
+
+
+        return count($professionnels);
     }
 }
