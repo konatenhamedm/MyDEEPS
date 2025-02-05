@@ -4,6 +4,7 @@
 namespace App\Controller\Apis;
 
 use App\Controller\Apis\Config\ApiInterface;
+use App\DTO\ActiveProfessionnelRequest;
 use App\DTO\ProfessionnelDTO;
 use App\Entity\Organisation;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -22,6 +23,9 @@ use Nelmio\ApiDocBundle\Annotation\Model;
 use Nelmio\ApiDocBundle\Annotation\Security;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Symfony\Component\Workflow\Registry;
+use Symfony\Component\Workflow\WorkflowInterface;
 
 #[Route('/api/professionnel')]
 class ApiProfessionnelController extends ApiInterface
@@ -94,59 +98,76 @@ class ApiProfessionnelController extends ApiInterface
     }
 
 
+
     #[Route('/active/{id}', methods: ['PUT', 'POST'])]
     #[OA\Post(
-        summary: "Acpeter ou refuser un professionnel",
-        description: "Permet Acpeter ou refuser un professionnel.",
+        summary: "Accepter ou refuser un professionnel",
+        description: "Permet d'accepter ou de refuser un professionnel.",
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
                 properties: [
-                    new OA\Property(property: "status", type: "string"), // user
-                    new OA\Property(property: "raison", type: "string"), // user
-
-
+                    new OA\Property(property: "status", type: "string"),
+                    new OA\Property(property: "raison", type: "string", nullable: true)
                 ],
                 type: "object"
             )
         ),
         responses: [
-            new OA\Response(response: 401, description: "Invalid credentials")
+            new OA\Response(response: 400, description: "Données invalides"),
+            new OA\Response(response: 404, description: "Professionnel non trouvé"),
+            new OA\Response(response: 200, description: "Mise à jour réussie")
         ]
     )]
     #[OA\Tag(name: 'professionnel')]
-    #[Security(name: 'Bearer')]
-    public function active(Request $request, Professionnel $professionnel, ProfessionnelRepository $professionnelRepository, UserRepository $userRepository): Response
-    {
+    public function active(
+        Request $request,
+        Professionnel $professionnel,
+        ProfessionnelRepository $professionnelRepository,
+        UserRepository $userRepository,
+        ValidatorInterface $validator,
+        Registry $workflowRegistry  // Injecter le Registry
+    ): Response {
         try {
-            $data = json_decode($request->getContent());
 
 
-            if ($professionnel != null) {
+            $data = json_decode($request->getContent(), true);
 
-                $user = $userRepository->find($professionnel->getUser()->getId());
+            // Transformation des données en DTO
+            $dto = new ActiveProfessionnelRequest();
+            $dto->status = $data['status'] ?? null;
+            $dto->raison = $data['raison'] ?? null;
 
-                $user->setStatus($data->status);
-
-                if ($data->raison)
-                    $user->setReason($data->raison);
-
-                $userRepository->add($user, true);
-
-                // On retourne la confirmation
-                $response = $this->responseData($professionnel, 'group_pro', ['Content-Type' => 'application/json']);
-            } else {
-                $this->setMessage("Cette ressource est inexsitante");
-                $this->setStatusCode(300);
-                $response = $this->response('[]');
+            // Valider les données du DTO
+            $errors = $validator->validate($dto);
+            if (count($errors) > 0) {
+                $errorMessages = [];
+                foreach ($errors as $error) {
+                    $errorMessages[] = $error->getMessage();
+                }
+                return $this->json(['errors' => $errorMessages], Response::HTTP_BAD_REQUEST);
             }
-        } catch (\Exception $exception) {
-            $this->setMessage("");
-            $response = $this->response('[]');
-        }
-        return $response;
-    }
 
+            $validationCompteWorkflow = $workflowRegistry->get($professionnel);
+
+            // Vérifier la transition du workflow
+            if (!$validationCompteWorkflow->can($professionnel, $dto->status)) {
+                return new JsonResponse([
+                    'error' => "Transition non valide depuis l'état actuel"
+                ], Response::HTTP_BAD_REQUEST);
+            }
+
+            // Appliquer la transition
+            $validationCompteWorkflow->apply($professionnel, $dto->status);
+
+            // Sauvegarder les modifications
+            $professionnelRepository->add($professionnel, true);
+
+            return $this->responseData($professionnel, 'group_pro', ['Content-Type' => 'application/json']);
+        } catch (\Exception $exception) {
+            return $this->json(["message" => "Une erreur est survenue"], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
 
     #[Route('/get/one/{id}', methods: ['GET'])]
     /**
@@ -217,7 +238,7 @@ class ApiProfessionnelController extends ApiInterface
                 mediaType: "multipart/form-data",
                 schema: new OA\Schema(
                     properties: [
-                        
+
                         new OA\Property(property: "password", type: "string"), // username
                         new OA\Property(property: "confirmPassword", type: "string"), // username
                         new OA\Property(property: "email", type: "string"),
@@ -278,7 +299,7 @@ class ApiProfessionnelController extends ApiInterface
     )]
     #[OA\Tag(name: 'professionnel')]
     #[Security(name: 'Bearer')]
-    public function create(Request $request,VilleRepository $villeRepository, SpecialiteRepository $specialiteRepository, GenreRepository $genreRepository, ProfessionnelRepository $professionnelRepository, OrganisationRepository $organisationRepository): Response
+    public function create(Request $request, VilleRepository $villeRepository, SpecialiteRepository $specialiteRepository, GenreRepository $genreRepository, ProfessionnelRepository $professionnelRepository, OrganisationRepository $organisationRepository): Response
     {
 
         $names = 'document_' . '01';
@@ -292,7 +313,7 @@ class ApiProfessionnelController extends ApiInterface
         $user->setRoles(['ROLE_MEMBRE']);
         $user->setTypeUser(User::TYPE['PROFESSIONNEL']);
         $user->setPayement(User::PAYEMENT['init_payement']);
-    
+
 
         $errorResponse1 = $request->get('password') !== $request->get('confirmPassword') ?  $this->errorResponse($user, "Les mots de passe ne sont pas identiques") :  $this->errorResponse($user);
         if ($errorResponse1 !== null) {
@@ -316,7 +337,7 @@ class ApiProfessionnelController extends ApiInterface
             $professionnel->setLieuResidence($request->get('lieuResidence'));
             $professionnel->setLieuDiplome($request->get('lieuDiplome'));
             $professionnel->setCivilite($request->get('civilite'));
-            $professionnel->setAdresseEmail($request->get('adresseEmail'));
+            $professionnel->setAdresseEmail($request->get('emailPro'));
             $professionnel->setDateDiplome($request->get('dateDiplome'));
             $professionnel->setDateNaissance($request->get('dateNaissance'));
             $professionnel->setContactPro($request->get('contactPro'));
@@ -387,7 +408,7 @@ class ApiProfessionnelController extends ApiInterface
                 return $errorResponse; // Retourne la réponse d'erreur si des erreurs sont présentes
             } else {
                 $professionnelRepository->add($professionnel, true);
-              
+
                 if ($professionnel->getAppartenirOrganisation() == "oui") {
 
                     $organisation = new Organisation();
@@ -416,7 +437,7 @@ class ApiProfessionnelController extends ApiInterface
                 mediaType: "multipart/form-data",
                 schema: new OA\Schema(
                     properties: [
-                       
+
                         new OA\Property(property: "password", type: "string"), // username
                         new OA\Property(property: "confirmPassword", type: "string"), // username
                         new OA\Property(property: "email", type: "string"),
@@ -477,7 +498,7 @@ class ApiProfessionnelController extends ApiInterface
     )]
     #[OA\Tag(name: 'professionnel')]
     #[Security(name: 'Bearer')]
-    public function update(Request $request,VilleRepository $villeRepository, Professionnel $professionnel, SpecialiteRepository $specialiteRepository, GenreRepository $genreRepository, ProfessionnelRepository $professionnelRepository, OrganisationRepository $organisationRepository): Response
+    public function update(Request $request, VilleRepository $villeRepository, Professionnel $professionnel, SpecialiteRepository $specialiteRepository, GenreRepository $genreRepository, ProfessionnelRepository $professionnelRepository, OrganisationRepository $organisationRepository): Response
     {
         try {
             $names = 'document_' . '01';
@@ -499,11 +520,11 @@ class ApiProfessionnelController extends ApiInterface
                 $professionnel->setLieuResidence($request->get('lieuResidence'));
                 $professionnel->setLieuDiplome($request->get('lieuDiplome'));
                 $professionnel->setCivilite($request->get('civilite'));
-                $professionnel->setAdresseEmail($request->get('adresseEmail'));
+                $professionnel->setAdresseEmail($request->get('emailPro'));
                 $professionnel->setDateDiplome($request->get('dateDiplome'));
                 $professionnel->setDateNaissance($request->get('dateNaissance'));
                 $professionnel->setContactPro($request->get('contactPro'));
-    
+
                 $professionnel->setDateEmploi($request->get('dateEmploi'));
                 $professionnel->setNationate($request->get('nationalite'));
                 $professionnel->setDiplome($request->get('diplome'));

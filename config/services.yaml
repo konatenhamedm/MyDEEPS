@@ -15,6 +15,16 @@ services:
         autowire: true      # Automatically injects dependencies in your services.
         autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
 
+    App\Controller\Apis\ApiProfessionnelController:
+        arguments:
+            $validationCompteWorkflow: '@state_machine.validation_compte'
+
+    workflow.marking_store.method:
+        class: Symfony\Component\Workflow\MarkingStore\MethodMarkingStore
+        arguments:
+            $singleState: true  # ✅ Mode single state activé
+
+            
     App\EventListener\CorsListener:
             tags:
                 - { name: kernel.event_listener, event: kernel.response, method: onKernelResponse }

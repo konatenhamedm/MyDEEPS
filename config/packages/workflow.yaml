@@ -1,12 +1,12 @@
 framework:
-    workflows: 
+    workflows:
         validation_compte:
-            type: 'workflow'
+            type: 'state_machine' # or 'state_machine'
             audit_trail:
-                enabled: true
+              enabled: true
             marking_store:
-                type: 'method'
-                property: 'status'
+              type: 'method'
+              property: 'status'
             supports:
                 - App\Entity\Professionnel
             initial_marking: attente
