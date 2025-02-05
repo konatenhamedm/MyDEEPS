@@ -9,6 +9,7 @@ use App\Entity\User;
 use App\Entity\UserFront;
 use App\Entity\Utilisateur;
 use App\Entity\UtilisateurSimple;
+use App\Repository\ProfessionnelRepository;
 use App\Repository\UserFrontRepository;
 use App\Repository\UserRepository;
 use App\Repository\UtilisateurRepository;
@@ -21,9 +22,11 @@ use Symfony\Component\Security\Core\User\UserInterface;
 class AuthenticationSuccessListener 
 {
    private $userRepository;
-    public function __construct(UserRepository $userRepository)
+   private $professionnelRepo;
+    public function __construct(UserRepository $userRepository,ProfessionnelRepository $professionnelRepo)
     {
         $this->userRepository = $userRepository;
+        $this->professionnelRepo = $professionnelRepo;
         
     }
 
@@ -34,18 +37,20 @@ class AuthenticationSuccessListener
     {
         $data = $event->getData();
         $user = $event->getUser();
-       
-        if ($user instanceof User) {
 
-           
+        if ($user instanceof User) {
+            
+            
             $userData = $this->userRepository->find($user->getId());
-            //dd($user);
+            $professionnel = $this->professionnelRepo->findOneBy(['user'=> $user->getId()]);
+           
 
             $data['data'] =   [
                 'id' => $user->getId(),
                 'role' => $userData->getRoles(),
                 'username' => $userData->getUserIdentifier(),
-                'status' => $userData->getStatus(),
+                'avatar' => $userData->getAvatar() ? $userData->getAvatar()->getPath() .'/'. $userData->getAvatar()->getAlt() : null,
+                'status' => $professionnel->getStatus(),
                 'payement' => $userData->getPayement(),
                 'type' => $userData->getTypeUser(),
             ];

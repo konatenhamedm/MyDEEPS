@@ -8,11 +8,13 @@ use App\DTO\ProfessionnelDTO;
 use App\Entity\Organisation;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Entity\Professionnel;
+use App\Entity\User;
 use App\Repository\GenreRepository;
 use App\Repository\OrganisationRepository;
 use App\Repository\ProfessionnelRepository;
 use App\Repository\SpecialiteRepository;
 use App\Repository\UserRepository;
+use App\Repository\VilleRepository;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use OpenApi\Attributes as OA;
@@ -126,7 +128,7 @@ class ApiProfessionnelController extends ApiInterface
 
                 $user->setStatus($data->status);
 
-                if($data->raison)
+                if ($data->raison)
                     $user->setReason($data->raison);
 
                 $userRepository->add($user, true);
@@ -184,6 +186,22 @@ class ApiProfessionnelController extends ApiInterface
     }
 
 
+    private function numero()
+    {
+
+        $query = $this->em->createQueryBuilder();
+        $query->select("count(a.id)")
+            ->from(User::class, 'a');
+
+        $nb = $query->getQuery()->getSingleScalarResult();
+        if ($nb == 0) {
+            $nb = 1;
+        } else {
+            $nb = $nb + 1;
+        }
+        return str_pad($nb, 3, '0', STR_PAD_LEFT);
+    }
+
 
     #[Route('/create',  methods: ['POST'])]
     /**
@@ -199,37 +217,48 @@ class ApiProfessionnelController extends ApiInterface
                 mediaType: "multipart/form-data",
                 schema: new OA\Schema(
                     properties: [
-                        new OA\Property(property: "user", type: "string"), // user
+                        
+                        new OA\Property(property: "password", type: "string"), // username
+                        new OA\Property(property: "confirmPassword", type: "string"), // username
+                        new OA\Property(property: "email", type: "string"),
+
+
+
                         new OA\Property(property: "numero", type: "string"), // code_verification ..
+                        new OA\Property(property: "address", type: "string"), //address
                         new OA\Property(property: "nom", type: "string"), //first_name 
+                        new OA\Property(property: "professionnel", type: "string"), //professionnel
                         new OA\Property(property: "prenoms", type: "string"),
                         new OA\Property(property: "emailPro", type: "string"), //email_pro
-                        new OA\Property(property: "address", type: "string"), //address
-                        new OA\Property(property: "professionnel", type: "string"), //professionnel
-                        new OA\Property(property: "addressPro", type: "string"), //address_pro
+                        new OA\Property(property: "specialite", type: "string"), //specialite select
 
-                        new OA\Property(property: "profession", type: "string"), //profession
-                        new OA\Property(property: "specialite", type: "string"), //specialite
-                        new OA\Property(property: "genre", type: "string"), //genre
-                        new OA\Property(property: "civilite", type: "string"), //civilite
+
+                        new OA\Property(property: "profession", type: "string"), //profession bouton radio
+                        new OA\Property(property: "civilite", type: "string"), //civilite select
+                        new OA\Property(property: "genre", type: "string"), //genre select
+                        new OA\Property(property: "ville", type: "string"), //specialite  select
                         new OA\Property(property: "adresseEmail", type: "string"), //adresseEmail
-                        new OA\Property(property: "dateDiplome", type: "string"), //dateDiplome
-                        new OA\Property(property: "dateNaissance", type: "string"), //dateNaissance
+                        new OA\Property(property: "dateDiplome", type: "string"), //dateDiplome date
+                        new OA\Property(property: "dateNaissance", type: "string"), //dateNaissance date
                         new OA\Property(property: "contactPro", type: "string"), //contactPerso
-                        new OA\Property(property: "dateEmploi", type: "string"), //dateEmploi
-                        new OA\Property(property: "nationate", type: "string"), //nationate
+                        new OA\Property(property: "lieuDiplome", type: "string"), //lieu au obtention premier diplome
+                        new OA\Property(property: "nationalite", type: "string"), //nationalite select
+                        new OA\Property(property: "situation", type: "string"), //situation matrimonial
+                        new OA\Property(property: "dateEmploi", type: "string"), //dateEmploi date
+                        new OA\Property(property: "lieuResidence", type: "string"), //lieu au obtention premier diplome
                         new OA\Property(property: "diplome", type: "string"), //diplome
                         new OA\Property(property: "situationPro", type: "string"), //situation_pro
 
 
-                        new OA\Property(property: "photo", type: "string"), //photo
-                        new OA\Property(property: "cni", type: "string"), //cni
-                        new OA\Property(property: "casier", type: "string"), //casier
-                        new OA\Property(property: "diplomeFile", type: "string"), //diplomeFile
-                        new OA\Property(property: "certificat", type: "string"), //certificat
-                        new OA\Property(property: "cv", type: "string"), //cv
-                        new OA\Property(property: "appartenirOrganisation", type: "string"), //cv
-                        new OA\Property(property: "userUpdate", type: "string"),
+                        new OA\Property(property: "photo", type: "string", format: "binary"), //photo
+                        new OA\Property(property: "cni", type: "string", format: "binary"), //cni
+                        new OA\Property(property: "casier", type: "string", format: "binary"), //casier
+                        new OA\Property(property: "diplomeFile", type: "string", format: "binary"), //diplomeFile
+                        new OA\Property(property: "certificat", type: "string", format: "binary"), //certificat
+                        new OA\Property(property: "cv", type: "string", format: "binary"), //cv
+
+
+                        new OA\Property(property: "appartenirOrganisation", type: "string"), // oui ou non
                         new OA\Property(property: "organisationNom", type: "string"),
                         new OA\Property(property: "organisationNumero", type: "string"),
                         new OA\Property(property: "organisationAnnee", type: "string"),
@@ -249,117 +278,137 @@ class ApiProfessionnelController extends ApiInterface
     )]
     #[OA\Tag(name: 'professionnel')]
     #[Security(name: 'Bearer')]
-    public function create(Request $request,SpecialiteRepository $specialiteRepository,GenreRepository $genreRepository, ProfessionnelRepository $professionnelRepository, OrganisationRepository $organisationRepository): Response
+    public function create(Request $request,VilleRepository $villeRepository, SpecialiteRepository $specialiteRepository, GenreRepository $genreRepository, ProfessionnelRepository $professionnelRepository, OrganisationRepository $organisationRepository): Response
     {
 
         $names = 'document_' . '01';
         $filePrefix  = str_slug($names);
         $filePath = $this->getUploadDir(self::UPLOAD_PATH, true);
 
+        $user = new User();
+        $user->setUsername($request->get('nom') . " " . $this->numero());
+        $user->setEmail($request->get('email'));
+        $user->setPassword($this->hasher->hashPassword($user, $request->get('password')));
+        $user->setRoles(['ROLE_MEMBRE']);
+        $user->setTypeUser(User::TYPE['PROFESSIONNEL']);
+        $user->setPayement(User::PAYEMENT['init_payement']);
+    
 
-        $professionnel = new Professionnel();
-
-        $professionnel->setNumber($request->get('numero'));
-        $professionnel->setNom($request->get('nom'));
-        $professionnel->setPrenoms($request->get('prenoms'));
-        $professionnel->setEmailPro($request->get('emailPro'));
-        $professionnel->setAddress($request->get('address'));
-        $professionnel->setProfessionnel($request->get('professionnel'));
-        $professionnel->setAddressPro($request->get('addressPro'));
-        $professionnel->setProfession($request->get('professionnel'));
-        $professionnel->setCivilite($request->get('civilite'));
-        $professionnel->setAdresseEmail($request->get('adresseEmail'));
-        $professionnel->setDateDiplome($request->get('dateDiplome'));
-        $professionnel->setDateNaissance($request->get('dateNaissance'));
-        $professionnel->setContactPro($request->get('contactPro'));
-
-        $professionnel->setDateEmploi($request->get('dateEmploi'));
-        $professionnel->setNationate($request->get('nationate'));
-        $professionnel->setDiplome($request->get('diplome'));
-        $professionnel->setSituationPro($request->get('situationPro'));
-        $professionnel->setSpecialite($specialiteRepository->find($request->get('specialite')));
-        $professionnel->setGenre($genreRepository->find($request->get('genre')));
-
-
-        $uploadedPhoto = $request->files->get('photo');
-        $uploadedCasier = $request->files->get('caiser');
-        $uploadedCni = $request->files->get('cni');
-        $uploadedDiplome = $request->files->get('diplomeFile');
-        $uploadedCertificat = $request->files->get('certificat');
-        $uploadedCv = $request->files->get('cv');
-
-        if ($uploadedPhoto) {
-            $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedPhoto, self::UPLOAD_PATH);
-            if ($fichier) {
-                $professionnel->setPhoto($fichier);
-            }
-        }
-        if ($uploadedCasier) {
-            $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedCasier, self::UPLOAD_PATH);
-            if ($fichier) {
-                $professionnel->setCasier($fichier);
-            }
-        }
-        if ($uploadedCni) {
-            $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedCni, self::UPLOAD_PATH);
-            if ($fichier) {
-                $professionnel->setCni($fichier);
-            }
-        }
-        if ($uploadedDiplome) {
-            $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedDiplome, self::UPLOAD_PATH);
-            if ($fichier) {
-                $professionnel->setDiplomeFile($fichier);
-            }
-        }
-        if ($uploadedCertificat) {
-            $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedCertificat, self::UPLOAD_PATH);
-            if ($fichier) {
-                $professionnel->setCertificat($fichier);
-            }
-        }
-        if ($uploadedCv) {
-            $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedCv, self::UPLOAD_PATH);
-            if ($fichier) {
-                $professionnel->setCv($fichier);
-            }
-        }
-
-
-        $user = $this->userRepository->find($request->get('user'));
-        $professionnel->setAppartenirOrganisation($request->get('appartenirOrganisation'));
-        $professionnel->setUser($user);
-
-
-        $professionnel->setCreatedBy($this->userRepository->find($request->get('userUpdate')));
-        $professionnel->setUpdatedBy($this->userRepository->find($request->get('userUpdate')));
-
-        $errorResponse = $this->errorResponse($professionnel);
-        if ($errorResponse !== null) {
-            return $errorResponse; // Retourne la réponse d'erreur si des erreurs sont présentes
+        $errorResponse1 = $request->get('password') !== $request->get('confirmPassword') ?  $this->errorResponse($user, "Les mots de passe ne sont pas identiques") :  $this->errorResponse($user);
+        if ($errorResponse1 !== null) {
+            return $errorResponse1; // Retourne la réponse d'erreur si des erreurs sont présentes
         } else {
-            $professionnelRepository->add($professionnel, true);
-            $user->setTypeUser("PROFESSIONNEL");
-            $this->userRepository->add($user, true);
-            if ($professionnel->getAppartenirOrganisation() == "oui") {
 
-                $organisation = new Organisation();
-                $organisation->setNom($request->get('organisationNom'));
-                $organisation->setAnnee($request->get('organisationAnnee'));
-                $organisation->setNumero($request->get('organisationNumero'));
-                $organisation->setEntite($professionnel);
-                $organisation->setCreatedBy($this->userRepository->find($request->get('userUpdate')));
-                $organisation->setUpdatedBy($this->userRepository->find($request->get('userUpdate')));
-                $organisationRepository->add($organisation, true);
+            $this->userRepository->add($user, true);
+
+            $professionnel = new Professionnel();
+
+            $professionnel->setNumber($request->get('numero'));
+            $professionnel->setStatus('attente');
+            $professionnel->setNom($request->get('nom'));
+            $professionnel->setVille($villeRepository->find($request->get('ville')));
+            $professionnel->setPrenoms($request->get('prenoms'));
+            $professionnel->setEmailPro($request->get('emailPro'));
+            $professionnel->setAddress($request->get('address'));
+            $professionnel->setProfessionnel($request->get('professionnel'));
+            $professionnel->setAddressPro($request->get('adresseEmail'));
+            $professionnel->setProfession($request->get('professionnel'));
+            $professionnel->setLieuResidence($request->get('lieuResidence'));
+            $professionnel->setLieuDiplome($request->get('lieuDiplome'));
+            $professionnel->setCivilite($request->get('civilite'));
+            $professionnel->setAdresseEmail($request->get('adresseEmail'));
+            $professionnel->setDateDiplome($request->get('dateDiplome'));
+            $professionnel->setDateNaissance($request->get('dateNaissance'));
+            $professionnel->setContactPro($request->get('contactPro'));
+
+            $professionnel->setDateEmploi($request->get('dateEmploi'));
+            $professionnel->setNationate($request->get('nationalite'));
+            $professionnel->setDiplome($request->get('diplome'));
+            $professionnel->setSituationPro($request->get('situationPro'));
+            $professionnel->setSpecialite($specialiteRepository->find($request->get('specialite')));
+            $professionnel->setGenre($genreRepository->find($request->get('genre')));
+
+
+            $uploadedPhoto = $request->files->get('photo');
+            $uploadedCasier = $request->files->get('caiser');
+            $uploadedCni = $request->files->get('cni');
+            $uploadedDiplome = $request->files->get('diplomeFile');
+            $uploadedCertificat = $request->files->get('certificat');
+            $uploadedCv = $request->files->get('cv');
+
+            if ($uploadedPhoto) {
+                $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedPhoto, self::UPLOAD_PATH);
+                if ($fichier) {
+                    $professionnel->setPhoto($fichier);
+                }
+            }
+            if ($uploadedCasier) {
+                $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedCasier, self::UPLOAD_PATH);
+                if ($fichier) {
+                    $professionnel->setCasier($fichier);
+                }
+            }
+            if ($uploadedCni) {
+                $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedCni, self::UPLOAD_PATH);
+                if ($fichier) {
+                    $professionnel->setCni($fichier);
+                }
+            }
+            if ($uploadedDiplome) {
+                $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedDiplome, self::UPLOAD_PATH);
+                if ($fichier) {
+                    $professionnel->setDiplomeFile($fichier);
+                }
+            }
+            if ($uploadedCertificat) {
+                $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedCertificat, self::UPLOAD_PATH);
+                if ($fichier) {
+                    $professionnel->setCertificat($fichier);
+                }
+            }
+            if ($uploadedCv) {
+                $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedCv, self::UPLOAD_PATH);
+                if ($fichier) {
+                    $professionnel->setCv($fichier);
+                }
+            }
+
+
+
+            $professionnel->setAppartenirOrganisation($request->get('appartenirOrganisation'));
+            $professionnel->setUser($user);
+
+
+            $professionnel->setCreatedBy($user);
+            $professionnel->setUpdatedBy($user);
+
+            $errorResponse = $this->errorResponse($professionnel);
+            if ($errorResponse !== null) {
+                return $errorResponse; // Retourne la réponse d'erreur si des erreurs sont présentes
+            } else {
+                $professionnelRepository->add($professionnel, true);
+              
+                if ($professionnel->getAppartenirOrganisation() == "oui") {
+
+                    $organisation = new Organisation();
+                    $organisation->setNom($request->get('organisationNom'));
+                    $organisation->setAnnee($request->get('organisationAnnee'));
+                    $organisation->setNumero($request->get('organisationNumero'));
+                    $organisation->setEntite($professionnel);
+                    $organisation->setCreatedBy($user);
+                    $organisation->setUpdatedBy($user);
+                    $organisationRepository->add($organisation, true);
+                }
             }
         }
+
         return $this->responseData($professionnel, 'group_pro', ['Content-Type' => 'application/json']);
     }
 
 
     #[Route('/update/{id}', methods: ['PUT', 'POST'])]
     #[OA\Post(
-        summary: "Creation de professionnel",
+        summary: "Update de professionnel",
         description: "Permet de créer un professionnel.",
         requestBody: new OA\RequestBody(
             required: true,
@@ -367,41 +416,54 @@ class ApiProfessionnelController extends ApiInterface
                 mediaType: "multipart/form-data",
                 schema: new OA\Schema(
                     properties: [
-                        new OA\Property(property: "user", type: "string"), // user
+                       
+                        new OA\Property(property: "password", type: "string"), // username
+                        new OA\Property(property: "confirmPassword", type: "string"), // username
+                        new OA\Property(property: "email", type: "string"),
+
+
+
                         new OA\Property(property: "numero", type: "string"), // code_verification ..
+                        new OA\Property(property: "address", type: "string"), //address
                         new OA\Property(property: "nom", type: "string"), //first_name 
+                        new OA\Property(property: "professionnel", type: "string"), //professionnel
                         new OA\Property(property: "prenoms", type: "string"),
                         new OA\Property(property: "emailPro", type: "string"), //email_pro
-                        new OA\Property(property: "address", type: "string"), //address
-                        new OA\Property(property: "professionnel", type: "string"), //professionnel
-                        new OA\Property(property: "addressPro", type: "string"), //address_pro
+                        new OA\Property(property: "specialite", type: "string"), //specialite select
 
-                        new OA\Property(property: "profession", type: "string"), //profession
-                        new OA\Property(property: "specialite", type: "string"), //specialite
-                        new OA\Property(property: "genre", type: "string"), //genre
-                        new OA\Property(property: "civilite", type: "string"), //civilite
+
+                        new OA\Property(property: "profession", type: "string"), //profession bouton radio
+                        new OA\Property(property: "civilite", type: "string"), //civilite select
+                        new OA\Property(property: "genre", type: "string"), //genre select
+                        new OA\Property(property: "ville", type: "string"), //specialite  select
                         new OA\Property(property: "adresseEmail", type: "string"), //adresseEmail
-                        new OA\Property(property: "dateDiplome", type: "string"), //dateDiplome
-                        new OA\Property(property: "dateNaissance", type: "string"), //dateNaissance
+                        new OA\Property(property: "dateDiplome", type: "string"), //dateDiplome date
+                        new OA\Property(property: "dateNaissance", type: "string"), //dateNaissance date
                         new OA\Property(property: "contactPro", type: "string"), //contactPerso
-                        new OA\Property(property: "dateEmploi", type: "string"), //dateEmploi
-                        new OA\Property(property: "nationate", type: "string"), //nationate
+                        new OA\Property(property: "lieuDiplome", type: "string"), //lieu au obtention premier diplome
+                        new OA\Property(property: "nationalite", type: "string"), //nationalite select
+                        new OA\Property(property: "situation", type: "string"), //situation matrimonial
+                        new OA\Property(property: "dateEmploi", type: "string"), //dateEmploi date
+                        new OA\Property(property: "lieuResidence", type: "string"), //lieu au obtention premier diplome
                         new OA\Property(property: "diplome", type: "string"), //diplome
                         new OA\Property(property: "situationPro", type: "string"), //situation_pro
 
 
-                        new OA\Property(property: "photo", type: "string"), //photo
-                        new OA\Property(property: "cni", type: "string"), //cni
-                        new OA\Property(property: "casier", type: "string"), //casier
-                        new OA\Property(property: "diplomeFile", type: "string"), //diplomeFile
-                        new OA\Property(property: "certificat", type: "string"), //certificat
-                        new OA\Property(property: "cv", type: "string"), //cv
-                        new OA\Property(property: "appartenirOrganisation", type: "string"), //cv
-                        new OA\Property(property: "userUpdate", type: "string"),
+                        new OA\Property(property: "photo", type: "string", format: "binary"), //photo
+                        new OA\Property(property: "cni", type: "string", format: "binary"), //cni
+                        new OA\Property(property: "casier", type: "string", format: "binary"), //casier
+                        new OA\Property(property: "diplomeFile", type: "string", format: "binary"), //diplomeFile
+                        new OA\Property(property: "certificat", type: "string", format: "binary"), //certificat
+                        new OA\Property(property: "cv", type: "string", format: "binary"), //cv
 
+
+                        new OA\Property(property: "appartenirOrganisation", type: "string"), // oui ou non
                         new OA\Property(property: "organisationNom", type: "string"),
                         new OA\Property(property: "organisationNumero", type: "string"),
                         new OA\Property(property: "organisationAnnee", type: "string"),
+                        new OA\Property(property: "userUpdate", type: "string"),
+
+
 
 
                     ],
@@ -415,7 +477,7 @@ class ApiProfessionnelController extends ApiInterface
     )]
     #[OA\Tag(name: 'professionnel')]
     #[Security(name: 'Bearer')]
-    public function update(Request $request, Professionnel $professionnel,SpecialiteRepository $specialiteRepository,GenreRepository $genreRepository, ProfessionnelRepository $professionnelRepository, OrganisationRepository $organisationRepository): Response
+    public function update(Request $request,VilleRepository $villeRepository, Professionnel $professionnel, SpecialiteRepository $specialiteRepository, GenreRepository $genreRepository, ProfessionnelRepository $professionnelRepository, OrganisationRepository $organisationRepository): Response
     {
         try {
             $names = 'document_' . '01';
@@ -425,27 +487,29 @@ class ApiProfessionnelController extends ApiInterface
 
             if ($professionnel) {
                 $professionnel->setNumber($request->get('numero'));
+                $professionnel->setStatus('attente');
                 $professionnel->setNom($request->get('nom'));
+                $professionnel->setVille($villeRepository->find($request->get('ville')));
                 $professionnel->setPrenoms($request->get('prenoms'));
                 $professionnel->setEmailPro($request->get('emailPro'));
                 $professionnel->setAddress($request->get('address'));
                 $professionnel->setProfessionnel($request->get('professionnel'));
-                $professionnel->setAddressPro($request->get('addressPro'));
+                $professionnel->setAddressPro($request->get('adresseEmail'));
                 $professionnel->setProfession($request->get('professionnel'));
+                $professionnel->setLieuResidence($request->get('lieuResidence'));
+                $professionnel->setLieuDiplome($request->get('lieuDiplome'));
                 $professionnel->setCivilite($request->get('civilite'));
                 $professionnel->setAdresseEmail($request->get('adresseEmail'));
                 $professionnel->setDateDiplome($request->get('dateDiplome'));
                 $professionnel->setDateNaissance($request->get('dateNaissance'));
                 $professionnel->setContactPro($request->get('contactPro'));
-
+    
                 $professionnel->setDateEmploi($request->get('dateEmploi'));
-                $professionnel->setNationate($request->get('nationate'));
+                $professionnel->setNationate($request->get('nationalite'));
                 $professionnel->setDiplome($request->get('diplome'));
                 $professionnel->setSituationPro($request->get('situationPro'));
                 $professionnel->setSpecialite($specialiteRepository->find($request->get('specialite')));
                 $professionnel->setGenre($genreRepository->find($request->get('genre')));
-
-
                 $uploadedPhoto = $request->files->get('photo');
                 $uploadedCasier = $request->files->get('caiser');
                 $uploadedCni = $request->files->get('cni');
@@ -511,6 +575,8 @@ class ApiProfessionnelController extends ApiInterface
                     $organisation->setUpdatedBy($this->userRepository->find($request->get('userUpdate')));
                     $organisationRepository->add($organisation, true);
                 }
+
+
                 if ($errorResponse !== null) {
                     return $errorResponse; // Retourne la réponse d'erreur si des erreurs sont présentes
                 } else {

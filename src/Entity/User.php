@@ -43,21 +43,21 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     ];
 
 
-    use TraitEntity; 
+    use TraitEntity;
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Group(["group1","group_user",'group_pro'])]
+    #[Group(["group1", "group_user", 'group_pro'])]
     private ?int $id = null;
 
     #[ORM\Column(type: 'string', unique: true, nullable: true)]
-    #[Group(["group1","group_user",'group_pro'])]
+    #[Group(["group1", "group_user", 'group_pro'])]
     private ?string $username = null;
 
     #[ORM\Column(type: 'string', unique: true, nullable: true)]
     #[Assert\Email]
-    #[Group(["group1","group_user",'group_pro'])]
+    #[Group(["group1", "group_user", 'group_pro'])]
     private ?string $email = null;
 
     #[ORM\Column]
@@ -86,31 +86,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: Commentaire::class, mappedBy: 'user')]
     private Collection $commentaires;
 
-       
+
 
     #[ORM\ManyToOne(cascade: ["persist"], fetch: "EAGER")]
     #[ORM\JoinColumn(nullable: true)]
     #[Group(["group_user"])]
     private ?Fichier $avatar = null;
 
-    #[ORM\Column(length: 255)]
-    #[Group(["group_user"])]
-    private ?string $nom = null;
 
-    #[ORM\Column(length: 255)]
-    #[Group(["group_user"])]
-    private ?string $prenoms = null;
-
-    #[ORM\Column(length: 255)]
-    #[Group(["group_user"])]
-    private ?string $phone = null;
-
-    #[ORM\Column(length: 255)]
-    #[Group(["group_user"])]
-    private ?string $status = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Group(["group_user",'group_pro'])]
+    #[Group(["group_user", 'group_pro'])]
     private ?string $typeUser = null;
 
     #[ORM\Column]
@@ -118,10 +104,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $data = null;
-
-    #[ORM\Column(type: Types::TEXT, nullable: true)]
-    private ?string $reason = null;
-
 
 
     /**
@@ -142,7 +124,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->alertes = new ArrayCollection();
         $this->articles = new ArrayCollection();
         $this->commentaires = new ArrayCollection();
-        if(in_array("ROLE_ADMIN", $this->getRoles())){
+        /*      if(in_array("ROLE_ADMIN", $this->getRoles())){
 
             $this->status = "ACCEPT"; //ACTIVE  ACCEPT
             $this->payement = "payed_inifinty"; // payed payed-inifinty
@@ -150,9 +132,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             $this->status = "ENABLE"; //ACTIVE  ACCEPT
             $this->payement = "init_payement"; // payed payed-inifinty
 
-        }
+        } */
         $this->messages = new ArrayCollection();
-        $this->transactions = new ArrayCollection(); 
+        $this->transactions = new ArrayCollection();
     }
 
 
@@ -171,7 +153,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->email = $email;
         return $this;
     }
-    public function getEmail() : ?string
+    public function getEmail(): ?string
     {
         return $this->email ?? '';
     }
@@ -311,6 +293,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         return $this->avatar;
     }
+    public function getLien(): ?string
+    {
+        return "uploads/" + $this->getAvatar()->getPath() + '/'  + $this->getAvatar()->getAlt();
+    }
 
     public function setAvatar(?Fichier $avatar): static
     {
@@ -318,53 +304,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getNom(): ?string
-    {
-        return $this->nom;
-    }
-
-    public function setNom(string $nom): static
-    {
-        $this->nom = $nom;
-
-        return $this;
-    }
-
-    public function getPrenoms(): ?string
-    {
-        return $this->prenoms;
-    }
-
-    public function setPrenoms(string $prenoms): static
-    {
-        $this->prenoms = $prenoms;
-
-        return $this;
-    }
-
-    public function getPhone(): ?string
-    {
-        return $this->phone;
-    }
-
-    public function setPhone(string $phone): static
-    {
-        $this->phone = $phone;
-
-        return $this;
-    }
-
-    public function getStatus(): ?string
-    {
-        return $this->status;
-    }
-
-    public function setStatus(string $status): static
-    {
-        $this->status = $status;
-
-        return $this;
-    }
 
     public function getTypeUser(): ?string
     {
@@ -398,18 +337,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setData(?string $data): static
     {
         $this->data = $data;
-
-        return $this;
-    }
-
-    public function getReason(): ?string
-    {
-        return $this->reason;
-    }
-
-    public function setReason(?string $reason): static
-    {
-        $this->reason = $reason;
 
         return $this;
     }

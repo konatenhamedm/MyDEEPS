@@ -173,10 +173,7 @@ class ApiUserController extends ApiInterface
             $user->setEmail($request->get('email'));
             if ($request->get('password') != "")
                 $user->setPassword($this->hasher->hashPassword($user,  $request->get('password')));
-            $user->setNom($request->get('nom'));
-            $user->setPrenoms($request->get('prenoms'));
-            $user->setPhone($request->get('phone'));
-            $user->setStatus(User::STATUS['ACCEPT']);
+          
             $user->setUpdatedBy($this->userRepository->find($request->get('userUpdate')));
             $user->setUpdatedAt(new \DateTime());
             $user->setCreatedAtValue(new \DateTime());
@@ -246,9 +243,6 @@ class ApiUserController extends ApiInterface
             $user->setUsername($data['nom'] . " " . $this->numero());
             $user->setEmail($data['email']);
             $user->setPassword($this->hasher->hashPassword($user,  $data['password']));
-            $user->setNom($data['nom']);
-            $user->setPrenoms($data['prenoms']);
-            $user->setPhone($data['phone']);
             $user->setRoles(['ROLE_MEMBRE']);
 
             $errorResponse = $data['password'] !== $data['confirmPassword'] ?  $this->errorResponse($user, "Les mots de passe ne sont pas identiques") :  $this->errorResponse($user);
@@ -333,10 +327,7 @@ class ApiUserController extends ApiInterface
                 $user->setEmail($request->get('email'));
                 if ($request->get('password') != "")
                     $user->setPassword($this->hasher->hashPassword($user,  $request->get('password')));
-                $user->setNom($request->get('nom'));
-                $user->setPrenoms($request->get('prenoms'));
-                $user->setPhone($request->get('phone'));
-                $user->setStatus(User::STATUS['ACCEPT']);
+       
                 $user->setUpdatedBy($this->userRepository->find($request->get('userUpdate')));
                 $user->setUpdatedAt(new \DateTime());
 
@@ -417,9 +408,6 @@ class ApiUserController extends ApiInterface
                 $user->setEmail($request->get('email'));
                 if ($request->get('password') != "")
                     $user->setPassword($this->hasher->hashPassword($user,  $request->get('password')));
-                $user->setNom($request->get('nom'));
-                $user->setPrenoms($request->get('prenoms'));
-                $user->setPhone($request->get('phone'));
                 $user->setUpdatedBy($this->userRepository->find($request->get('userUpdate')));
                 $user->setUpdatedAt(new \DateTime());
 

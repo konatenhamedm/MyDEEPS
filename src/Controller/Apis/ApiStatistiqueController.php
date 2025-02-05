@@ -103,6 +103,51 @@ class ApiStatistiqueController extends ApiInterface
         // On envoie la réponse
         return $response;
     }
+    #[Route('/ville', methods: ['GET'])]
+    /**
+     * Retourne les stats du dashboard.
+     * 
+     */
+    #[OA\Response(
+        response: 200,
+        description: 'Returns the rewards of an user',
+        content: new OA\JsonContent(
+            type: 'array',
+            items: new OA\Items(ref: new Model(type: Transaction::class, groups: ['full']))
+        )
+    )]
+    #[OA\Tag(name: 'statistiques')]
+    // #[Security(name: 'Bearer')]
+    public function indexGeolocalisation(EtablissementRepository $etablissementRepository, ProfessionnelRepository $professionnelRepository, CiviliteRepository $civiliteRepository): Response
+    {
+        try {
+            $stats = $professionnelRepository->countProByVille();
+
+            $formattedStats = [];
+            $isFirst = true; // Pour le premier élément sélectionné dans le Pie Chart
+
+            foreach ($stats as $index => $stat) {
+                $formattedStats[] = [
+                    'name' => $stat['civilite'],
+                    'y' => (int) $stat['nombre'],
+                    'sliced' => $isFirst,
+                    'selected' => $isFirst
+                ];
+                $isFirst = false; // Désactiver la sélection après le premier élément
+            }
+
+            $response = $this->response([
+                'nombre' => $stats,
+                'pieChart' => $formattedStats
+            ]);
+        } catch (\Exception $exception) {
+            $this->setMessage("");
+            $response = $this->response('[]');
+        }
+
+        // On envoie la réponse
+        return $response;
+    }
     #[Route('/specialite/{genre}', methods: ['GET'])]
     /**
      * Retourne les stats du dashboard.

@@ -81,8 +81,10 @@ class ApiPaiementController extends ApiInterface
             required: true,
             content: new OA\JsonContent(
                 properties: [
-                    new OA\Property(property: "user", type: "string"),
-                    new OA\Property(property: "montant", type: "string"),
+                    new OA\Property(property: "codePaiement", type: "string"),
+                    new OA\Property(property: "referencePaiement", type: "string"),
+                    new OA\Property(property: "code", type: "string"),
+                    new OA\Property(property: "moyenPaiement", type: "string"),
 
                 ],
                 type: "object"
@@ -97,11 +99,7 @@ class ApiPaiementController extends ApiInterface
     public function webHook(Request $request, TransactionRepository $transactionRepository,): Response
     {
 
-
-
         $data = json_decode($request->getContent(), true);
-
-
         $transaction = $transactionRepository->findOneBy(['reference' => $data['codePaiement']]);
 
         $transaction->setReferenceChannel($data['referencePaiement']);
@@ -109,9 +107,7 @@ class ApiPaiementController extends ApiInterface
             $transaction->setState(1);
 
         $transaction->setChannel($data['moyenPaiement']);
-
         $transactionRepository->add($transaction, true);
-
         $user = $transaction->getUser();
 
         if ($data['code'] == 200)
@@ -119,10 +115,7 @@ class ApiPaiementController extends ApiInterface
 
         $user->setData(json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
 
-
         $this->userRepository->add($user, true);
-
-
 
         $response = $this->responseData($transaction, 'group_user', ['Content-Type' => 'application/json']);
         return $response;

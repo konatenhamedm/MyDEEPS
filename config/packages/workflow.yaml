@@ -1,27 +1,35 @@
 framework:
     workflows: 
         validation_compte:
-            type: 'state_machine'
+            type: 'workflow'
             audit_trail:
                 enabled: true
             marking_store:
                 type: 'method'
                 property: 'status'
             supports:
-                - App\Entity\User
-            initial_marking: enable
+                - App\Entity\Professionnel
+            initial_marking: attente
             places:
-                - enable
-                - accept
-                - active
-                - rejet
+                - attente
+                - accepte
+                - valide
+                - refuse
+                - renouvellement
+                - a_jour
             transitions:
                 acceptation:
-                    from: enable
-                    to: accept
+                    from: attente
+                    to: accepte
                 rejet:
-                    from: enable
-                    to: rejet
-                activation:
-                    from: enable
-                    to: active
+                    from: attente
+                    to: refuse
+                validation:
+                    from: accepte 
+                    to: valide
+                renouvellement:
+                    from: valide
+                    to: renouvellement
+                mis_a_jour:
+                    from: renouvellement 
+                    to: a_jour

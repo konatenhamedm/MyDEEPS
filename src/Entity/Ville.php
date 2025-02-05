@@ -2,16 +2,15 @@
 
 namespace App\Entity;
 
-use App\Repository\CiviliteRepository;
+use App\Repository\VilleRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups as Group;
-use Symfony\Component\Validator\Constraints as Assert;
 
 
-#[ORM\Entity(repositoryClass: CiviliteRepository::class)]
-class Civilite
+#[ORM\Entity(repositoryClass: VilleRepository::class)]
+class Ville
 {
     use TraitEntity; 
 
@@ -23,24 +22,24 @@ class Civilite
 
     #[ORM\Column(length: 255)]
     #[Group(["group1","group_pro"])]
+
     private ?string $code = null;
 
     #[ORM\Column(length: 255)]
     #[Group(["group1","group_pro"])]
-    private ?string $libelle = null;
 
-    private int $nombre ;
+    private ?string $libelle = null;
 
     /**
      * @var Collection<int, Professionnel>
      */
-    #[ORM\OneToMany(targetEntity: Professionnel::class, mappedBy: 'civilite')]
+    #[ORM\OneToMany(targetEntity: Professionnel::class, mappedBy: 'ville')]
     private Collection $professionnels;
 
     public function __construct()
     {
         $this->professionnels = new ArrayCollection();
-    } 
+    }
 
     public function getId(): ?int
     {
@@ -83,7 +82,7 @@ class Civilite
     {
         if (!$this->professionnels->contains($professionnel)) {
             $this->professionnels->add($professionnel);
-            $professionnel->setCivilite($this);
+            $professionnel->setVille($this);
         }
 
         return $this;
@@ -93,12 +92,11 @@ class Civilite
     {
         if ($this->professionnels->removeElement($professionnel)) {
             // set the owning side to null (unless already changed)
-            if ($professionnel->getCivilite() === $this) {
-                $professionnel->setCivilite(null);
+            if ($professionnel->getVille() === $this) {
+                $professionnel->setVille(null);
             }
         }
 
         return $this;
     }
-
 }

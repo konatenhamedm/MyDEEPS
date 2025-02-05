@@ -129,6 +129,21 @@ class Professionnel extends Entite
     #[Group(["group_pro"])]
     private ?Genre $genre = null;
 
+    #[ORM\Column(length: 255)]
+    #[Group(["group_pro"])]
+    private ?string $status = null;
+
+    #[ORM\Column(type: Types::TEXT,nullable:true)]
+    private ?string $reason = null;
+
+    #[ORM\ManyToOne(inversedBy: 'professionnels')]
+    #[Group(["group_pro"])]
+    private ?Ville $ville = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $lieuDiplome = null;
+
+
     public function getNumber(): ?string
     {
         return $this->number;
@@ -459,4 +474,53 @@ class Professionnel extends Entite
 
         return $this;
     }
+
+    public function getStatus(): ?string
+    {
+        return $this->status;
+    }
+
+    public function setStatus(string $status): static
+    {
+        $this->status = $status;
+
+        return $this;
+    }
+
+    public function getReason(): ?string
+    {
+        return $this->reason;
+    }
+
+    public function setReason(string $reason): static
+    {
+        $this->reason = $reason;
+
+        return $this;
+    }
+
+    public function getVille(): ?Ville
+    {
+        return $this->ville;
+    }
+
+    public function setVille(?Ville $ville): static
+    {
+        $this->ville = $ville;
+
+        return $this;
+    }
+
+    public function getLieuDiplome(): ?string
+    {
+        return $this->lieuDiplome;
+    }
+
+    public function setLieuDiplome(string $lieuDiplome): static
+    {
+        $this->lieuDiplome = $lieuDiplome;
+
+        return $this;
+    }
+
 }

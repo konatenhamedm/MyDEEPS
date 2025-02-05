@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Civilite;
 use App\Entity\Professionnel;
+use App\Entity\Ville;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -64,6 +65,18 @@ class ProfessionnelRepository extends ServiceEntityRepository
         ->select('c.libelle AS civilite, COUNT(e.id) AS nombre')
         ->from(Civilite::class, 'c')
         ->leftJoin(Professionnel::class, 'e', 'WITH', 'e.civilite = c.id')
+        ->groupBy('c.id')
+        ->getQuery()
+        ->getResult();
+
+    }
+    public function countProByVille()
+    {
+
+        return $this->getEntityManager()->createQueryBuilder()
+        ->select('c.libelle AS civilite, COUNT(e.id) AS nombre')
+        ->from(Ville::class, 'c')
+        ->leftJoin(Professionnel::class, 'e', 'WITH', 'e.ville = c.id')
         ->groupBy('c.id')
         ->getQuery()
         ->getResult();
