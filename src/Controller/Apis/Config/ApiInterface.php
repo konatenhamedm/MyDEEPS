@@ -201,7 +201,7 @@ class ApiInterface extends AbstractController
         ], 200);
     }
 
-    public function responseData($data = [], $group, $headers = [])
+    public function responseData($data = [], $group = null, $headers = [])
     {
         try {
 

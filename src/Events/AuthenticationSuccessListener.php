@@ -50,7 +50,7 @@ class AuthenticationSuccessListener
                 'role' => $userData->getRoles(),
                 'username' => $userData->getUserIdentifier(),
                 'avatar' => $userData->getAvatar() ? $userData->getAvatar()->getPath() .'/'. $userData->getAvatar()->getAlt() : null,
-                'status' => $professionnel->getStatus(),
+                'status' => $professionnel->getStatus() ? $professionnel->getStatus() : null,
                 'payement' => $userData->getPayement(),
                 'type' => $userData->getTypeUser(),
             ];

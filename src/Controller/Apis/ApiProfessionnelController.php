@@ -10,6 +10,7 @@ use App\Entity\Organisation;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Entity\Professionnel;
 use App\Entity\User;
+use App\Repository\CiviliteRepository;
 use App\Repository\GenreRepository;
 use App\Repository\OrganisationRepository;
 use App\Repository\ProfessionnelRepository;
@@ -49,16 +50,15 @@ class ApiProfessionnelController extends ApiInterface
     // #[Security(name: 'Bearer')]
     public function index(ProfessionnelRepository $professionnelRepository): Response
     {
+       
         try {
-
             $professionnels = $professionnelRepository->findAll();
-            $context = [AbstractNormalizer::GROUPS => 'group_pro'];
-            $json = $this->serializer->serialize($professionnels, 'json', $context);
-
-            return new JsonResponse(['code' => 200, 'data' => json_decode($json)]);
+            
+            $response = $this->responseData($professionnels, 'group_pro', ['Content-Type' => 'application/json']);
+         
         } catch (\Exception $exception) {
             $this->setMessage("");
-            $response = $this->response('[]');
+           $this->response('[]');
         }
 
         // On envoie la réponse
@@ -133,12 +133,11 @@ class ApiProfessionnelController extends ApiInterface
 
             $data = json_decode($request->getContent(), true);
 
-            // Transformation des données en DTO
+
             $dto = new ActiveProfessionnelRequest();
             $dto->status = $data['status'] ?? null;
             $dto->raison = $data['raison'] ?? null;
 
-            // Valider les données du DTO
             $errors = $validator->validate($dto);
             if (count($errors) > 0) {
                 $errorMessages = [];
@@ -157,10 +156,9 @@ class ApiProfessionnelController extends ApiInterface
                 ], Response::HTTP_BAD_REQUEST);
             }
 
-            // Appliquer la transition
             $validationCompteWorkflow->apply($professionnel, $dto->status);
 
-            // Sauvegarder les modifications
+            $professionnel->setReason($dto->raison);
             $professionnelRepository->add($professionnel, true);
 
             return $this->responseData($professionnel, 'group_pro', ['Content-Type' => 'application/json']);
@@ -299,7 +297,7 @@ class ApiProfessionnelController extends ApiInterface
     )]
     #[OA\Tag(name: 'professionnel')]
     #[Security(name: 'Bearer')]
-    public function create(Request $request, VilleRepository $villeRepository, SpecialiteRepository $specialiteRepository, GenreRepository $genreRepository, ProfessionnelRepository $professionnelRepository, OrganisationRepository $organisationRepository): Response
+    public function create(Request $request, VilleRepository $villeRepository,CiviliteRepository $civiliteRepository, SpecialiteRepository $specialiteRepository, GenreRepository $genreRepository, ProfessionnelRepository $professionnelRepository, OrganisationRepository $organisationRepository): Response
     {
 
         $names = 'document_' . '01';
@@ -336,7 +334,7 @@ class ApiProfessionnelController extends ApiInterface
             $professionnel->setProfession($request->get('professionnel'));
             $professionnel->setLieuResidence($request->get('lieuResidence'));
             $professionnel->setLieuDiplome($request->get('lieuDiplome'));
-            $professionnel->setCivilite($request->get('civilite'));
+            $professionnel->setCivilite($civiliteRepository->find($request->get('civilite')));
             $professionnel->setAdresseEmail($request->get('emailPro'));
             $professionnel->setDateDiplome($request->get('dateDiplome'));
             $professionnel->setDateNaissance($request->get('dateNaissance'));
