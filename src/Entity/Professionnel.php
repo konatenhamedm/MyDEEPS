@@ -134,6 +134,7 @@ class Professionnel extends Entite
     private ?string $status = null;
 
     #[ORM\Column(type: Types::TEXT,nullable:true)]
+    #[Group(["group_pro"])]
     private ?string $reason = null;
 
     #[ORM\ManyToOne(inversedBy: 'professionnels')]

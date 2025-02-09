@@ -4,17 +4,22 @@ namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use DateTimeImmutable;
+use Symfony\Component\Serializer\Annotation\Groups as Group;
+
 
 trait TraitEntity
 {
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    #[Group(["group_user"])]
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    #[Group(["group_user"])]
     private ?\DateTimeImmutable $updatedAt = null;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: true)]
+ 
     private ?User $createdBy = null;
 
     #[ORM\ManyToOne(targetEntity: User::class)]

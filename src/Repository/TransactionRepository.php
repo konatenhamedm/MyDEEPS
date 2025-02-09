@@ -80,6 +80,18 @@ class TransactionRepository extends ServiceEntityRepository
         return $stmt->fetchAllAssociative();
     }
 
+
+         public function getAllTransaction(): array
+        {
+            return $this->createQueryBuilder('t')
+                ->andWhere('t.user is not null')
+                ->orderBy('t.id', 'ASC')
+              
+                ->getQuery()
+                ->getResult()
+            ;
+        }
+
     //    /**
     //     * @return Transaction[] Returns an array of Transaction objects
     //     */

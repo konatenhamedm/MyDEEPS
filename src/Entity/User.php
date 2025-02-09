@@ -18,8 +18,8 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
 #[Table(name: 'utilisateur')]
-#[UniqueEntity(fields: 'email', message: 'Ce email est déjà utilisé')]
-#[UniqueEntity(fields: 'username', message: 'Ce username est déjà utilisé')]
+#[UniqueEntity(fields: 'email', message: 'Ce email est déjà utilisé par un autre utilisateur,veillez vous connecter')]
+#[UniqueEntity(fields: 'username', message: 'Ce username est déjà utilisé par un autre utilisateur,veillez vous connecter')]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
 

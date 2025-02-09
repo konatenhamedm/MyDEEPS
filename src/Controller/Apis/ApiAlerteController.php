@@ -6,6 +6,7 @@ use App\Controller\Apis\Config\ApiInterface;
 use App\DTO\AlerteDTO;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Entity\Alerte;
+use App\Entity\Transaction;
 use App\Repository\AlerteRepository;
 use App\Repository\UserRepository;
 use Symfony\Component\HttpFoundation\Response;
@@ -14,6 +15,7 @@ use OpenApi\Attributes as OA;
 use Nelmio\ApiDocBundle\Annotation\Model;
 use Nelmio\ApiDocBundle\Annotation\Security;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 
 #[Route('/api/alerte')]
@@ -21,6 +23,7 @@ class ApiAlerteController extends ApiInterface
 {
 
 
+   
 
     #[Route('/', methods: ['GET'])]
     /**

@@ -91,10 +91,15 @@ class ApiStatistiqueController extends ApiInterface
                 $isFirst = false; // Désactiver la sélection après le premier élément
             }
 
-            $response = $this->response([
+            $formattedStats = array_reverse($formattedStats);
+
+            $result = [
                 'nombre' => $stats,
                 'pieChart' => $formattedStats
-            ]);
+            ];
+
+
+            $response = $this->responseData($result, 'group_user', ['Content-Type' => 'application/json']);
         } catch (\Exception $exception) {
             $this->setMessage("");
             $response = $this->response('[]');
@@ -136,10 +141,15 @@ class ApiStatistiqueController extends ApiInterface
                 $isFirst = false; // Désactiver la sélection après le premier élément
             }
 
-            $response = $this->response([
+            $formattedStats = array_reverse($formattedStats);
+
+            $result = [
                 'nombre' => $stats,
                 'pieChart' => $formattedStats
-            ]);
+            ];
+            
+            
+                        $response = $this->responseData($result, 'group_user', ['Content-Type' => 'application/json']);
         } catch (\Exception $exception) {
             $this->setMessage("");
             $response = $this->response('[]');
@@ -163,12 +173,12 @@ class ApiStatistiqueController extends ApiInterface
     )]
     #[OA\Tag(name: 'statistiques')]
     // #[Security(name: 'Bearer')]
-    public function indexSpecialite($genre,EtablissementRepository $etablissementRepository, ProfessionnelRepository $professionnelRepository, SpecialiteRepository $specialiteRepository): Response
+    public function indexSpecialite($genre, EtablissementRepository $etablissementRepository, ProfessionnelRepository $professionnelRepository, SpecialiteRepository $specialiteRepository): Response
     {
         try {
             $stats = $specialiteRepository->countSpecialiteProfByGenre($genre);
 
-       
+
             $formattedStats = [];
             $isFirst = true; // Pour le premier élément sélectionné dans le Pie Chart
 
@@ -182,10 +192,15 @@ class ApiStatistiqueController extends ApiInterface
                 $isFirst = false; // Désactiver la sélection après le premier élément
             }
 
-            $response = $this->response([
+            $formattedStats = array_reverse($formattedStats);
+
+            $result = [
                 'nombre' => $stats,
                 'pieChart' => $formattedStats
-            ]);
+            ];
+            
+            
+                        $response = $this->responseData($result, 'group_user', ['Content-Type' => 'application/json']);
         } catch (\Exception $exception) {
             $this->setMessage("");
             $response = $this->response('[]');

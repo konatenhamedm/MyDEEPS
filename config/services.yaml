@@ -8,6 +8,9 @@ parameters:
     upload_dir: "%kernel.project_dir%/public/uploads"
     font_dir: "%kernel.project_dir%/public/fonts"
     mail_dsn: '%env(MAILER_DSN)%'
+    API_KEY: '%env(API_KEY)%'
+    MERCHANT_ID: '%env(MERCHANT_ID)%'
+    PAIEMENT_URL: '%env(PAIEMENT_URL)%'
 
 services:
     # default configuration for services in *this* file

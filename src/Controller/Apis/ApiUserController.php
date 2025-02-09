@@ -140,9 +140,6 @@ class ApiUserController extends ApiInterface
 
                         new OA\Property(property: "username", type: "string"),
                         new OA\Property(property: "password", type: "string"),
-                        new OA\Property(property: "nom", type: "string"),
-                        new OA\Property(property: "prenoms", type: "string"),
-                        new OA\Property(property: "phone", type: "string"),
                         new OA\Property(property: "email", type: "string"),
                         new OA\Property(property: "avatar", type: "string", format: "binary"),
                         new OA\Property(property: "userUpdate", type: "string"),
@@ -292,9 +289,7 @@ class ApiUserController extends ApiInterface
 
                         new OA\Property(property: "username", type: "string"),
                         new OA\Property(property: "password", type: "string"),
-                        new OA\Property(property: "nom", type: "string"),
-                        new OA\Property(property: "prenoms", type: "string"),
-                        new OA\Property(property: "phone", type: "string"),
+                    
                         new OA\Property(property: "email", type: "string"),
                         new OA\Property(property: "avatar", type: "string", format: "binary"),
                         new OA\Property(property: "userUpdate", type: "string"),

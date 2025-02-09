@@ -13,16 +13,20 @@ use App\Entity\User;
 use App\Repository\CiviliteRepository;
 use App\Repository\GenreRepository;
 use App\Repository\OrganisationRepository;
+use App\Repository\PaysRepository;
 use App\Repository\ProfessionnelRepository;
 use App\Repository\SpecialiteRepository;
+use App\Repository\TransactionRepository;
 use App\Repository\UserRepository;
 use App\Repository\VilleRepository;
+use DateTimeImmutable;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use OpenApi\Attributes as OA;
 use Nelmio\ApiDocBundle\Annotation\Model;
 use Nelmio\ApiDocBundle\Annotation\Security;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Workflow\Registry;
@@ -281,6 +285,7 @@ class ApiProfessionnelController extends ApiInterface
                         new OA\Property(property: "organisationNom", type: "string"),
                         new OA\Property(property: "organisationNumero", type: "string"),
                         new OA\Property(property: "organisationAnnee", type: "string"),
+                        new OA\Property(property: "reference", type: "string"),
 
 
                     ],
@@ -297,12 +302,20 @@ class ApiProfessionnelController extends ApiInterface
     )]
     #[OA\Tag(name: 'professionnel')]
     #[Security(name: 'Bearer')]
-    public function create(Request $request, VilleRepository $villeRepository,CiviliteRepository $civiliteRepository, SpecialiteRepository $specialiteRepository, GenreRepository $genreRepository, ProfessionnelRepository $professionnelRepository, OrganisationRepository $organisationRepository): Response
+    public function create(Request $request,SessionInterface $session,TransactionRepository $transactionRepository, VilleRepository $villeRepository,CiviliteRepository $civiliteRepository, SpecialiteRepository $specialiteRepository, GenreRepository $genreRepository, ProfessionnelRepository $professionnelRepository,PaysRepository $paysRepository, OrganisationRepository $organisationRepository): Response
     {
 
         $names = 'document_' . '01';
         $filePrefix  = str_slug($names);
         $filePath = $this->getUploadDir(self::UPLOAD_PATH, true);
+
+        //dd($request->get('dateDiplome'));
+
+        $transaction = $transactionRepository->findOneBy(['reference' =>  $request->get('reference'), 'user' => null]);
+
+        if(!$transaction){
+            return $this->response("Transaction introuvable");
+        }else{
 
         $user = new User();
         $user->setUsername($request->get('nom') . " " . $this->numero());
@@ -325,7 +338,7 @@ class ApiProfessionnelController extends ApiInterface
             $professionnel->setNumber($request->get('numero'));
             $professionnel->setStatus('attente');
             $professionnel->setNom($request->get('nom'));
-            $professionnel->setVille($villeRepository->find($request->get('ville')));
+            $professionnel->setVille($villeRepository->findOneByCode($request->get('ville')));
             $professionnel->setPrenoms($request->get('prenoms'));
             $professionnel->setEmailPro($request->get('emailPro'));
             $professionnel->setAddress($request->get('address'));
@@ -334,14 +347,14 @@ class ApiProfessionnelController extends ApiInterface
             $professionnel->setProfession($request->get('professionnel'));
             $professionnel->setLieuResidence($request->get('lieuResidence'));
             $professionnel->setLieuDiplome($request->get('lieuDiplome'));
-            $professionnel->setCivilite($civiliteRepository->find($request->get('civilite')));
+            $professionnel->setCivilite($civiliteRepository->findOneByCode($request->get('civilite')));
             $professionnel->setAdresseEmail($request->get('emailPro'));
-            $professionnel->setDateDiplome($request->get('dateDiplome'));
-            $professionnel->setDateNaissance($request->get('dateNaissance'));
+            $professionnel->setDateDiplome(new DateTimeImmutable($request->get('dateDiplome')));
+            $professionnel->setDateNaissance(new DateTimeImmutable($request->get('dateNaissance')));
             $professionnel->setContactPro($request->get('contactPro'));
 
-            $professionnel->setDateEmploi($request->get('dateEmploi'));
-            $professionnel->setNationate($request->get('nationalite'));
+            $professionnel->setDateEmploi(new DateTimeImmutable($request->get('dateEmploi')));
+            $professionnel->setNationate($paysRepository->find($request->get('nationate')));
             $professionnel->setDiplome($request->get('diplome'));
             $professionnel->setSituationPro($request->get('situationPro'));
             $professionnel->setSpecialite($specialiteRepository->find($request->get('specialite')));
@@ -405,7 +418,20 @@ class ApiProfessionnelController extends ApiInterface
             if ($errorResponse !== null) {
                 return $errorResponse; // Retourne la réponse d'erreur si des erreurs sont présentes
             } else {
+                $this->userRepository->add($user, true);
                 $professionnelRepository->add($professionnel, true);
+
+               
+
+                if( $transaction){
+                    $transaction->setUser($user);
+                    $transaction->setCreatedBy($user);
+                    $transaction->setUpdatedBy($user);
+                    $transactionRepository->add($transaction, true);
+
+                    $user->setPayement(User::PAYEMENT['payed']);
+                    $this->userRepository->add($user, true);
+                }
 
                 if ($professionnel->getAppartenirOrganisation() == "oui") {
 
@@ -420,6 +446,7 @@ class ApiProfessionnelController extends ApiInterface
                 }
             }
         }
+    }
 
         return $this->responseData($professionnel, 'group_pro', ['Content-Type' => 'application/json']);
     }

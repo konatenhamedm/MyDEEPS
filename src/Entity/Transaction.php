@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\TransactionRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups as Group;
 
@@ -43,6 +44,9 @@ class Transaction
     #[ORM\Column]
     #[Group(["group_user"])]
     private ?int $state = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $data = null;
 
     public function getId(): ?int
     {
@@ -129,6 +133,18 @@ class Transaction
     public function setState(int $state): static
     {
         $this->state = $state;
+
+        return $this;
+    }
+
+    public function getData(): ?string
+    {
+        return $this->data;
+    }
+
+    public function setData(?string $data): static
+    {
+        $this->data = $data;
 
         return $this;
     }

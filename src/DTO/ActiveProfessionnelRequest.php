@@ -14,10 +14,6 @@ class ActiveProfessionnelRequest
     )]
     public ?string $status = null;
 
-    #[Assert\NotBlank(allowNull: true, message: "La raison ne peut pas être vide.")]
-    #[Assert\Length(
-        max: 255,
-        maxMessage: "La raison ne peut pas dépasser 255 caractères."
-    )]
+
     public ?string $raison = null;
 }
