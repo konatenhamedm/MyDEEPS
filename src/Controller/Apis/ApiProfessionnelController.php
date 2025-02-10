@@ -19,6 +19,7 @@ use App\Repository\SpecialiteRepository;
 use App\Repository\TransactionRepository;
 use App\Repository\UserRepository;
 use App\Repository\VilleRepository;
+use App\Service\SendMailService;
 use DateTimeImmutable;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -302,7 +303,7 @@ class ApiProfessionnelController extends ApiInterface
     )]
     #[OA\Tag(name: 'professionnel')]
     #[Security(name: 'Bearer')]
-    public function create(Request $request,SessionInterface $session,TransactionRepository $transactionRepository, VilleRepository $villeRepository,CiviliteRepository $civiliteRepository, SpecialiteRepository $specialiteRepository, GenreRepository $genreRepository, ProfessionnelRepository $professionnelRepository,PaysRepository $paysRepository, OrganisationRepository $organisationRepository): Response
+    public function create(Request $request,SessionInterface $session,SendMailService $sendMailService,TransactionRepository $transactionRepository, VilleRepository $villeRepository,CiviliteRepository $civiliteRepository, SpecialiteRepository $specialiteRepository, GenreRepository $genreRepository, ProfessionnelRepository $professionnelRepository,PaysRepository $paysRepository, OrganisationRepository $organisationRepository): Response
     {
 
         $names = 'document_' . '01';
@@ -421,6 +422,22 @@ class ApiProfessionnelController extends ApiInterface
                 $this->userRepository->add($user, true);
                 $professionnelRepository->add($professionnel, true);
 
+                
+                $info_user = [
+                    'login' => $request->get('email'),
+                    'password' => $request->get('confirmPassword')
+                ];
+
+                $context = compact('info_user');
+
+                // TO DO
+                $sendMailService->send(
+                    'test@myonmci.ci',
+                    $request->get('email'),
+                    'Informations',
+                    'content_mail',
+                    $context
+                );
                
 
                 if( $transaction){

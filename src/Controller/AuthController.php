@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Service\SendMailService;
 use OpenApi\Attributes as OA;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -44,6 +45,28 @@ class AuthController extends AbstractController
     #[OA\Tag(name: 'authentification')]
     public function loginUser(Request $request): JsonResponse
     {
+        return new JsonResponse(['message' => 'Cette route est gérée par LexikJWTAuthenticationBundle'], 200);
+    }
+
+    #[Route('/api/auth/send_mail', name: 'api_auth_send_mail', methods: ['POST',"GET"])]
+    public function sendMail(Request $request,SendMailService $sendMailService): JsonResponse
+    {
+        $info_user = [
+            'login' => "konatenhamed@gmail.com",
+            'password' => "eeeee"
+        ];
+
+        $context = compact('info_user');
+
+        // TO DO
+        $sendMailService->send(
+            'test@myonmci.ci',
+            "konatenhamed@gmail.com",
+            'Informations',
+            'content_mail',
+            $context
+        );
+       
         return new JsonResponse(['message' => 'Cette route est gérée par LexikJWTAuthenticationBundle'], 200);
     }
 
