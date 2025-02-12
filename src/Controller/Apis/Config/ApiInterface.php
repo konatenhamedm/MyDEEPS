@@ -214,12 +214,14 @@ class ApiInterface extends AbstractController
                     'message' => $this->getMessage(),
                     'data' => json_decode($json)
                 ], 200, $finalHeaders);
+                  $response->headers->set('Access-Control-Allow-Origin', '*');
             } else {
                 $response = new JsonResponse([
                     'code' => 200,
                     'message' => $this->getMessage(),
                     'data' => []
                 ], 200, $finalHeaders);
+                  $response->headers->set('Access-Control-Allow-Origin', '*');
             }
         } catch (\Exception $e) {
             $response = new JsonResponse([

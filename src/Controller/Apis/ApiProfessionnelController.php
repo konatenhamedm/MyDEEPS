@@ -6,6 +6,7 @@ namespace App\Controller\Apis;
 use App\Controller\Apis\Config\ApiInterface;
 use App\DTO\ActiveProfessionnelRequest;
 use App\DTO\ProfessionnelDTO;
+use App\Entity\Etablissement;
 use App\Entity\Organisation;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Entity\Professionnel;
@@ -335,6 +336,7 @@ class ApiProfessionnelController extends ApiInterface
             $this->userRepository->add($user, true);
 
             $professionnel = new Professionnel();
+      
 
             $professionnel->setNumber($request->get('numero'));
             $professionnel->setStatus('attente');
