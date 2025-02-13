@@ -4,7 +4,7 @@
 namespace App\Controller\Apis;
 
 use App\Controller\Apis\Config\ApiInterface;
-
+use App\DTO\ActiveProfessionnelRequest;
 use App\Entity\Etablissement;
 use App\Entity\Organisation;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -35,6 +35,74 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 #[Route('/api/etablissement')]
 class ApiEtablissementController extends ApiInterface
 {
+
+    #[Route('/active/{id}', methods: ['PUT', 'POST'])]
+    #[OA\Post(
+        summary: "Accepter ou refuser un etablissement",
+        description: "Permet d'accepter ou de refuser un etablissement.",
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: "status", type: "string"),
+                    new OA\Property(property: "raison", type: "string", nullable: true)
+                ],
+                type: "object"
+            )
+        ),
+        responses: [
+            new OA\Response(response: 400, description: "Données invalides"),
+            new OA\Response(response: 404, description: "Professionnel non trouvé"),
+            new OA\Response(response: 200, description: "Mise à jour réussie")
+        ]
+    )]
+    #[OA\Tag(name: 'etablissement')]
+    public function active(
+        Request $request,
+        Etablissement $etablissement,
+        EtablissementRepository $etablissementlRepository,
+        UserRepository $userRepository,
+        ValidatorInterface $validator,
+        Registry $workflowRegistry  // Injecter le Registry
+    ): Response {
+        try {
+
+
+            $data = json_decode($request->getContent(), true);
+
+
+            $dto = new ActiveProfessionnelRequest();
+            $dto->status = $data['status'] ?? null;
+            $dto->raison = $data['raison'] ?? null;
+
+            $errors = $validator->validate($dto);
+            if (count($errors) > 0) {
+                $errorMessages = [];
+                foreach ($errors as $error) {
+                    $errorMessages[] = $error->getMessage();
+                }
+                return $this->json(['errors' => $errorMessages], Response::HTTP_BAD_REQUEST);
+            }
+
+            $validationCompteWorkflow = $workflowRegistry->get($etablissement);
+
+            // Vérifier la transition du workflow
+            if (!$validationCompteWorkflow->can($etablissement, $dto->status)) {
+                return new JsonResponse([
+                    'error' => "Transition non valide depuis l'état actuel"
+                ], Response::HTTP_BAD_REQUEST);
+            }
+
+            $validationCompteWorkflow->apply($etablissement, $dto->status);
+
+            $etablissement->setReason($dto->raison);
+            $etablissementlRepository->add($etablissement, true);
+
+            return $this->responseData($etablissement, 'group_pro', ['Content-Type' => 'application/json']);
+        } catch (\Exception $exception) {
+            return $this->json(["message" => "Une erreur est survenue"], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
 
  
 
@@ -85,7 +153,7 @@ class ApiEtablissementController extends ApiInterface
                 new OA\Property(property: "contactProTechnique", type: "string"),
                 new OA\Property(property: "lieuResidenceTechnique", type: "string"),
                 new OA\Property(property: "numeroOrdreTechnique", type: "string"),
-
+                new OA\Property(property: "reference", type: "string"),
                 // Documents (fichiers en binaire)
                 new OA\Property(property: "photo", type: "string", format: "binary"),
                 new OA\Property(property: "cni", type: "string", format: "binary"),
@@ -117,16 +185,16 @@ class ApiEtablissementController extends ApiInterface
         $filePath = $this->getUploadDir(self::UPLOAD_PATH, true);
 
         //dd($request->get('dateDiplome'));
-/*
+
        $transaction = $transactionRepository->findOneBy(['reference' =>  $request->get('reference'), 'user' => null]);
 
         if(!$transaction){
             return $this->response("Transaction introuvable");
         }else{
-            */
+           
 
         $user = new User();
-        $user->setUsername($request->get('nom') . " " . $this->numero());
+        $user->setUsername($request->get('nomEntreprise') . " " . $this->numero());
         $user->setEmail($request->get('email'));
         $plainPassword = $request->get('password');
  
@@ -143,8 +211,7 @@ class ApiEtablissementController extends ApiInterface
             return $errorResponse1; // Retourne la réponse d'erreur si des erreurs sont présentes
         } else {
 
-            $this->userRepository->add($user, true);
-
+            
             $etablissement = new Etablissement();
       
 
@@ -159,6 +226,7 @@ class ApiEtablissementController extends ApiInterface
             $etablissement->setEmailEntreprise($request->get('emailEntreprise'));
             $etablissement->setSpaceEntreprise($request->get('spaceEntreprise'));
             $etablissement->setAppartenirOrganisation('non');
+            $etablissement->setStatus('attente');
 
             // Promoteur
             $etablissement->setGenre($genreRepository->find($request->get('genre')));
@@ -214,7 +282,7 @@ class ApiEtablissementController extends ApiInterface
             if ($uploadedDfe) {
                 $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedDfe, self::UPLOAD_PATH);
                 if ($fichier) {
-                    $etablissement->setDef($fichier);
+                    $etablissement->setDfe($fichier);
                 }
             }
             if ($uploadedCv) {
@@ -256,7 +324,7 @@ class ApiEtablissementController extends ApiInterface
                     $context
                 );
                
-/*
+
                 if( $transaction){
                     $transaction->setUser($user);
                     $transaction->setCreatedBy($user);
@@ -267,12 +335,12 @@ class ApiEtablissementController extends ApiInterface
                     $user->setPayement(User::PAYEMENT['payed']);
                     $this->userRepository->add($user, true);
                 }
-                    */
+                   
 
               
             }
         }
-  // }
+   }
 
         return $this->responseData($etablissement, 'group_pro', ['Content-Type' => 'application/json']);
     }

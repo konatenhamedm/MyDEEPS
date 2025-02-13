@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\EtablissementRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\Mapping\Table;
 use Symfony\Component\Serializer\Annotation\Groups as Group;
@@ -115,6 +116,12 @@ class Etablissement extends Entite
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $numeroOrdreTechnique = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $status = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $reason = null;
 
 
 
@@ -502,6 +509,30 @@ class Etablissement extends Entite
     public function setNumeroOrdreTechnique(?string $numeroOrdreTechnique): static
     {
         $this->numeroOrdreTechnique = $numeroOrdreTechnique;
+
+        return $this;
+    }
+
+    public function getStatus(): ?string
+    {
+        return $this->status;
+    }
+
+    public function setStatus(string $status): static
+    {
+        $this->status = $status;
+
+        return $this;
+    }
+
+    public function getReason(): ?string
+    {
+        return $this->reason;
+    }
+
+    public function setReason(string $reason): static
+    {
+        $this->reason = $reason;
 
         return $this;
     }

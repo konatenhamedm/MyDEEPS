@@ -33,3 +33,37 @@ framework:
                 mis_a_jour:
                     from: renouvellement 
                     to: a_jour
+
+        validation_etablissement:
+            type: 'state_machine'
+            audit_trail:
+              enabled: true
+            marking_store:
+              type: 'method'
+              property: 'status'
+            supports:
+                - App\Entity\Etablissement
+            initial_marking: attente
+            places:
+                - attente
+                - accepte
+                - valide
+                - refuse
+                - renouvellement
+                - a_jour
+            transitions:
+                acceptation:
+                    from: attente
+                    to: accepte
+                rejet:
+                    from: attente
+                    to: refuse
+                validation:
+                    from: accepte 
+                    to: valide
+                renouvellement:
+                    from: valide
+                    to: renouvellement
+                mis_a_jour:
+                    from: renouvellement 
+                    to: a_jour

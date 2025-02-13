@@ -243,6 +243,8 @@ class ApiPaiementController extends ApiInterface
     #[Security(name: 'Bearer')]
     public function doPaiement(Request $request, PaiementService $paiementService)
     {
+
+       
         $result = $paiementService->traiterPaiement($request);
 
         return $this->json($result);

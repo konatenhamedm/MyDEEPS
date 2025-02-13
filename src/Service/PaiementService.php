@@ -52,7 +52,7 @@ class PaiementService
             "quantite" => 1,
             "montant" => "15000",
             "lib_order" => "PAIEMENT ONMCI",
-            "Url_Retour" => "http://localhost:5173/site/professionnel",
+            "Url_Retour" => "https://mydepps.pages.dev/site/professionnel",
             "Url_Callback" => "https://depps.leadagro.net/api/paiement/info-paiement"
         ];
 
