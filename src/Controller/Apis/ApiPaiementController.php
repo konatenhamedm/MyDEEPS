@@ -13,6 +13,7 @@ use App\Controller\Apis\Config\ApiInterface;
 use App\Entity\TempEtablissement;
 use App\Entity\TempProfessionnel;
 use App\Entity\Transaction;
+use App\Entity\User;
 use App\Repository\TransactionRepository;
 use App\Repository\UserRepository;
 use App\Service\PaiementService;
@@ -286,7 +287,7 @@ class ApiPaiementController extends ApiInterface
         $professionnel->setDiplome($request->get('diplome'));
         $professionnel->setSituationPro($request->get('situationPro'));
         $professionnel->setReference($data['reference']);
-        $professionnel->setTypeUser($data['type']);
+        $professionnel->setTypeUser(User::TYPE['PROFESSIONNEL']);
 
         // etatpe 4
 
@@ -400,7 +401,8 @@ class ApiPaiementController extends ApiInterface
         $etablissement->setContactProTechnique($request->get('contactProTechnique'));
         $etablissement->setLieuResidenceTechnique($request->get('lieuResidenceTechnique'));
         $etablissement->setNumeroOrdreTechnique($request->get('numeroOrdreTechnique'));
-        $etablissement->setReference($request->get('reference'));
+        $etablissement->setReference($data['reference']);
+        $etablissement->setTypeUser(User::TYPE['ETABLISSEMENT']);
 
         $uploadedPhoto = $request->files->get('photo');
         $uploadedCni = $request->files->get('cni');
