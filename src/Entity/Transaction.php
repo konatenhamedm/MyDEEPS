@@ -48,6 +48,9 @@ class Transaction
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $data = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $typeUser = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -145,6 +148,18 @@ class Transaction
     public function setData(?string $data): static
     {
         $this->data = $data;
+
+        return $this;
+    }
+
+    public function getTypeUser(): ?string
+    {
+        return $this->typeUser;
+    }
+
+    public function setTypeUser(?string $typeUser): static
+    {
+        $this->typeUser = $typeUser;
 
         return $this;
     }

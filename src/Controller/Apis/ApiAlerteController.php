@@ -8,6 +8,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Entity\Alerte;
 use App\Entity\Transaction;
 use App\Repository\AlerteRepository;
+use App\Repository\DestinateurRepository;
 use App\Repository\UserRepository;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -168,14 +169,14 @@ class ApiAlerteController extends ApiInterface
     )]
     #[OA\Tag(name: 'alerte')]
     #[Security(name: 'Bearer')]
-    public function create(Request $request, AlerteRepository $alerteRepository): Response
+    public function create(Request $request, AlerteRepository $alerteRepository,DestinateurRepository $destinateurRepository): Response
     {
 
         $data = json_decode($request->getContent(), true);
         $alerte = new Alerte();
-        $alerte->setDestinateur($this->userRepository->find($data['destinateur']));
+        $alerte->setDestinateur($destinateurRepository->find($data['destinateur']));
         $alerte->setUser($this->userRepository->find($data['user']));
-        $alerte->setMessage($data['destinateur']);
+        $alerte->setMessage($data['message']);
         $alerte->setObjet($data['objet']);
         $alerte->setCreatedBy($this->userRepository->find($data['userUpdate']));
         $alerte->setUpdatedBy($this->userRepository->find($data['userUpdate']));
@@ -215,15 +216,15 @@ class ApiAlerteController extends ApiInterface
     )]
     #[OA\Tag(name: 'alerte')]
     #[Security(name: 'Bearer')]
-    public function update(Request $request, Alerte $alerte, AlerteRepository $alerteRepository): Response
+    public function update(Request $request, Alerte $alerte, AlerteRepository $alerteRepository,DestinateurRepository $destinateurRepository): Response
     {
         try {
             $data = json_decode($request->getContent());
             if ($alerte != null) {
 
-                $alerte->setDestinateur($this->userRepository->find($data->destinateur));
+                $alerte->setDestinateur($destinateurRepository->find($data->destinateur));
                 $alerte->setUser($this->userRepository->find($data->user));
-                $alerte->setMessage($data->destinateur);
+                $alerte->setMessage($data->message);
                 $alerte->setObjet($data->objet);
                 $alerte->setUpdatedBy($this->userRepository->find($data->userUpdate));
                 $alerte->setUpdatedAt(new \DateTime());

@@ -33,7 +33,7 @@ class Alerte
     private string $message;
 
 
-    #[ORM\Column(type: "string", length: 255)]
+    #[ORM\Column(type: "string", length: 255,nullable:true)]
     #[Group(["group1"])]
     private string $lecteur;
 

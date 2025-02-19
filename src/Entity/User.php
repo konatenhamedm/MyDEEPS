@@ -118,6 +118,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: Transaction::class, mappedBy: 'user')]
     private Collection $transactions;
 
+    #[ORM\ManyToOne(inversedBy: 'users')]
+    private ?Entite $personne = null;
+
 
     public function __construct()
     {
@@ -397,6 +400,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
                 $transaction->setUser(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getPersonne(): ?Entite
+    {
+        return $this->personne;
+    }
+
+    public function setPersonne(?Entite $personne): static
+    {
+        $this->personne = $personne;
 
         return $this;
     }

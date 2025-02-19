@@ -1,0 +1,972 @@
+<?php
+
+namespace App\Entity;
+
+use App\Repository\TempProfessionnelRepository;
+use Doctrine\DBAL\Types\Types;
+use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups as Group;
+use Symfony\Component\Validator\Constraints as Assert;
+
+#[ORM\Entity(repositoryClass: TempProfessionnelRepository::class)]
+class TempProfessionnel
+{
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    private ?int $id = null;
+
+    #[ORM\Column(type: 'string', nullable: true)]
+    #[Group(["group1", "group_user", 'group_pro'])]
+    private ?string $username = null;
+
+    #[ORM\Column(type: 'string', nullable: true)]
+    #[Assert\Email]
+    #[Group(["group1", "group_user", 'group_pro'])]
+    private ?string $email = null;
+
+    #[ORM\Column]
+    private ?string $password = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $nomEntite = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $numero = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $annee = null;
+
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
+ 
+    #[ORM\Column]
+    #[Group(['group_pro'])]
+    private ?string $appartenirOrganisation = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $genre = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Group(["group_pro"])]
+    private ?string $reason = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group_pro"])]
+    private ?string $status = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group_pro"])]
+    private ?string $number = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group_pro"])]
+    private ?string $nom = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group_pro"])]
+    private ?string $prenoms = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group_pro"])]
+    private ?string $emailPro = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group_pro"])]
+    private ?string $address = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group_pro"])]
+    private ?string $professionnel = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group_pro"])]
+    private ?string $addressPro = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group_pro"])]
+    private ?string $profession = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group_pro"])]
+    private ?string $civilite = null;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    #[Group(["group_pro"])]
+    private ?\DateTimeInterface $dateNaissance = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $nationate = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group_pro"])]
+    private ?string $lieuResidence = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group_pro"])]
+    private ?string $adresseEmail = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group_pro"])]
+    private ?string $contactPro = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group_pro"])]
+    private ?string $situation = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group_pro"])]
+    private ?string $diplome = null;
+
+   
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    #[Group(["group_pro"])]
+    private ?\DateTimeInterface $dateDiplome = null;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    #[Group(["group_pro"])]
+    private ?\DateTimeInterface $dateEmploi = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group_pro"])]
+    private ?string $situationPro = null;
+
+    #[ORM\ManyToOne(cascade: ["persist"], fetch: "EAGER")]
+    #[ORM\JoinColumn(nullable: true)]
+    #[Group(["fichier","group_pro"])]
+    private ?Fichier $photo = null;
+
+    #[ORM\ManyToOne(cascade: ["persist"], fetch: "EAGER")]
+    #[ORM\JoinColumn(nullable: true)]
+    #[Group(["fichier","group_pro"])]
+    private ?Fichier $diplomeFile = null;
+
+    #[ORM\ManyToOne(cascade: ["persist"], fetch: "EAGER")]
+    #[ORM\JoinColumn(nullable: true)]
+    #[Group(["fichier","group_pro"])]
+    private ?Fichier $cni = null;
+
+    #[ORM\ManyToOne(cascade: ["persist"], fetch: "EAGER")]
+    #[ORM\JoinColumn(nullable: true)]
+    #[Group(["fichier","group_pro"])]
+    private ?Fichier $cv = null;
+
+    #[ORM\ManyToOne(cascade: ["persist"], fetch: "EAGER")]
+    #[ORM\JoinColumn(nullable: true)]
+    #[Group(["fichier","group_pro"])]
+    private ?Fichier $casier = null;
+
+    #[ORM\ManyToOne(cascade: ["persist"], fetch: "EAGER")]
+    #[ORM\JoinColumn(nullable: true)]
+    #[Group(["fichier","group_pro"])]
+    private ?Fichier $certificat = null;
+
+   
+    #[Group(["group_pro"])]
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $specialite = null;
+
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group_pro"])]
+    private ?string $ville = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $lieuDiplome = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $reference = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $typeUser = null;
+
+    public function getReference(): ?string
+    {
+        return $this->reference;
+    }
+
+    public function setReference(?string $reference): static
+    {
+        $this->reference = $reference;
+
+        return $this;
+    }
+
+
+
+    /**
+     * Get the value of appartenirOrganisation
+     */ 
+    public function getAppartenirOrganisation()
+    {
+        return $this->appartenirOrganisation;
+    }
+
+    /**
+     * Set the value of appartenirOrganisation
+     *
+     * @return  self
+     */ 
+    public function setAppartenirOrganisation($appartenirOrganisation)
+    {
+        $this->appartenirOrganisation = $appartenirOrganisation;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of genre
+     */ 
+    public function getGenre()
+    {
+        return $this->genre;
+    }
+
+    /**
+     * Set the value of genre
+     *
+     * @return  self
+     */ 
+    public function setGenre($genre)
+    {
+        $this->genre = $genre;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of reason
+     */ 
+    public function getReason()
+    {
+        return $this->reason;
+    }
+
+    /**
+     * Set the value of reason
+     *
+     * @return  self
+     */ 
+    public function setReason($reason)
+    {
+        $this->reason = $reason;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of status
+     */ 
+    public function getStatus()
+    {
+        return $this->status;
+    }
+
+    /**
+     * Set the value of status
+     *
+     * @return  self
+     */ 
+    public function setStatus($status)
+    {
+        $this->status = $status;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of number
+     */ 
+    public function getNumber()
+    {
+        return $this->number;
+    }
+
+    /**
+     * Set the value of number
+     *
+     * @return  self
+     */ 
+    public function setNumber($number)
+    {
+        $this->number = $number;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of nom
+     */ 
+    public function getNom()
+    {
+        return $this->nom;
+    }
+
+    /**
+     * Set the value of nom
+     *
+     * @return  self
+     */ 
+    public function setNom($nom)
+    {
+        $this->nom = $nom;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of prenoms
+     */ 
+    public function getPrenoms()
+    {
+        return $this->prenoms;
+    }
+
+    /**
+     * Set the value of prenoms
+     *
+     * @return  self
+     */ 
+    public function setPrenoms($prenoms)
+    {
+        $this->prenoms = $prenoms;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of emailPro
+     */ 
+    public function getEmailPro()
+    {
+        return $this->emailPro;
+    }
+
+    /**
+     * Set the value of emailPro
+     *
+     * @return  self
+     */ 
+    public function setEmailPro($emailPro)
+    {
+        $this->emailPro = $emailPro;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of address
+     */ 
+    public function getAddress()
+    {
+        return $this->address;
+    }
+
+    /**
+     * Set the value of address
+     *
+     * @return  self
+     */ 
+    public function setAddress($address)
+    {
+        $this->address = $address;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of professionnel
+     */ 
+    public function getProfessionnel()
+    {
+        return $this->professionnel;
+    }
+
+    /**
+     * Set the value of professionnel
+     *
+     * @return  self
+     */ 
+    public function setProfessionnel($professionnel)
+    {
+        $this->professionnel = $professionnel;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of addressPro
+     */ 
+    public function getAddressPro()
+    {
+        return $this->addressPro;
+    }
+
+    /**
+     * Set the value of addressPro
+     *
+     * @return  self
+     */ 
+    public function setAddressPro($addressPro)
+    {
+        $this->addressPro = $addressPro;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of profession
+     */ 
+    public function getProfession()
+    {
+        return $this->profession;
+    }
+
+    /**
+     * Set the value of profession
+     *
+     * @return  self
+     */ 
+    public function setProfession($profession)
+    {
+        $this->profession = $profession;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of dateNaissance
+     */ 
+    public function getDateNaissance()
+    {
+        return $this->dateNaissance;
+    }
+
+    /**
+     * Set the value of dateNaissance
+     *
+     * @return  self
+     */ 
+    public function setDateNaissance($dateNaissance)
+    {
+        $this->dateNaissance = $dateNaissance;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of civilite
+     */ 
+    public function getCivilite()
+    {
+        return $this->civilite;
+    }
+
+    /**
+     * Set the value of civilite
+     *
+     * @return  self
+     */ 
+    public function setCivilite($civilite)
+    {
+        $this->civilite = $civilite;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of nationate
+     */ 
+    public function getNationate()
+    {
+        return $this->nationate;
+    }
+
+    /**
+     * Set the value of nationate
+     *
+     * @return  self
+     */ 
+    public function setNationate($nationate)
+    {
+        $this->nationate = $nationate;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of lieuResidence
+     */ 
+    public function getLieuResidence()
+    {
+        return $this->lieuResidence;
+    }
+
+    /**
+     * Set the value of lieuResidence
+     *
+     * @return  self
+     */ 
+    public function setLieuResidence($lieuResidence)
+    {
+        $this->lieuResidence = $lieuResidence;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of adresseEmail
+     */ 
+    public function getAdresseEmail()
+    {
+        return $this->adresseEmail;
+    }
+
+    /**
+     * Set the value of adresseEmail
+     *
+     * @return  self
+     */ 
+    public function setAdresseEmail($adresseEmail)
+    {
+        $this->adresseEmail = $adresseEmail;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of contactPro
+     */ 
+    public function getContactPro()
+    {
+        return $this->contactPro;
+    }
+
+    /**
+     * Set the value of contactPro
+     *
+     * @return  self
+     */ 
+    public function setContactPro($contactPro)
+    {
+        $this->contactPro = $contactPro;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of situation
+     */ 
+    public function getSituation()
+    {
+        return $this->situation;
+    }
+
+    /**
+     * Set the value of situation
+     *
+     * @return  self
+     */ 
+    public function setSituation($situation)
+    {
+        $this->situation = $situation;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of diplome
+     */ 
+    public function getDiplome()
+    {
+        return $this->diplome;
+    }
+
+    /**
+     * Set the value of diplome
+     *
+     * @return  self
+     */ 
+    public function setDiplome($diplome)
+    {
+        $this->diplome = $diplome;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of dateDiplome
+     */ 
+    public function getDateDiplome()
+    {
+        return $this->dateDiplome;
+    }
+
+    /**
+     * Set the value of dateDiplome
+     *
+     * @return  self
+     */ 
+    public function setDateDiplome($dateDiplome)
+    {
+        $this->dateDiplome = $dateDiplome;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of dateEmploi
+     */ 
+    public function getDateEmploi()
+    {
+        return $this->dateEmploi;
+    }
+
+    /**
+     * Set the value of dateEmploi
+     *
+     * @return  self
+     */ 
+    public function setDateEmploi($dateEmploi)
+    {
+        $this->dateEmploi = $dateEmploi;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of situationPro
+     */ 
+    public function getSituationPro()
+    {
+        return $this->situationPro;
+    }
+
+    /**
+     * Set the value of situationPro
+     *
+     * @return  self
+     */ 
+    public function setSituationPro($situationPro)
+    {
+        $this->situationPro = $situationPro;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of photo
+     */ 
+    public function getPhoto()
+    {
+        return $this->photo;
+    }
+
+    /**
+     * Set the value of photo
+     *
+     * @return  self
+     */ 
+    public function setPhoto($photo)
+    {
+        $this->photo = $photo;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of diplomeFile
+     */ 
+    public function getDiplomeFile()
+    {
+        return $this->diplomeFile;
+    }
+
+    /**
+     * Set the value of diplomeFile
+     *
+     * @return  self
+     */ 
+    public function setDiplomeFile($diplomeFile)
+    {
+        $this->diplomeFile = $diplomeFile;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of cni
+     */ 
+    public function getCni()
+    {
+        return $this->cni;
+    }
+
+    /**
+     * Set the value of cni
+     *
+     * @return  self
+     */ 
+    public function setCni($cni)
+    {
+        $this->cni = $cni;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of cv
+     */ 
+    public function getCv()
+    {
+        return $this->cv;
+    }
+
+    /**
+     * Set the value of cv
+     *
+     * @return  self
+     */ 
+    public function setCv($cv)
+    {
+        $this->cv = $cv;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of casier
+     */ 
+    public function getCasier()
+    {
+        return $this->casier;
+    }
+
+    /**
+     * Set the value of casier
+     *
+     * @return  self
+     */ 
+    public function setCasier($casier)
+    {
+        $this->casier = $casier;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of certificat
+     */ 
+    public function getCertificat()
+    {
+        return $this->certificat;
+    }
+
+    /**
+     * Set the value of certificat
+     *
+     * @return  self
+     */ 
+    public function setCertificat($certificat)
+    {
+        $this->certificat = $certificat;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of specialite
+     */ 
+    public function getSpecialite()
+    {
+        return $this->specialite;
+    }
+
+    /**
+     * Set the value of specialite
+     *
+     * @return  self
+     */ 
+    public function setSpecialite($specialite)
+    {
+        $this->specialite = $specialite;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of lieuDiplome
+     */ 
+    public function getLieuDiplome()
+    {
+        return $this->lieuDiplome;
+    }
+
+    /**
+     * Set the value of lieuDiplome
+     *
+     * @return  self
+     */ 
+    public function setLieuDiplome($lieuDiplome)
+    {
+        $this->lieuDiplome = $lieuDiplome;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of ville
+     */ 
+    public function getVille()
+    {
+        return $this->ville;
+    }
+
+    /**
+     * Set the value of ville
+     *
+     * @return  self
+     */ 
+    public function setVille($ville)
+    {
+        $this->ville = $ville;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of username
+     */ 
+    public function getUsername()
+    {
+        return $this->username;
+    }
+
+    /**
+     * Set the value of username
+     *
+     * @return  self
+     */ 
+    public function setUsername($username)
+    {
+        $this->username = $username;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of email
+     */ 
+    public function getEmail()
+    {
+        return $this->email;
+    }
+
+    /**
+     * Set the value of email
+     *
+     * @return  self
+     */ 
+    public function setEmail($email)
+    {
+        $this->email = $email;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of password
+     */ 
+    public function getPassword()
+    {
+        return $this->password;
+    }
+
+    /**
+     * Set the value of password
+     *
+     * @return  self
+     */ 
+    public function setPassword($password)
+    {
+        $this->password = $password;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of nomEntite
+     */ 
+    public function getNomEntite()
+    {
+        return $this->nomEntite;
+    }
+
+    /**
+     * Set the value of nomEntite
+     *
+     * @return  self
+     */ 
+    public function setNomEntite($nomEntite)
+    {
+        $this->nomEntite = $nomEntite;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of numero
+     */ 
+    public function getNumero()
+    {
+        return $this->numero;
+    }
+
+    /**
+     * Set the value of numero
+     *
+     * @return  self
+     */ 
+    public function setNumero($numero)
+    {
+        $this->numero = $numero;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of annee
+     */ 
+    public function getAnnee()
+    {
+        return $this->annee;
+    }
+
+    /**
+     * Set the value of annee
+     *
+     * @return  self
+     */ 
+    public function setAnnee($annee)
+    {
+        $this->annee = $annee;
+
+        return $this;
+    }
+
+    public function getTypeUser(): ?string
+    {
+        return $this->typeUser;
+    }
+
+    public function setTypeUser(?string $typeUser): static
+    {
+        $this->typeUser = $typeUser;
+
+        return $this;
+    }
+}

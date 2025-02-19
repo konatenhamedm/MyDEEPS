@@ -192,9 +192,10 @@ class ApiProfessionnelController extends ApiInterface
     )]
     #[OA\Tag(name: 'professionnel')]
     //#[Security(name: 'Bearer')]
-    public function getOne(?Professionnel $professionnel)
+    public function getOne(ProfessionnelRepository $professionnelRepository)
     {
         try {
+            $professionnel = $professionnelRepository->findOneBy(['user'=>23]);
             if ($professionnel) {
                 $response = $this->responseData($professionnel, 'group_pro', ['Content-Type' => 'application/json']);
             } else {
@@ -228,7 +229,7 @@ class ApiProfessionnelController extends ApiInterface
     }
 
 
-    #[Route('/create',  methods: ['POST'])]
+    #[Route('/create/{reference}', name:'create_professionnel' , methods: ['POST'])]
     /**
      * Permet de créer un(e) professionnel.
      */
@@ -242,12 +243,13 @@ class ApiProfessionnelController extends ApiInterface
                 mediaType: "multipart/form-data",
                 schema: new OA\Schema(
                     properties: [
-
+                        // etatpe 1
                         new OA\Property(property: "password", type: "string"), // username
                         new OA\Property(property: "confirmPassword", type: "string"), // username
                         new OA\Property(property: "email", type: "string"),
 
 
+                        // etatpe 2
 
                         new OA\Property(property: "numero", type: "string"), // code_verification ..
                         new OA\Property(property: "address", type: "string"), //address
@@ -257,6 +259,7 @@ class ApiProfessionnelController extends ApiInterface
                         new OA\Property(property: "emailPro", type: "string"), //email_pro
                         new OA\Property(property: "specialite", type: "string"), //specialite select
 
+                        // etatpe 3
 
                         new OA\Property(property: "profession", type: "string"), //profession bouton radio
                         new OA\Property(property: "civilite", type: "string"), //civilite select
@@ -274,6 +277,8 @@ class ApiProfessionnelController extends ApiInterface
                         new OA\Property(property: "diplome", type: "string"), //diplome
                         new OA\Property(property: "situationPro", type: "string"), //situation_pro
 
+                        // etatpe 4
+
 
                         new OA\Property(property: "photo", type: "string", format: "binary"), //photo
                         new OA\Property(property: "cni", type: "string", format: "binary"), //cni
@@ -281,6 +286,8 @@ class ApiProfessionnelController extends ApiInterface
                         new OA\Property(property: "diplomeFile", type: "string", format: "binary"), //diplomeFile
                         new OA\Property(property: "certificat", type: "string", format: "binary"), //certificat
                         new OA\Property(property: "cv", type: "string", format: "binary"), //cv
+
+                        // etatpe 5
 
 
                         new OA\Property(property: "appartenirOrganisation", type: "string"), // oui ou non
@@ -304,7 +311,7 @@ class ApiProfessionnelController extends ApiInterface
     )]
     #[OA\Tag(name: 'professionnel')]
     #[Security(name: 'Bearer')]
-    public function create(Request $request,SessionInterface $session,SendMailService $sendMailService,TransactionRepository $transactionRepository, VilleRepository $villeRepository,CiviliteRepository $civiliteRepository, SpecialiteRepository $specialiteRepository, GenreRepository $genreRepository, ProfessionnelRepository $professionnelRepository,PaysRepository $paysRepository, OrganisationRepository $organisationRepository): Response
+    public function create(Request $request,$reference,SessionInterface $session,SendMailService $sendMailService,TransactionRepository $transactionRepository, VilleRepository $villeRepository,CiviliteRepository $civiliteRepository, SpecialiteRepository $specialiteRepository, GenreRepository $genreRepository, ProfessionnelRepository $professionnelRepository,PaysRepository $paysRepository, OrganisationRepository $organisationRepository): Response
     {
 
         $names = 'document_' . '01';
@@ -411,7 +418,7 @@ class ApiProfessionnelController extends ApiInterface
 
 
             $professionnel->setAppartenirOrganisation($request->get('appartenirOrganisation'));
-            $professionnel->setUser($user);
+            /* $professionnel->setUser($user); */
 
 
             $professionnel->setCreatedBy($user);
@@ -482,12 +489,7 @@ class ApiProfessionnelController extends ApiInterface
                 schema: new OA\Schema(
                     properties: [
 
-                        new OA\Property(property: "password", type: "string"), // username
-                        new OA\Property(property: "confirmPassword", type: "string"), // username
-                        new OA\Property(property: "email", type: "string"),
-
-
-
+                    
                         new OA\Property(property: "numero", type: "string"), // code_verification ..
                         new OA\Property(property: "address", type: "string"), //address
                         new OA\Property(property: "nom", type: "string"), //first_name 
@@ -552,7 +554,6 @@ class ApiProfessionnelController extends ApiInterface
 
             if ($professionnel) {
                 $professionnel->setNumber($request->get('numero'));
-                $professionnel->setStatus('attente');
                 $professionnel->setNom($request->get('nom'));
                 $professionnel->setVille($villeRepository->find($request->get('ville')));
                 $professionnel->setPrenoms($request->get('prenoms'));
@@ -646,8 +647,6 @@ class ApiProfessionnelController extends ApiInterface
                     return $errorResponse; // Retourne la réponse d'erreur si des erreurs sont présentes
                 } else {
                     $professionnelRepository->add($professionnel, true);
-                    $user->setTypeUser("PROFESSIONNEL");
-                    $this->userRepository->add($user, true);
                 }
                 $response = $this->responseData($professionnel, 'group_pro', ['Content-Type' => 'application/json']);
             }

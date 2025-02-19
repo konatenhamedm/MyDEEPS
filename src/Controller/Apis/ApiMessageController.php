@@ -136,10 +136,10 @@ class ApiMessageController extends ApiInterface
         string $sender,
         string $receiver,
         MessageRepository $messageRepository
-    ): JsonResponse {
+    ): Response {
         try {
             $messages = $messageRepository->findConversation($sender, $receiver);
-
+/* dd($messages); */
             if (empty($messages)) {
 
                 $this->setMessage("Aucun message trouvé entre ces utilisateurs.");
@@ -147,12 +147,14 @@ class ApiMessageController extends ApiInterface
                 return $this->response('[]');
             }
 
-            return $this->responseData($messages, 'group1', ['Content-Type' => 'application/json']);
+            $response = $this->responseData($messages, 'group1', ['Content-Type' => 'application/json']);
         } catch (\Exception $exception) {
             $this->setMessage("Cette ressource est inexsitante");
             $this->setStatusCode(500);
-            return $this->response('[]');
+            $response = $this->response('[]');
         }
+
+        return $response;
     }
 
 

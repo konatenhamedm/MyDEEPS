@@ -42,7 +42,6 @@ class AuthenticationSuccessListener
             
             
             $userData = $this->userRepository->find($user->getId());
-            $professionnel = $this->professionnelRepo->findOneBy(['user'=> $user->getId()]);
            
 
             $data['data'] =   [
@@ -50,7 +49,7 @@ class AuthenticationSuccessListener
                 'role' => $userData->getRoles(),
                 'username' => $userData->getUserIdentifier(),
                 'avatar' => $userData->getAvatar() ? $userData->getAvatar()->getPath() .'/'. $userData->getAvatar()->getAlt() : null,
-                'status' => $professionnel->getStatus() ? $professionnel->getStatus() : null,
+                'status' => $userData->getTypeUser() == "PROFESSIONNEL" ? $userData->getPersonne()->getStatus() : null,
                 'payement' => $userData->getPayement(),
                 'type' => $userData->getTypeUser(),
             ];

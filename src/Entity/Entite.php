@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\EntiteRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\Mapping\DiscriminatorColumn;
 use Doctrine\ORM\Mapping\DiscriminatorMap;
@@ -18,13 +19,14 @@ use Symfony\Component\Serializer\Annotation\Groups as Group;
 
 
 #[ORM\Entity(repositoryClass: EntiteRepository::class)]
-#[Table(name: 'membre_entite')]
+#[Table(name: 'personne')]
 #[InheritanceType("JOINED")]
 #[DiscriminatorColumn(name: "discr", type: "string", length: 18)]
 #[DiscriminatorMap([
     'entite' => Entite::class,
     'professionnel' => Professionnel::class,
-    'etablissement' => Etablissement::class
+    'etablissement' => Etablissement::class,
+    'administrateur' => Administrateur::class,
 ])]
 class Entite
 {
@@ -38,10 +40,7 @@ class Entite
     private ?int $id = null;
 
 
-
-
-
-    #[ORM\Column]
+    #[ORM\Column(nullable: true)]
     #[Group(['group_pro'])]
     private ?string $appartenirOrganisation = null;
 
@@ -51,21 +50,35 @@ class Entite
     #[ORM\OneToMany(targetEntity: Organisation::class, mappedBy: 'entite')]
     private Collection $organisations;
 
-    #[ORM\OneToOne(cascade: ['persist', 'remove'])]
-    #[Group(['group_pro'])]
-    private ?User $user = null;
+    /**
+     * @var Collection<int, User>
+     */
+    #[ORM\OneToMany(targetEntity: User::class, mappedBy: 'personne')]
+    private Collection $users;
 
+    #[ORM\ManyToOne(inversedBy: 'entites')]
+    #[Group(["group_pro"])]
+    private ?Genre $genre = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Group(["group_pro"])]
+    private ?string $reason = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group_pro"])]
+    private ?string $status = null;
+
+ 
     public function __construct()
     {
         $this->organisations = new ArrayCollection();
+        $this->users = new ArrayCollection();
     }
 
     public function getId(): ?int
     {
         return $this->id;
     }
-
-
 
 
     public function getAppartenirOrganisation(): ?string
@@ -110,14 +123,68 @@ class Entite
         return $this;
     }
 
-    public function getUser(): ?User
+    /**
+     * @return Collection<int, User>
+     */
+    public function getUsers(): Collection
     {
-        return $this->user;
+        return $this->users;
     }
 
-    public function setUser(?User $user): static
+    public function addUser(User $user): static
     {
-        $this->user = $user;
+        if (!$this->users->contains($user)) {
+            $this->users->add($user);
+            $user->setPersonne($this);
+        }
+
+        return $this;
+    }
+
+    public function removeUser(User $user): static
+    {
+        if ($this->users->removeElement($user)) {
+            // set the owning side to null (unless already changed)
+            if ($user->getPersonne() === $this) {
+                $user->setPersonne(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getGenre(): ?Genre
+    {
+        return $this->genre;
+    }
+
+    public function setGenre(?Genre $genre): static
+    {
+        $this->genre = $genre;
+
+        return $this;
+    }
+
+    public function getReason(): ?string
+    {
+        return $this->reason;
+    }
+
+    public function setReason(?string $reason): static
+    {
+        $this->reason = $reason;
+
+        return $this;
+    }
+
+    public function getStatus(): ?string
+    {
+        return $this->status;
+    }
+
+    public function setStatus(?string $status): static
+    {
+        $this->status = $status;
 
         return $this;
     }

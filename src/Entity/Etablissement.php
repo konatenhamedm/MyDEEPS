@@ -18,11 +18,6 @@ class Etablissement extends Entite
     #[Group(["group_pro"])]
     private ?TypePersonne $typePersonne = null;
 
-     
-    #[ORM\ManyToOne(inversedBy: 'etablissements')]
-    #[Group(["group_pro"])]
-    private ?Genre $genre = null;
-
 
 
     #[ORM\ManyToOne(cascade: ["persist"], fetch: "EAGER")]
@@ -58,12 +53,15 @@ class Etablissement extends Entite
 
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["fichier","group_pro"])]
     private ?string $nomEntreprise = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["fichier","group_pro"])]
     private ?string $natureEntreprise = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["fichier","group_pro"])]
     private ?string $typeEntreprise = null;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -73,6 +71,7 @@ class Etablissement extends Entite
     private ?string $niveauEntreprise = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["fichier","group_pro"])]
     private ?string $contactEntreprise = null;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -100,6 +99,7 @@ class Etablissement extends Entite
     private ?string $numeroCni = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["fichier","group_pro"])]
     private ?string $nomCompletTechnique = null;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -117,12 +117,7 @@ class Etablissement extends Entite
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $numeroOrdreTechnique = null;
 
-    #[ORM\Column(length: 255)]
-    private ?string $status = null;
-
-    #[ORM\Column(type: Types::TEXT, nullable: true)]
-    private ?string $reason = null;
-
+   
 
 
 
@@ -138,20 +133,6 @@ class Etablissement extends Entite
 
         return $this;
     }
-
-    public function getGenre(): ?Genre
-    {
-        return $this->genre;
-    }
-
-    public function setGenre(?Genre $genre): static
-    {
-        $this->genre = $genre;
-
-        return $this;
-    }
-
-
 
 
     /**
@@ -513,27 +494,7 @@ class Etablissement extends Entite
         return $this;
     }
 
-    public function getStatus(): ?string
-    {
-        return $this->status;
-    }
+    
 
-    public function setStatus(string $status): static
-    {
-        $this->status = $status;
-
-        return $this;
-    }
-
-    public function getReason(): ?string
-    {
-        return $this->reason;
-    }
-
-    public function setReason(string $reason): static
-    {
-        $this->reason = $reason;
-
-        return $this;
-    }
+   
 }

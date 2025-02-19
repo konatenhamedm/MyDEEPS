@@ -10,10 +10,13 @@ use Nelmio\ApiDocBundle\Annotation\Model;
 use Nelmio\ApiDocBundle\Annotation\Security;
 use Symfony\Component\HttpFoundation\Request;
 use App\Controller\Apis\Config\ApiInterface;
+use App\Entity\TempEtablissement;
+use App\Entity\TempProfessionnel;
 use App\Entity\Transaction;
 use App\Repository\TransactionRepository;
 use App\Repository\UserRepository;
 use App\Service\PaiementService;
+use DateTimeImmutable;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Validator\Constraints\Date;
@@ -74,15 +77,15 @@ class ApiPaiementController extends ApiInterface
 
         if ($transaction) {
             return $this->json(
-              [
-                "data"=> true
-              ]
-              );
-        }else{
+                [
+                    "data" => true
+                ]
+            );
+        } else {
             return $this->json(
-            [
-              "data"=> false
-            ]
+                [
+                    "data" => false
+                ]
             );
         }
     }
@@ -132,33 +135,13 @@ class ApiPaiementController extends ApiInterface
     )]
     #[OA\Tag(name: 'paiements')]
     #[Security(name: 'Bearer')]
-    public function webHook(Request $request, TransactionRepository $transactionRepository, SessionInterface $session,): Response
+    public function webHook(Request $request, TransactionRepository $transactionRepository, SessionInterface $session, PaiementService $paiementService): Response
     {
-
-        $data = json_decode($request->getContent(), true);
-        $transaction = $transactionRepository->findOneBy(['reference' => $data['codePaiement']]);
-
-        $transaction->setReferenceChannel($data['referencePaiement']);
-        if ($data['code'] == 200)
-            $transaction->setState(1);
-
-        $transaction->setChannel($data['moyenPaiement']);
-        $transaction->setData(json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
-        $transactionRepository->add($transaction, true);
-        /*   $user = $transaction->getUser();
-
-        if ($data['code'] == 200)
-            $user->setPayement("payed");
-
-        $user->setData(json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
-
-        $this->userRepository->add($user, true); */
-
-        $session->set('transactionId', $data['referencePaiement']);
-
-        $response = $this->responseData($transaction, 'group_user', ['Content-Type' => 'application/json']);
-        return $response;
+        $response = $paiementService->methodeWebHook($request);
+        return  $this->responseData($response, 'group1', ['Content-Type' => 'application/json']);
     }
+
+
 
 
     #[Route('/initiation/transaction',  methods: ['POST'])]
@@ -243,10 +226,240 @@ class ApiPaiementController extends ApiInterface
     #[Security(name: 'Bearer')]
     public function doPaiement(Request $request, PaiementService $paiementService)
     {
+        $createTransactionData = $paiementService->traiterPaiement($request);
+    /* 
+        if (!isset($createTransactionData['type'])) {
+            return [
+                'code' => 400,
+                'message' => 'Type de paiement manquant'
+            ];
+        }
+     */
+        if ($createTransactionData) {
+            $resultat = $this->createProfessionnelTemp($request, $createTransactionData);
+        } /* else {
+            $resultat = $this->createEtablissemntTemp($request, $createTransactionData);
+        } */
+    
+        return $resultat;
+    }
 
-       
-        $result = $paiementService->traiterPaiement($request);
 
-        return $this->json($result);
+    public function createProfessionnelTemp(Request $request, $data)
+    {
+
+        $names = 'document_' . '01';
+        $filePrefix  = str_slug($names);
+        $filePath = $this->getUploadDir(self::UPLOAD_PATH, true);
+        $professionnel = new TempProfessionnel();
+
+        //etape 1
+
+        $professionnel->setPassword($request->get('password'));
+        $professionnel->setEmail($request->get('email'));
+        $professionnel->setUsername($request->get('nom') . " " . $this->numero());
+
+        // etatpe 2
+        $professionnel->setNumber($request->get('numero'));
+        $professionnel->setNom($request->get('nom'));
+        $professionnel->setPrenoms($request->get('prenoms'));
+        $professionnel->setSpecialite($request->get('specialite'));
+        $professionnel->setProfessionnel($request->get('professionnel'));
+        $professionnel->setAddress($request->get('address'));
+        $professionnel->setEmailPro($request->get('emailPro'));
+
+        // etatpe 3
+
+        $professionnel->setProfession($request->get('profession'));
+        $professionnel->setGenre($request->get('genre'));
+        $professionnel->setCivilite($request->get('civilite'));
+        $professionnel->setVille($request->get('ville'));
+        $professionnel->setEmailPro($request->get('adresseEmail'));
+        $professionnel->setDateDiplome(new DateTimeImmutable($request->get('dateDiplome')));
+        $professionnel->setDateNaissance(new DateTimeImmutable($request->get('dateNaissance')));
+        $professionnel->setContactPro($request->get('contactPro'));
+        $professionnel->setLieuDiplome($request->get('lieuDiplome'));
+        $professionnel->setNationate($request->get('nationate'));
+        $professionnel->setSituation($request->get('situation'));
+        $professionnel->setDateEmploi(new DateTimeImmutable($request->get('dateEmploi')));
+        $professionnel->setLieuResidence($request->get('lieuResidence'));
+        $professionnel->setDiplome($request->get('diplome'));
+        $professionnel->setSituationPro($request->get('situationPro'));
+        $professionnel->setReference($data['reference']);
+        $professionnel->setTypeUser($data['type']);
+
+        // etatpe 4
+
+        $uploadedPhoto = $request->files->get('photo');
+        $uploadedCasier = $request->files->get('casier');
+        $uploadedCni = $request->files->get('cni');
+        $uploadedDiplome = $request->files->get('diplomeFile');
+        $uploadedCertificat = $request->files->get('certificat');
+        $uploadedCv = $request->files->get('cv');
+
+
+        if ($uploadedPhoto) {
+            $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedPhoto, self::UPLOAD_PATH);
+            if ($fichier) {
+                $professionnel->setPhoto($fichier);
+            }
+        }
+        if ($uploadedCasier) {
+            $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedCasier, self::UPLOAD_PATH);
+            if ($fichier) {
+                $professionnel->setCasier($fichier);
+            }
+        }
+        if ($uploadedCni) {
+            $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedCni, self::UPLOAD_PATH);
+            if ($fichier) {
+                $professionnel->setCni($fichier);
+            }
+        }
+        if ($uploadedDiplome) {
+            $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedDiplome, self::UPLOAD_PATH);
+            if ($fichier) {
+                $professionnel->setDiplomeFile($fichier);
+            }
+        }
+        if ($uploadedCertificat) {
+            $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedCertificat, self::UPLOAD_PATH);
+            if ($fichier) {
+                $professionnel->setCertificat($fichier);
+            }
+        }
+        if ($uploadedCv) {
+            $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedCv, self::UPLOAD_PATH);
+            if ($fichier) {
+                $professionnel->setCv($fichier);
+            }
+        }
+
+        // etatpe 5
+
+        $professionnel->setAppartenirOrganisation($request->get('appartenirOrganisation'));
+        $professionnel->setNom($request->get('organisationNom'));
+        $professionnel->setAnnee($request->get('organisationAnnee'));
+        $professionnel->setNumero($request->get('organisationNumero'));
+
+        $errorResponse = $this->errorResponse($professionnel);
+        if ($errorResponse !== null) {
+            return $errorResponse; // Retourne la réponse d'erreur si des erreurs sont présentes
+        } else {
+
+            $this->em->persist($professionnel);
+            $this->em->flush();
+        }
+
+
+        return  $this->json([
+            'message' => 'Professionnel bien enregistré',
+            'data' => $data
+        ]);
+    }
+    public function createEtablissemntTemp(Request $request, $data)
+    {
+
+        $names = 'document_' . '01';
+        $filePrefix  = str_slug($names);
+        $filePath = $this->getUploadDir(self::UPLOAD_PATH, true);
+        $etablissement = new TempEtablissement();
+
+
+     
+
+
+        //etape 1
+
+        $etablissement->setPassword($request->get('password'));
+        $etablissement->setEmail($request->get('email'));
+        $etablissement->setUsername($request->get('nomEntreprise') . " " . $this->numero());
+
+        $etablissement->setTypePersonne($request->get('typePersonne'));
+        $etablissement->setNatureEntreprise($request->get('natureEntreprise'));
+        $etablissement->setTypeEntreprise($request->get('typeEntreprise'));
+        $etablissement->setGpsEntreprise($request->get('gpsEntreprise'));
+        $etablissement->setNatureEntreprise($request->get('niveauEntreprise'));
+        $etablissement->setContactEntreprise($request->get('contactEntreprise'));
+        $etablissement->setNomEntreprise($request->get('nomEntreprise'));
+        $etablissement->setEmailEntreprise($request->get('emailEntreprise'));
+        $etablissement->setSpaceEntreprise($request->get('spaceEntreprise'));
+
+        $etablissement->setGenre($request->get('genre'));
+        $etablissement->setNomCompletPromoteur($request->get('nomCompletPromoteur'));
+        $etablissement->setEmailPro($request->get('emailPro'));
+        $etablissement->setProfession($request->get('profession'));
+        $etablissement->setContactsPromoteur($request->get('contactsPromoteur'));
+        $etablissement->setLieuResidence($request->get('lieuResidence'));
+        $etablissement->setNumeroCni($request->get('numeroCni'));
+
+
+        $etablissement->setNomCompletTechnique($request->get('nomCompletTechnique'));
+        $etablissement->setEmailProTechnique($request->get('emailProTechnique'));
+        $etablissement->setProfessionTechnique($request->get('professionTechnique'));
+        $etablissement->setContactProTechnique($request->get('contactProTechnique'));
+        $etablissement->setLieuResidenceTechnique($request->get('lieuResidenceTechnique'));
+        $etablissement->setNumeroOrdreTechnique($request->get('numeroOrdreTechnique'));
+        $etablissement->setReference($request->get('reference'));
+
+        $uploadedPhoto = $request->files->get('photo');
+        $uploadedCni = $request->files->get('cni');
+        $uploadedCv = $request->files->get('cv');
+        $uploadedDiplome = $request->files->get('diplomeFile');
+        $uploadeOrdinal = $request->files->get('ordreNational');
+        $uploadedDfe = $request->files->get('dfe');
+
+
+        if ($uploadedPhoto) {
+            $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedPhoto, self::UPLOAD_PATH);
+            if ($fichier) {
+                $etablissement->setPhoto($fichier);
+            }
+        }
+        if ($uploadedCni) {
+            $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedCni, self::UPLOAD_PATH);
+            if ($fichier) {
+                $etablissement->setCni($fichier);
+            }
+        }
+        if ($uploadedCv) {
+            $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedCv, self::UPLOAD_PATH);
+            if ($fichier) {
+                $etablissement->setCv($fichier);
+            }
+        }
+        if ($uploadedDiplome) {
+            $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedDiplome, self::UPLOAD_PATH);
+            if ($fichier) {
+                $etablissement->setDiplomeFile($fichier);
+            }
+        }
+        if ($uploadeOrdinal) {
+            $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadeOrdinal, self::UPLOAD_PATH);
+            if ($fichier) {
+                $etablissement->setOrdreNational($fichier);
+            }
+        }
+        if ($uploadedDfe) {
+            $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedDfe, self::UPLOAD_PATH);
+            if ($fichier) {
+                $etablissement->setDfe($fichier);
+            }
+        }
+
+        $errorResponse = $this->errorResponse($etablissement);
+        if ($errorResponse !== null) {
+            return $errorResponse; // Retourne la réponse d'erreur si des erreurs sont présentes
+        } else {
+
+            $this->em->persist($etablissement);
+            $this->em->flush();
+        }
+
+
+        return  $this->json([
+            'message' => 'Professionnel bien enregistré',
+            'data' => $data
+        ]);
     }
 }

@@ -36,10 +36,17 @@ class Genre
     #[ORM\OneToMany(targetEntity: Professionnel::class, mappedBy: 'genre')]
     private Collection $professionnels;
 
+    /**
+     * @var Collection<int, Entite>
+     */
+    #[ORM\OneToMany(targetEntity: Entite::class, mappedBy: 'genre')]
+    private Collection $entites;
+
     public function __construct()
     {
         $this->etablissements = new ArrayCollection();
         $this->professionnels = new ArrayCollection();
+        $this->entites = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -113,6 +120,36 @@ class Genre
             // set the owning side to null (unless already changed)
             if ($professionnel->getGenre() === $this) {
                 $professionnel->setGenre(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Entite>
+     */
+    public function getEntites(): Collection
+    {
+        return $this->entites;
+    }
+
+    public function addEntite(Entite $entite): static
+    {
+        if (!$this->entites->contains($entite)) {
+            $this->entites->add($entite);
+            $entite->setGenre($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEntite(Entite $entite): static
+    {
+        if ($this->entites->removeElement($entite)) {
+            // set the owning side to null (unless already changed)
+            if ($entite->getGenre() === $this) {
+                $entite->setGenre(null);
             }
         }
 

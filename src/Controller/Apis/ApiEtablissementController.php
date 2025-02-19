@@ -292,7 +292,7 @@ class ApiEtablissementController extends ApiInterface
                 }
             }
 
-            $etablissement->setUser($user);
+           // $etablissement->setUser($user);
 
 
             $etablissement->setCreatedBy($user);
@@ -402,9 +402,11 @@ class ApiEtablissementController extends ApiInterface
     )]
     #[OA\Tag(name: 'etablissement')]
     //#[Security(name: 'Bearer')]
-    public function getOne(?Etablissement $etablissement)
+    public function getOne(EtablissementRepository $etablissementRepository)
     {
         try {
+            $etablissement = $etablissementRepository->findOneBy(['user'=>23]);
+
             if ($etablissement) {
                 $response = $this->responseData($etablissement, 'group_pro', ['Content-Type' => 'application/json']);
             } else {
@@ -438,13 +440,6 @@ class ApiEtablissementController extends ApiInterface
     }
 
 
-
-
-
-
-
-
-
     #[Route('/update/{id}', methods: ['PUT', 'POST'])]
     #[OA\Post(
         summary: "Update de etablissement",
@@ -456,11 +451,9 @@ class ApiEtablissementController extends ApiInterface
                 schema: new OA\Schema(
                     properties: [
 
-                        new OA\Property(property: "password", type: "string"), // username
-                        new OA\Property(property: "confirmPassword", type: "string"), // username
-                        new OA\Property(property: "email", type: "string"),
+                      
 
-                        new OA\Property(property: "typePersonne", type: "string"),
+                new OA\Property(property: "typePersonne", type: "string"),
                 new OA\Property(property: "natureEntreprise", type: "string"),
                 new OA\Property(property: "typeEntreprise", type: "string"),
                 new OA\Property(property: "gpsEntreprise", type: "string"),
@@ -512,7 +505,7 @@ class ApiEtablissementController extends ApiInterface
     )]
     #[OA\Tag(name: 'etablissement')]
     #[Security(name: 'Bearer')]
-    public function update(Request $request, Etablissement $etablissement, GenreRepository $genreRepository, EtablissementRepository $etablissementRepository): Response
+    public function update(Request $request, Etablissement $etablissement, GenreRepository $genreRepository, EtablissementRepository $etablissementlRepository): Response
     {
         try {
             $names = 'document_' . '01';
@@ -585,7 +578,7 @@ class ApiEtablissementController extends ApiInterface
             if ($uploadedDfe) {
                 $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedDfe, self::UPLOAD_PATH);
                 if ($fichier) {
-                    $etablissement->setDef($fichier);
+                    $etablissement->setDfe($fichier);
                 }
             }
             if ($uploadedCv) {
@@ -611,8 +604,6 @@ class ApiEtablissementController extends ApiInterface
                     return $errorResponse; // Retourne la réponse d'erreur si des erreurs sont présentes
                 } else {
                     $etablissementlRepository->add($etablissement, true);
-                    $user->setTypeUser("ETABLISSEMENT");
-                    $this->userRepository->add($user, true);
                 }
                 $response = $this->responseData($etablissement, 'group_pro', ['Content-Type' => 'application/json']);
             }
@@ -643,7 +634,7 @@ class ApiEtablissementController extends ApiInterface
 
             if ($etablissement != null) {
 
-                $villeRepository->remove($etablissement, true);
+                $etablissementRepository->remove($etablissement, true);
 
                 // On retourne la confirmation
                 $this->setMessage("Operation effectuées avec success");
