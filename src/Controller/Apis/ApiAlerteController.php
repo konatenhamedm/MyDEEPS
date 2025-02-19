@@ -102,21 +102,21 @@ class ApiAlerteController extends ApiInterface
     #[Route('/get/all/{userId}', methods: ['GET'])]
     #[OA\Get(
         path: "/get/all/{userId}",
-        summary: "Affiche la conversation entre deux utilisateurs",
+        summary: "Liste des alerte dun user",
         parameters: [
             new OA\Parameter(
                 name: "userId",
                 in: "path",
                 required: true,
                 schema: new OA\Schema(type: "string"),
-                description: "L'expéditeur de la conversation"
+                description: "Liste des alerte dun user"
             ),
            
         ],
         responses: [
             new OA\Response(
                 response: 200,
-                description: "Affiche la conversation entre deux utilisateurs",
+                description: "Liste des alerte dun user",
                 content: new OA\JsonContent(
                     type: "array",
                     items: new OA\Items(ref: new Model(type: Alerte::class, groups: ['full']))
@@ -222,7 +222,7 @@ class ApiAlerteController extends ApiInterface
             $data = json_decode($request->getContent());
             if ($alerte != null) {
 
-                $alerte->setDestinateur($destinateurRepository->find($data->destinateur));
+                $alerte->setDestinateur($this->userRepository->find($data->destinateur));
                 $alerte->setUser($this->userRepository->find($data->user));
                 $alerte->setMessage($data->message);
                 $alerte->setObjet($data->objet);

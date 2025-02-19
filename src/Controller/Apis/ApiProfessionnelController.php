@@ -192,10 +192,10 @@ class ApiProfessionnelController extends ApiInterface
     )]
     #[OA\Tag(name: 'professionnel')]
     //#[Security(name: 'Bearer')]
-    public function getOne(ProfessionnelRepository $professionnelRepository)
+    public function getOne(ProfessionnelRepository $professionnelRepository,Professionnel $professionnel)
     {
         try {
-            $professionnel = $professionnelRepository->findOneBy(['user'=>23]);
+          
             if ($professionnel) {
                 $response = $this->responseData($professionnel, 'group_pro', ['Content-Type' => 'application/json']);
             } else {

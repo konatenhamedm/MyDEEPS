@@ -402,10 +402,10 @@ class ApiEtablissementController extends ApiInterface
     )]
     #[OA\Tag(name: 'etablissement')]
     //#[Security(name: 'Bearer')]
-    public function getOne(EtablissementRepository $etablissementRepository)
+    public function getOne(EtablissementRepository $etablissementRepository,Etablissement $etablissement)
     {
         try {
-            $etablissement = $etablissementRepository->findOneBy(['user'=>23]);
+          
 
             if ($etablissement) {
                 $response = $this->responseData($etablissement, 'group_pro', ['Content-Type' => 'application/json']);
