@@ -185,6 +185,13 @@ class PaiementService
         $professionnel->setProfessionnel($dataTemp->getProfessionnel());
         $professionnel->setAddressPro($dataTemp->getAddressPro());
         $professionnel->setProfession($dataTemp->getProfession());
+        if($dataTemp->getAppartenirOrganisation() == true){
+
+            $professionnel->setAppartenirOrganisation("oui");
+        }else{
+            $professionnel->setAppartenirOrganisation("non");
+
+        }
 
 
         $professionnel->setLieuResidence($dataTemp->getLieuResidence());
@@ -283,12 +290,9 @@ class PaiementService
     public function updateEtablissement($reference)
     {
 
-        $dataTemps = $this->tempEtablissementRepository->findOneBy(['reference' => $reference]);
+        $dataTemp = $this->tempEtablissementRepository->findOneBy(['reference' => $reference]);
         $transaction = $this->transactionRepository->findOneBy(['reference' =>  $reference]);
 
-        /* dd($dataTemp); */
-
-        $dataTemp = new TempEtablissement();
 
         $etablissement = new Etablissement();
 

@@ -74,21 +74,14 @@ class ApiPaiementController extends ApiInterface
     // #[Security(name: 'Bearer')]
     public function getTransaction(TransactionRepository $transactionRepository, $trxReference): Response
     {
-        $transaction = $transactionRepository->findOneBy(['reference' => $trxReference, 'state' => 1]);
+        $transaction = $transactionRepository->findOneBy(['reference' => $trxReference]);
 
-        if ($transaction) {
             return $this->json(
                 [
-                    "data" => true
+                    "data" => $transaction->getState() == 1 ? true : false
                 ]
             );
-        } else {
-            return $this->json(
-                [
-                    "data" => false
-                ]
-            );
-        }
+        
     }
 
 
@@ -236,11 +229,11 @@ class ApiPaiementController extends ApiInterface
             ];
         }
      */
-        if ($createTransactionData) {
+        if ($createTransactionData['type'] == "professionnel") {
             $resultat = $this->createProfessionnelTemp($request, $createTransactionData);
-        } /* else {
+        } else {
             $resultat = $this->createEtablissemntTemp($request, $createTransactionData);
-        } */
+        }
     
         return $resultat;
     }
