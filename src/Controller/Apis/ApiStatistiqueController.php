@@ -43,12 +43,12 @@ class ApiStatistiqueController extends ApiInterface
 
 
             $tab = [
-                'countEtablissement' => $etablissementRepository->count([]),
-                'countProfessionnel' => $professionnelRepository->count([]),
-                'professionnelAjour' => count($professionnelRepository->allProfAjour())
+                'countEtablissement' => count($etablissementRepository->findAll()),
+                 'countProfessionnel' =>count($professionnelRepository->findAll()), 
+                'professionnelAjour' => count($professionnelRepository->allProfAjour()) 
             ];
 
-            $response = $this->response($tab);
+            $response = $this->responseData($tab, 'group_user', ['Content-Type' => 'application/json']);
         } catch (\Exception $exception) {
             $this->setMessage("");
             $response = $this->response('[]');

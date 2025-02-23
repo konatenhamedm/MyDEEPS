@@ -52,7 +52,7 @@ class AuthenticationSuccessListener
                 'status' => $userData->getTypeUser() == "PROFESSIONNEL" ? $userData->getPersonne()->getStatus() : null,
                 'payement' => $userData->getPayement(),
                 'type' => $userData->getTypeUser(),
-                'personneId'=> $userData->getPersonne()->getId()
+                'personneId'=> $userData->getTypeUser() == "ADMINISTRATEUR" ? null : $userData->getPersonne()->getId()
             ];
            
             $event->setData($data);

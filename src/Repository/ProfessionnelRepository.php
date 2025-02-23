@@ -40,7 +40,7 @@ class ProfessionnelRepository extends ServiceEntityRepository
     {
 
         return $this->createQueryBuilder('p')
-            ->innerJoin('p.user', 'user')
+            
             ->andWhere('p.status = :val')
             ->setParameter('val', $status)
             ->getQuery()
@@ -50,10 +50,8 @@ class ProfessionnelRepository extends ServiceEntityRepository
     {
 
         return $this->createQueryBuilder('p')
-            ->innerJoin('p.user', 'user')
+        
             ->andWhere('p.status = :val')
-            ->andWhere('user.payement = :payement')
-            ->setParameter('payement', 'payed')
             ->setParameter('val', 'ACCEPT')
             ->getQuery()
             ->getResult();

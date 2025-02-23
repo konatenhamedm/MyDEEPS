@@ -4,8 +4,10 @@ namespace  App\Controller\Apis;
 
 use App\Controller\Apis\Config\ApiInterface;
 use App\DTO\UserDTO;
+use App\Entity\Administrateur;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Entity\User;
+use App\Repository\AdministrateurRepository;
 use App\Repository\UserRepository;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -165,12 +167,26 @@ class ApiUserController extends ApiInterface
 
         try {
             $data = json_decode($request->getContent(), true);
+
+            $personne = new Administrateur();
+            $personne->setNom($request->get('nom'));
+            $personne->setPrenoms($request->get('prenoms'));
+
+            $personne->setUpdatedBy($this->userRepository->find($request->get('userUpdate')));
+            $personne->setUpdatedAt(new \DateTime());
+            $personne->setCreatedAtValue(new \DateTime());
+            $personne->setCreatedBy($this->userRepository->find($request->get('userUpdate')));
+
+            $this->em->persist($personne);
+
             $user = new User();
             $user->setUsername($request->get('username'));
             $user->setEmail($request->get('email'));
+            $user->setTypeUser($request->get('typeUser'));
+            $user->setPersonne($personne());
             if ($request->get('password') != "")
                 $user->setPassword($this->hasher->hashPassword($user,  $request->get('password')));
-          
+
             $user->setUpdatedBy($this->userRepository->find($request->get('userUpdate')));
             $user->setUpdatedAt(new \DateTime());
             $user->setCreatedAtValue(new \DateTime());
@@ -189,7 +205,7 @@ class ApiUserController extends ApiInterface
             if ($errorResponse !== null) {
                 return $errorResponse; // Retourne la réponse d'erreur si des erreurs sont présentes
             } else {
-
+                $this->em->flush();
                 $userRepository->add($user, true);
             }
 
@@ -289,7 +305,7 @@ class ApiUserController extends ApiInterface
 
                         new OA\Property(property: "username", type: "string"),
                         new OA\Property(property: "password", type: "string"),
-                    
+
                         new OA\Property(property: "email", type: "string"),
                         new OA\Property(property: "avatar", type: "string", format: "binary"),
                         new OA\Property(property: "userUpdate", type: "string"),
@@ -306,7 +322,7 @@ class ApiUserController extends ApiInterface
     )]
     #[OA\Tag(name: 'user')]
     #[Security(name: 'Bearer')]
-    public function update(Request $request, User $user, UserRepository $userRepository): Response
+    public function update(Request $request, User $user, UserRepository $userRepository,AdministrateurRepository $administrateurRepository): Response
     {
         try {
             $data = json_decode($request->getContent());
@@ -316,13 +332,20 @@ class ApiUserController extends ApiInterface
             $uploadedFile = $request->files->get('avatar');
 
             if ($user != null) {
-
+                $personne = $administrateurRepository->find($user->getPersonne()->getId()) ;
+                $personne->setNom($request->get('nom'));
+                $personne->setPrenoms($request->get('prenoms'));
+    
+                $personne->setUpdatedBy($this->userRepository->find($request->get('userUpdate')));
+                $personne->setUpdatedAt(new \DateTime());
+                $personne->setCreatedBy($this->userRepository->find($request->get('userUpdate')));
 
                 $user->setUsername($request->get('username'));
+                $user->setTypeUser($request->get('typeUser'));
                 $user->setEmail($request->get('email'));
                 if ($request->get('password') != "")
                     $user->setPassword($this->hasher->hashPassword($user,  $request->get('password')));
-       
+
                 $user->setUpdatedBy($this->userRepository->find($request->get('userUpdate')));
                 $user->setUpdatedAt(new \DateTime());
 

@@ -4,25 +4,23 @@ namespace App\Entity;
 
 use App\Repository\AdministrateurRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups as Group;
+
 
 #[ORM\Entity(repositoryClass: AdministrateurRepository::class)]
-class Administrateur
+class Administrateur extends Entite
 {
-    #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
-    private ?int $id = null;
+  
 
     #[ORM\Column(length: 255)]
+    #[Group(["group1", "group_user", 'group_pro'])]
     private ?string $nom = null;
 
     #[ORM\Column(length: 255)]
+    #[Group(["group1", "group_user", 'group_pro'])]
     private ?string $prenoms = null;
 
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
+
 
     public function getNom(): ?string
     {

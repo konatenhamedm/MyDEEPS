@@ -63,13 +63,14 @@ class ApiEtablissementController extends ApiInterface
         EtablissementRepository $etablissementlRepository,
         UserRepository $userRepository,
         ValidatorInterface $validator,
-        Registry $workflowRegistry  // Injecter le Registry
+        Registry $workflowRegistry,SendMailService $sendMailService  // Injecter le Registry
     ): Response {
         try {
 
 
             $data = json_decode($request->getContent(), true);
 
+            $user = $userRepository->find($etablissement->getId());
 
             $dto = new ActiveProfessionnelRequest();
             $dto->status = $data['status'] ?? null;
@@ -97,6 +98,23 @@ class ApiEtablissementController extends ApiInterface
 
             $etablissement->setReason($dto->raison);
             $etablissementlRepository->add($etablissement, true);
+
+            $info_user = [
+                'user' => $userRepository->find($data['userUpdate'])->getUsername(),
+                'etape' => $dto->status,
+            ];
+
+            $context = compact('info_user');
+
+            // TO DO
+            $sendMailService->send(
+                'test@myonmci.ci',
+                $data['email'],
+                'Validaton du dossier',
+                'content_validation',
+                $context
+            );
+
 
             return $this->responseData($etablissement, 'group_pro', ['Content-Type' => 'application/json']);
         } catch (\Exception $exception) {
@@ -361,11 +379,13 @@ class ApiEtablissementController extends ApiInterface
     )]
     #[OA\Tag(name: 'etablissement')]
     // #[Security(name: 'Bearer')]
-    public function index(EtablissementRepository $etablissementRepository): Response
+    public function index(EtablissementRepository $etablissementRepository,UserRepository $userRepository): Response
     {
        
         try {
-            $etablissements = $etablissementRepository->findAll();
+            /* $etablissements = $etablissementRepository->findAll(); */
+
+            $etablissements = $userRepository->findBy(['typeUser' => 'ETABLISSEMENT']);
             
             $response = $this->responseData($etablissements, 'group_pro', ['Content-Type' => 'application/json']);
          

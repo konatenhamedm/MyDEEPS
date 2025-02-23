@@ -131,6 +131,7 @@ class Professionnel extends Entite
     private ?Ville $ville = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group_pro"])]
     private ?string $lieuDiplome = null;
 
 
@@ -139,7 +140,7 @@ class Professionnel extends Entite
         return $this->number;
     }
 
-    public function setNumber(string $number): static
+    public function setNumber($number): static
     {
         $this->number = $number;
 

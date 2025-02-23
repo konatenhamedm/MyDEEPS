@@ -119,6 +119,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private Collection $transactions;
 
     #[ORM\ManyToOne(inversedBy: 'users')]
+    #[Group(["group1", "group_user", 'group_pro'])]
     private ?Entite $personne = null;
 
 
