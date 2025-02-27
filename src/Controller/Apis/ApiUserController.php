@@ -109,11 +109,10 @@ class ApiUserController extends ApiInterface
     {
         try {
             if ($user) {
-                $response = $this->response($user);
+                $response = $this->responseData($user, 'group_user', ['Content-Type' => 'application/json']);
             } else {
                 $this->setMessage('Cette ressource est inexistante');
                 $this->setStatusCode(300);
-                $response = $this->response($user);
             }
         } catch (\Exception $exception) {
             $this->setMessage($exception->getMessage());
@@ -322,7 +321,7 @@ class ApiUserController extends ApiInterface
     )]
     #[OA\Tag(name: 'user')]
     #[Security(name: 'Bearer')]
-    public function update(Request $request, User $user, UserRepository $userRepository,AdministrateurRepository $administrateurRepository): Response
+    public function update(Request $request, User $user, UserRepository $userRepository, AdministrateurRepository $administrateurRepository): Response
     {
         try {
             $data = json_decode($request->getContent());
@@ -332,10 +331,10 @@ class ApiUserController extends ApiInterface
             $uploadedFile = $request->files->get('avatar');
 
             if ($user != null) {
-                $personne = $administrateurRepository->find($user->getPersonne()->getId()) ;
+                $personne = $administrateurRepository->find($user->getPersonne()->getId());
                 $personne->setNom($request->get('nom'));
                 $personne->setPrenoms($request->get('prenoms'));
-    
+
                 $personne->setUpdatedBy($this->userRepository->find($request->get('userUpdate')));
                 $personne->setUpdatedAt(new \DateTime());
                 $personne->setCreatedBy($this->userRepository->find($request->get('userUpdate')));
@@ -380,7 +379,7 @@ class ApiUserController extends ApiInterface
         return $response;
     }
 
-    #[Route('/membre/update/{id}', methods: ['PUT', 'POST'])]
+    #[Route('/profil/update/{id}', methods: ['PUT', 'POST'])]
     #[OA\Post(
         summary: "Modification user membre",
         description: "Permet de modifier un user MEMBRE.",
@@ -391,12 +390,10 @@ class ApiUserController extends ApiInterface
                 schema: new OA\Schema(
                     properties: [
                         new OA\Property(property: "password", type: "string"),
-                        new OA\Property(property: "nom", type: "string"),
-                        new OA\Property(property: "prenoms", type: "string"),
-                        new OA\Property(property: "phone", type: "string"),
+                        new OA\Property(property: "userUpdate", type: "string"),
                         new OA\Property(property: "email", type: "string"),
                         new OA\Property(property: "avatar", type: "string", format: "binary"),
-                        new OA\Property(property: "userUpdate", type: "string"),
+                        new OA\Property(property: "username", type: "string"),
 
                     ],
                     type: "object"
@@ -443,9 +440,6 @@ class ApiUserController extends ApiInterface
                 } else {
                     $userRepository->add($user, true);
                 }
-
-
-
                 // On retourne la confirmation
                 $response = $this->responseData($user, 'group_user', ['Content-Type' => 'application/json']);
             } else {

@@ -18,8 +18,8 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
 #[Table(name: 'utilisateur')]
-#[UniqueEntity(fields: 'email', message: 'Ce email est déjà utilisé par un autre utilisateur,veillez vous connecter')]
-#[UniqueEntity(fields: 'username', message: 'Ce username est déjà utilisé par un autre utilisateur,veillez vous connecter')]
+#[UniqueEntity(fields: 'email', message: 'Ce email est déjà utilisé par un autre utilisateur')]
+#[UniqueEntity(fields: 'username', message: 'Ce username est déjà utilisé par un autre utilisateur')]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
 
@@ -122,6 +122,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Group(["group1", "group_user", 'group_pro'])]
     private ?Entite $personne = null;
 
+    /**
+     * @var Collection<int, Forum>
+     */
+    #[ORM\OneToMany(targetEntity: Forum::class, mappedBy: 'user')]
+    private Collection $forums;
+
+    /**
+     * @var Collection<int, Avis>
+     */
+    #[ORM\OneToMany(targetEntity: Avis::class, mappedBy: 'user')]
+    private Collection $avis;
+
 
     public function __construct()
     {
@@ -139,6 +151,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         } */
         $this->messages = new ArrayCollection();
         $this->transactions = new ArrayCollection();
+        $this->forums = new ArrayCollection();
+        $this->avis = new ArrayCollection();
     }
 
 
@@ -299,7 +313,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
     public function getLien(): ?string
     {
-        return "uploads/" + $this->getAvatar()->getPath() + '/'  + $this->getAvatar()->getAlt();
+        if( $this->getAvatar())
+            return "uploads/" . $this->getAvatar()->getPath() . '/'  . $this->getAvatar()->getAlt();
+
+        return  $this->avatar; 
     }
 
     public function setAvatar(?Fichier $avatar): static
@@ -413,6 +430,66 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setPersonne(?Entite $personne): static
     {
         $this->personne = $personne;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Forum>
+     */
+    public function getForums(): Collection
+    {
+        return $this->forums;
+    }
+
+    public function addForum(Forum $forum): static
+    {
+        if (!$this->forums->contains($forum)) {
+            $this->forums->add($forum);
+            $forum->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeForum(Forum $forum): static
+    {
+        if ($this->forums->removeElement($forum)) {
+            // set the owning side to null (unless already changed)
+            if ($forum->getUser() === $this) {
+                $forum->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Avis>
+     */
+    public function getAvis(): Collection
+    {
+        return $this->avis;
+    }
+
+    public function addAvi(Avis $avi): static
+    {
+        if (!$this->avis->contains($avi)) {
+            $this->avis->add($avi);
+            $avi->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAvi(Avis $avi): static
+    {
+        if ($this->avis->removeElement($avi)) {
+            // set the owning side to null (unless already changed)
+            if ($avi->getUser() === $this) {
+                $avi->setUser(null);
+            }
+        }
 
         return $this;
     }

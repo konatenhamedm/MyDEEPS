@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\EtablissementRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\Mapping\Table;
@@ -116,6 +118,18 @@ class Etablissement extends Entite
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $numeroOrdreTechnique = null;
+
+    /**
+     * @var Collection<int, Document>
+     */
+    #[ORM\OneToMany(targetEntity: Document::class, mappedBy: 'etablissement')]
+    private Collection $documents;
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->documents = new ArrayCollection();
+    }
 
    
 
@@ -490,6 +504,36 @@ class Etablissement extends Entite
     public function setNumeroOrdreTechnique(?string $numeroOrdreTechnique): static
     {
         $this->numeroOrdreTechnique = $numeroOrdreTechnique;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Document>
+     */
+    public function getDocuments(): Collection
+    {
+        return $this->documents;
+    }
+
+    public function addDocument(Document $document): static
+    {
+        if (!$this->documents->contains($document)) {
+            $this->documents->add($document);
+            $document->setEtablissement($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDocument(Document $document): static
+    {
+        if ($this->documents->removeElement($document)) {
+            // set the owning side to null (unless already changed)
+            if ($document->getEtablissement() === $this) {
+                $document->setEtablissement(null);
+            }
+        }
 
         return $this;
     }

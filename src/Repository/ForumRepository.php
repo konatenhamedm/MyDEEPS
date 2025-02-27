@@ -2,21 +2,20 @@
 
 namespace App\Repository;
 
-use App\Entity\Ville;
+use App\Entity\Forum;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<Ville>
+ * @extends ServiceEntityRepository<Forum>
  */
-class VilleRepository extends ServiceEntityRepository
+class ForumRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, Ville::class);
+        parent::__construct($registry, Forum::class);
     }
-
-    public function add(Ville $entity, bool $flush = false): void
+    public function add(Forum $entity, bool $flush = false): void
     {
         $this->getEntityManager()->persist($entity);
 
@@ -25,7 +24,7 @@ class VilleRepository extends ServiceEntityRepository
         }
     }
 
-    public function remove(Ville $entity, bool $flush = false): void
+    public function remove(Forum $entity, bool $flush = false): void
     {
         $this->getEntityManager()->remove($entity);
 
@@ -35,24 +34,24 @@ class VilleRepository extends ServiceEntityRepository
     }
 
     //    /**
-    //     * @return Ville[] Returns an array of Ville objects
+    //     * @return Forum[] Returns an array of Forum objects
     //     */
     //    public function findByExampleField($value): array
     //    {
-    //        return $this->createQueryBuilder('v')
-    //            ->andWhere('v.exampleField = :val')
+    //        return $this->createQueryBuilder('f')
+    //            ->andWhere('f.exampleField = :val')
     //            ->setParameter('val', $value)
-    //            ->orderBy('v.id', 'ASC')
+    //            ->orderBy('f.id', 'ASC')
     //            ->setMaxResults(10)
     //            ->getQuery()
     //            ->getResult()
     //        ;
     //    }
 
-    //    public function findOneBySomeField($value): ?Ville
+    //    public function findOneBySomeField($value): ?Forum
     //    {
-    //        return $this->createQueryBuilder('v')
-    //            ->andWhere('v.exampleField = :val')
+    //        return $this->createQueryBuilder('f')
+    //            ->andWhere('f.exampleField = :val')
     //            ->setParameter('val', $value)
     //            ->getQuery()
     //            ->getOneOrNullResult()

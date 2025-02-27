@@ -2,21 +2,21 @@
 
 namespace App\Repository;
 
-use App\Entity\Ville;
+use App\Entity\AdminDocument;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<Ville>
+ * @extends ServiceEntityRepository<AdminDocument>
  */
-class VilleRepository extends ServiceEntityRepository
+class AdminDocumentRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, Ville::class);
+        parent::__construct($registry, AdminDocument::class);
     }
 
-    public function add(Ville $entity, bool $flush = false): void
+    public function add(AdminDocument $entity, bool $flush = false): void
     {
         $this->getEntityManager()->persist($entity);
 
@@ -25,7 +25,7 @@ class VilleRepository extends ServiceEntityRepository
         }
     }
 
-    public function remove(Ville $entity, bool $flush = false): void
+    public function remove(AdminDocument $entity, bool $flush = false): void
     {
         $this->getEntityManager()->remove($entity);
 
@@ -35,24 +35,24 @@ class VilleRepository extends ServiceEntityRepository
     }
 
     //    /**
-    //     * @return Ville[] Returns an array of Ville objects
+    //     * @return AdminDocument[] Returns an array of AdminDocument objects
     //     */
     //    public function findByExampleField($value): array
     //    {
-    //        return $this->createQueryBuilder('v')
-    //            ->andWhere('v.exampleField = :val')
+    //        return $this->createQueryBuilder('a')
+    //            ->andWhere('a.exampleField = :val')
     //            ->setParameter('val', $value)
-    //            ->orderBy('v.id', 'ASC')
+    //            ->orderBy('a.id', 'ASC')
     //            ->setMaxResults(10)
     //            ->getQuery()
     //            ->getResult()
     //        ;
     //    }
 
-    //    public function findOneBySomeField($value): ?Ville
+    //    public function findOneBySomeField($value): ?AdminDocument
     //    {
-    //        return $this->createQueryBuilder('v')
-    //            ->andWhere('v.exampleField = :val')
+    //        return $this->createQueryBuilder('a')
+    //            ->andWhere('a.exampleField = :val')
     //            ->setParameter('val', $value)
     //            ->getQuery()
     //            ->getOneOrNullResult()

@@ -116,7 +116,8 @@ class ApiInterface extends AbstractController
             $response = $this->json([
                 'data' => $data,
                 'message' => $this->getMessage(),
-                'status' => $this->getStatusCode()
+                'status' => $this->getStatusCode(),
+                'errors' => []
 
             ], 200);
             $response->headers->set('Access-Control-Allow-Origin', '*');
@@ -165,7 +166,8 @@ class ApiInterface extends AbstractController
             $response = $this->json([
                 'data' => $data,
                 'message' => $this->getMessage(),
-                'status' => $this->getStatusCode()
+                'status' => $this->getStatusCode(),
+                    'errors' => []
 
             ], 200);
             $response->headers->set('Access-Control-Allow-Origin', '*');
@@ -173,7 +175,8 @@ class ApiInterface extends AbstractController
             $arrayData = [
                 'data' => $data,
                 'message' => $this->getMessage(),
-                'status' => $this->getStatusCode()
+                'status' => $this->getStatusCode(),
+                'errors' => []
             ];
             $jsonContent = $serializer->serialize($arrayData, 'json', [
                 'circular_reference_handler' => function ($object) {
@@ -212,14 +215,16 @@ class ApiInterface extends AbstractController
                 $response = new JsonResponse([
                     'code' => 200,
                     'message' => $this->getMessage(),
-                    'data' => json_decode($json)
+                    'data' => json_decode($json),
+                    'errors' => []
                 ], 200, $finalHeaders);
                   $response->headers->set('Access-Control-Allow-Origin', '*');
             } else {
                 $response = new JsonResponse([
                     'code' => 200,
                     'message' => $this->getMessage(),
-                    'data' => []
+                    'data' => [],
+                    'errors' => []
                 ], 200, $finalHeaders);
                   $response->headers->set('Access-Control-Allow-Origin', '*');
             }

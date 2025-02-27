@@ -31,9 +31,16 @@ class TypePersonne
     #[ORM\OneToMany(targetEntity: Etablissement::class, mappedBy: 'typePersonne')]
     private Collection $etablissements;
 
+    /**
+     * @var Collection<int, TypeDocument>
+     */
+    #[ORM\OneToMany(targetEntity: TypeDocument::class, mappedBy: 'typePersonne')]
+    private Collection $typeDocuments;
+
     public function __construct()
     {
         $this->etablissements = new ArrayCollection();
+        $this->typeDocuments = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -77,6 +84,36 @@ class TypePersonne
             // set the owning side to null (unless already changed)
             if ($etablissement->getTypePersonne() === $this) {
                 $etablissement->setTypePersonne(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, TypeDocument>
+     */
+    public function getTypeDocuments(): Collection
+    {
+        return $this->typeDocuments;
+    }
+
+    public function addTypeDocument(TypeDocument $typeDocument): static
+    {
+        if (!$this->typeDocuments->contains($typeDocument)) {
+            $this->typeDocuments->add($typeDocument);
+            $typeDocument->setTypePersonne($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTypeDocument(TypeDocument $typeDocument): static
+    {
+        if ($this->typeDocuments->removeElement($typeDocument)) {
+            // set the owning side to null (unless already changed)
+            if ($typeDocument->getTypePersonne() === $this) {
+                $typeDocument->setTypePersonne(null);
             }
         }
 
