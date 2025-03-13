@@ -15,15 +15,15 @@ use Symfony\Component\Validator\Constraints as Assert;
 class Professionnel extends Entite
 {
     #[ORM\Column(length: 255, nullable: true)]
-    #[Group(["group_pro"])]
+    #[Group(["group_pro","group_user_trx"])]
     private ?string $number = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Group(["group_pro"])]
+    #[Group(["group_pro","group_user_trx"])]
     private ?string $nom = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Group(["group_pro"])]
+    #[Group(["group_pro","group_user_trx"])]
     private ?string $prenoms = null;
 
     #[ORM\Column(length: 255, nullable: true)]

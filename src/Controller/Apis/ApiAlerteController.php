@@ -222,7 +222,7 @@ class ApiAlerteController extends ApiInterface
             $data = json_decode($request->getContent());
             if ($alerte != null) {
 
-                $alerte->setDestinateur($this->userRepository->find($data->destinateur));
+                $alerte->setDestinateur($destinateurRepository->find($data->destinateur));
                 $alerte->setUser($this->userRepository->find($data->user));
                 $alerte->setMessage($data->message);
                 $alerte->setObjet($data->objet);

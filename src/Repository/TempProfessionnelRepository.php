@@ -16,6 +16,23 @@ class TempProfessionnelRepository extends ServiceEntityRepository
         parent::__construct($registry, TempProfessionnel::class);
     }
 
+    public function add(TempProfessionnel $entity, bool $flush = false): void
+    {
+        $this->getEntityManager()->persist($entity);
+
+        if ($flush) {
+            $this->getEntityManager()->flush();
+        }
+    }
+
+    public function remove(TempProfessionnel $entity, bool $flush = false): void
+    {
+        $this->getEntityManager()->remove($entity);
+
+        if ($flush) {
+            $this->getEntityManager()->flush();
+        }
+    }
     //    /**
     //     * @return TempProfessionnel[] Returns an array of TempProfessionnel objects
     //     */

@@ -21,6 +21,7 @@ use App\Repository\TransactionRepository;
 use App\Repository\UserRepository;
 use App\Repository\VilleRepository;
 use App\Service\SendMailService;
+use DateTime;
 use DateTimeImmutable;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -54,7 +55,7 @@ class ApiProfessionnelController extends ApiInterface
     )]
     #[OA\Tag(name: 'professionnel')]
     // #[Security(name: 'Bearer')]
-    public function index(ProfessionnelRepository $professionnelRepository,UserRepository $userRepository): Response
+    public function index(ProfessionnelRepository $professionnelRepository, UserRepository $userRepository): Response
     {
 
         try {
@@ -113,7 +114,9 @@ class ApiProfessionnelController extends ApiInterface
             content: new OA\JsonContent(
                 properties: [
                     new OA\Property(property: "status", type: "string"),
-                    new OA\Property(property: "raison", type: "string", nullable: true)
+                    new OA\Property(property: "raison", type: "string", nullable: true),
+                    new OA\Property(property: "email", type: "string", nullable: true),
+                    new OA\Property(property: "userUpdate", type: "string", nullable: true)
                 ],
                 type: "object"
             )
@@ -131,14 +134,13 @@ class ApiProfessionnelController extends ApiInterface
         ProfessionnelRepository $professionnelRepository,
         UserRepository $userRepository,
         ValidatorInterface $validator,
-        Registry $workflowRegistry  ,SendMailService $sendMailService// Injecter le Registry
+        Registry $workflowRegistry,
+        SendMailService $sendMailService // Injecter le Registry
     ): Response {
         try {
 
 
             $data = json_decode($request->getContent(), true);
-
-          
 
             $dto = new ActiveProfessionnelRequest();
             $dto->status = $data['status'] ?? null;
@@ -167,7 +169,7 @@ class ApiProfessionnelController extends ApiInterface
             $professionnel->setReason($dto->raison);
             $professionnelRepository->add($professionnel, true);
 
-            
+
 
             $info_user = [
                 'user' => $userRepository->find($data['userUpdate'])->getUsername(),
@@ -185,6 +187,7 @@ class ApiProfessionnelController extends ApiInterface
                 $context
             );
 
+            $sendMailService->sendNotification("votre compte vient d'etre valider pour l'etape " . $dto->status, $userRepository->findOneBy(['personne' => $professionnel->getId()]), $userRepository->find($data['userUpdate']));
 
             return $this->responseData($professionnel, 'group_pro', ['Content-Type' => 'application/json']);
         } catch (\Exception $exception) {
@@ -248,7 +251,7 @@ class ApiProfessionnelController extends ApiInterface
     }
 
 
-    #[Route('/create/{reference}', name: 'create_professionnel', methods: ['POST'])]
+    #[Route('/create', name: 'create_professionnel', methods: ['POST'])]
     /**
      * Permet de créer un(e) professionnel.
      */
@@ -330,168 +333,172 @@ class ApiProfessionnelController extends ApiInterface
     )]
     #[OA\Tag(name: 'professionnel')]
     #[Security(name: 'Bearer')]
-    public function create(Request $request, $reference, SessionInterface $session, SendMailService $sendMailService, TransactionRepository $transactionRepository, VilleRepository $villeRepository, CiviliteRepository $civiliteRepository, SpecialiteRepository $specialiteRepository, GenreRepository $genreRepository, ProfessionnelRepository $professionnelRepository, PaysRepository $paysRepository, OrganisationRepository $organisationRepository): Response
-    {
+    public function create(
+        Request $request,
+        SessionInterface $session,
+        SendMailService $sendMailService,
+        TransactionRepository $transactionRepository,
+        VilleRepository $villeRepository,
+        CiviliteRepository $civiliteRepository,
+        SpecialiteRepository $specialiteRepository,
+        GenreRepository $genreRepository,
+        ProfessionnelRepository $professionnelRepository,
+        PaysRepository $paysRepository,
+        OrganisationRepository $organisationRepository
+    ): Response {
+
 
         $names = 'document_' . '01';
         $filePrefix  = str_slug($names);
         $filePath = $this->getUploadDir(self::UPLOAD_PATH, true);
 
-        //dd($request->get('dateDiplome'));
 
-        $transaction = $transactionRepository->findOneBy(['reference' =>  $request->get('reference'), 'user' => null]);
 
-        if (!$transaction) {
-            return $this->response("Transaction introuvable");
+        $user = new User();
+        $user->setUsername($request->get('nom') . " " . $this->numero());
+        $user->setEmail($request->get('email'));
+        $user->setPassword($this->hasher->hashPassword($user, $request->get('password')));
+        $user->setRoles(['ROLE_MEMBRE']);
+        $user->setTypeUser(User::TYPE['PROFESSIONNEL']);
+        $user->setPayement(User::PAYEMENT['payed']);
+        $user->setUpdatedAt(new DateTime());
+        $user->setCreatedAtValue(new DateTime());
+
+
+        $errorResponse1 = $request->get('password') !== $request->get('confirmPassword') ?  $this->errorResponse($user, "Les mots de passe ne sont pas identiques") :  $this->errorResponse($user);
+        if ($errorResponse1 !== null) {
+            return $errorResponse1; // Retourne la réponse d'erreur si des erreurs sont présentes
         } else {
 
-            $user = new User();
-            $user->setUsername($request->get('nom') . " " . $this->numero());
-            $user->setEmail($request->get('email'));
-            $user->setPassword($this->hasher->hashPassword($user, $request->get('password')));
-            $user->setRoles(['ROLE_MEMBRE']);
-            $user->setTypeUser(User::TYPE['PROFESSIONNEL']);
-            $user->setPayement(User::PAYEMENT['init_payement']);
+            $this->userRepository->add($user, true);
+
+            $professionnel = new Professionnel();
 
 
-            $errorResponse1 = $request->get('password') !== $request->get('confirmPassword') ?  $this->errorResponse($user, "Les mots de passe ne sont pas identiques") :  $this->errorResponse($user);
-            if ($errorResponse1 !== null) {
-                return $errorResponse1; // Retourne la réponse d'erreur si des erreurs sont présentes
+            $professionnel->setNumber($request->get('numero'));
+            $professionnel->setStatus('attente');
+            $professionnel->setNom($request->get('nom'));
+            $professionnel->setVille($villeRepository->findOneByCode($request->get('ville')));
+            $professionnel->setPrenoms($request->get('prenoms'));
+            $professionnel->setEmailPro($request->get('emailPro'));
+            $professionnel->setAddress($request->get('address'));
+            $professionnel->setProfessionnel($request->get('professionnel'));
+            $professionnel->setAddressPro($request->get('adresseEmail'));
+            $professionnel->setProfession($request->get('professionnel'));
+            $professionnel->setLieuResidence($request->get('lieuResidence'));
+            $professionnel->setLieuDiplome($request->get('lieuDiplome'));
+            $professionnel->setCivilite($civiliteRepository->findOneByCode($request->get('civilite')));
+            $professionnel->setAdresseEmail($request->get('emailPro'));
+            $professionnel->setDateDiplome(new DateTimeImmutable($request->get('dateDiplome')));
+            $professionnel->setDateNaissance(new DateTimeImmutable($request->get('dateNaissance')));
+            $professionnel->setContactPro($request->get('contactPro'));
+
+            $professionnel->setDateEmploi(new DateTimeImmutable($request->get('dateEmploi')));
+            $professionnel->setNationate($paysRepository->find($request->get('nationate')));
+            $professionnel->setDiplome($request->get('diplome'));
+            $professionnel->setSituationPro($request->get('situationPro'));
+            $professionnel->setSpecialite($specialiteRepository->find($request->get('specialite')));
+            $professionnel->setGenre($genreRepository->find($request->get('genre')));
+            $professionnel->setUpdatedAt(new DateTime());
+            $professionnel->setCreatedAtValue(new DateTime());
+
+
+            $uploadedPhoto = $request->files->get('photo');
+            $uploadedCasier = $request->files->get('casier');
+            $uploadedCni = $request->files->get('cni');
+            $uploadedDiplome = $request->files->get('diplomeFile');
+            $uploadedCertificat = $request->files->get('certificat');
+            $uploadedCv = $request->files->get('cv');
+
+            if ($uploadedPhoto) {
+                $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedPhoto, self::UPLOAD_PATH);
+                if ($fichier) {
+                    $professionnel->setPhoto($fichier);
+                }
+            }
+            if ($uploadedCasier) {
+                $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedCasier, self::UPLOAD_PATH);
+                if ($fichier) {
+                    $professionnel->setCasier($fichier);
+                }
+            }
+            if ($uploadedCni) {
+                $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedCni, self::UPLOAD_PATH);
+                if ($fichier) {
+                    $professionnel->setCni($fichier);
+                }
+            }
+            if ($uploadedDiplome) {
+                $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedDiplome, self::UPLOAD_PATH);
+                if ($fichier) {
+                    $professionnel->setDiplomeFile($fichier);
+                }
+            }
+            if ($uploadedCertificat) {
+                $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedCertificat, self::UPLOAD_PATH);
+                if ($fichier) {
+                    $professionnel->setCertificat($fichier);
+                }
+            }
+            if ($uploadedCv) {
+                $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedCv, self::UPLOAD_PATH);
+                if ($fichier) {
+                    $professionnel->setCv($fichier);
+                }
+            }
+
+
+
+            $professionnel->setAppartenirOrganisation($request->get('appartenirOrganisation') == false ? "non" : "oui");
+            /* $professionnel->setUser($user); */
+
+
+            $professionnel->setCreatedBy($user);
+            $professionnel->setUpdatedBy($user);
+
+            $errorResponse = $this->errorResponse($professionnel);
+            if ($errorResponse !== null) {
+                return $errorResponse; // Retourne la réponse d'erreur si des erreurs sont présentes
             } else {
-
+                $this->userRepository->add($user, true);
+                $professionnelRepository->add($professionnel, true);
+                $user->setPersonne($professionnel);
                 $this->userRepository->add($user, true);
 
-                $professionnel = new Professionnel();
+
+                $info_user = [
+                    'login' => $request->get('email'),
+
+                ];
+
+                $context = compact('info_user');
+
+                // TO DO
+                $sendMailService->send(
+                    'test@myonmci.ci',
+                    $request->get('email'),
+                    'Informations',
+                    'content_mail',
+                    $context
+                );
 
 
-                $professionnel->setNumber($request->get('numero'));
-                $professionnel->setStatus('attente');
-                $professionnel->setNom($request->get('nom'));
-                $professionnel->setVille($villeRepository->findOneByCode($request->get('ville')));
-                $professionnel->setPrenoms($request->get('prenoms'));
-                $professionnel->setEmailPro($request->get('emailPro'));
-                $professionnel->setAddress($request->get('address'));
-                $professionnel->setProfessionnel($request->get('professionnel'));
-                $professionnel->setAddressPro($request->get('adresseEmail'));
-                $professionnel->setProfession($request->get('professionnel'));
-                $professionnel->setLieuResidence($request->get('lieuResidence'));
-                $professionnel->setLieuDiplome($request->get('lieuDiplome'));
-                $professionnel->setCivilite($civiliteRepository->findOneByCode($request->get('civilite')));
-                $professionnel->setAdresseEmail($request->get('emailPro'));
-                $professionnel->setDateDiplome(new DateTimeImmutable($request->get('dateDiplome')));
-                $professionnel->setDateNaissance(new DateTimeImmutable($request->get('dateNaissance')));
-                $professionnel->setContactPro($request->get('contactPro'));
+                if ($professionnel->getAppartenirOrganisation() == "oui") {
 
-                $professionnel->setDateEmploi(new DateTimeImmutable($request->get('dateEmploi')));
-                $professionnel->setNationate($paysRepository->find($request->get('nationate')));
-                $professionnel->setDiplome($request->get('diplome'));
-                $professionnel->setSituationPro($request->get('situationPro'));
-                $professionnel->setSpecialite($specialiteRepository->find($request->get('specialite')));
-                $professionnel->setGenre($genreRepository->find($request->get('genre')));
-
-
-                $uploadedPhoto = $request->files->get('photo');
-                $uploadedCasier = $request->files->get('caiser');
-                $uploadedCni = $request->files->get('cni');
-                $uploadedDiplome = $request->files->get('diplomeFile');
-                $uploadedCertificat = $request->files->get('certificat');
-                $uploadedCv = $request->files->get('cv');
-
-                if ($uploadedPhoto) {
-                    $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedPhoto, self::UPLOAD_PATH);
-                    if ($fichier) {
-                        $professionnel->setPhoto($fichier);
-                    }
-                }
-                if ($uploadedCasier) {
-                    $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedCasier, self::UPLOAD_PATH);
-                    if ($fichier) {
-                        $professionnel->setCasier($fichier);
-                    }
-                }
-                if ($uploadedCni) {
-                    $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedCni, self::UPLOAD_PATH);
-                    if ($fichier) {
-                        $professionnel->setCni($fichier);
-                    }
-                }
-                if ($uploadedDiplome) {
-                    $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedDiplome, self::UPLOAD_PATH);
-                    if ($fichier) {
-                        $professionnel->setDiplomeFile($fichier);
-                    }
-                }
-                if ($uploadedCertificat) {
-                    $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedCertificat, self::UPLOAD_PATH);
-                    if ($fichier) {
-                        $professionnel->setCertificat($fichier);
-                    }
-                }
-                if ($uploadedCv) {
-                    $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedCv, self::UPLOAD_PATH);
-                    if ($fichier) {
-                        $professionnel->setCv($fichier);
-                    }
-                }
-
-
-
-                $professionnel->setAppartenirOrganisation($request->get('appartenirOrganisation'));
-                /* $professionnel->setUser($user); */
-
-
-                $professionnel->setCreatedBy($user);
-                $professionnel->setUpdatedBy($user);
-
-                $errorResponse = $this->errorResponse($professionnel);
-                if ($errorResponse !== null) {
-                    return $errorResponse; // Retourne la réponse d'erreur si des erreurs sont présentes
-                } else {
-                    $this->userRepository->add($user, true);
-                    $professionnelRepository->add($professionnel, true);
-
-
-                    $info_user = [
-                        'login' => $request->get('email'),
-                        
-                    ];
-
-                    $context = compact('info_user');
-
-                    // TO DO
-                    $sendMailService->send(
-                        'test@myonmci.ci',
-                        $request->get('email'),
-                        'Informations',
-                        'content_mail',
-                        $context
-                    );
-
-
-                    if ($transaction) {
-                        $transaction->setUser($user);
-                        $transaction->setCreatedBy($user);
-                        $transaction->setUpdatedBy($user);
-                        $transactionRepository->add($transaction, true);
-
-                        $user->setPayement(User::PAYEMENT['payed']);
-                        $this->userRepository->add($user, true);
-                    }
-
-                    if ($professionnel->getAppartenirOrganisation() == "oui") {
-
-                        $organisation = new Organisation();
-                        $organisation->setNom($request->get('organisationNom'));
-                        $organisation->setAnnee($request->get('organisationAnnee'));
-                        $organisation->setNumero($request->get('organisationNumero'));
-                        $organisation->setEntite($professionnel);
-                        $organisation->setCreatedBy($user);
-                        $organisation->setUpdatedBy($user);
-                        $organisationRepository->add($organisation, true);
-                    }
+                    $organisation = new Organisation();
+                    $organisation->setNom($request->get('organisationNom'));
+                    $organisation->setAnnee($request->get('organisationAnnee'));
+                    $organisation->setNumero($request->get('organisationNumero'));
+                    $organisation->setEntite($professionnel);
+                    $organisation->setCreatedAtValue(new DateTime());
+                    $organisation->setUpdatedAt(new DateTime());
+                    $organisation->setCreatedBy($user);
+                    $organisation->setUpdatedBy($user);
+                    $organisationRepository->add($organisation, true);
                 }
             }
         }
+
 
         return $this->responseData($professionnel, 'group_pro', ['Content-Type' => 'application/json']);
     }
@@ -574,7 +581,7 @@ class ApiProfessionnelController extends ApiInterface
             if ($professionnel) {
                 $professionnel->setNumber($request->get('numero'));
                 $professionnel->setNom($request->get('nom'));
-               $professionnel->setVille($villeRepository->find($request->get('ville')));
+                $professionnel->setVille($villeRepository->find($request->get('ville')));
                 $professionnel->setPrenoms($request->get('prenoms'));
                 $professionnel->setEmailPro($request->get('emailPro'));
                 $professionnel->setAddress($request->get('address'));
@@ -583,13 +590,13 @@ class ApiProfessionnelController extends ApiInterface
                 $professionnel->setProfession($request->get('professionnel'));
                 $professionnel->setLieuResidence($request->get('lieuResidence'));
                 $professionnel->setLieuDiplome($request->get('lieuDiplome'));
-                  $professionnel->setCivilite($civiliteRepository->find($request->get('civilite')));
+                $professionnel->setCivilite($civiliteRepository->find($request->get('civilite')));
                 $professionnel->setAdresseEmail($request->get('emailPro'));
                 $professionnel->setDateDiplome(new \DateTime($request->get('dateDiplome')));
                 $professionnel->setDateNaissance(new \DateTime($request->get('dateNaissance')));
                 $professionnel->setContactPro($request->get('contactPro'));
-                
-               $professionnel->setDateEmploi(new \DateTime($request->get('dateEmploi')));
+
+                $professionnel->setDateEmploi(new \DateTime($request->get('dateEmploi')));
                 $professionnel->setNationate($paysRepository->find($request->get('nationalite')));
                 $professionnel->setDiplome($request->get('diplome'));
                 $professionnel->setSituation($request->get('situation'));
@@ -597,15 +604,15 @@ class ApiProfessionnelController extends ApiInterface
                 $professionnel->setSpecialite($specialiteRepository->find($request->get('specialite')));
                 $professionnel->setGenre($genreRepository->find($request->get('genre')));
 
-                
+
                 $uploadedPhoto = $request->files->get('photo');
                 $uploadedCasier = $request->files->get('casier');
                 $uploadedCni = $request->files->get('cni');
                 $uploadedDiplome = $request->files->get('diplomeFile');
                 $uploadedCertificat = $request->files->get('certificat');
-                $uploadedCv = $request->files->get('cv'); 
-         
-                
+                $uploadedCv = $request->files->get('cv');
+
+
                 if ($uploadedPhoto) {
                     $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedPhoto, self::UPLOAD_PATH);
                     if ($fichier) {
@@ -642,9 +649,9 @@ class ApiProfessionnelController extends ApiInterface
                         $professionnel->setCv($fichier);
                     }
                 }
-                
+
                 $professionnel->setAppartenirOrganisation($request->get('appartenirOrganisation'));
-            
+
 
 
 

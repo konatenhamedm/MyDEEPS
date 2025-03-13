@@ -10,10 +10,13 @@ use Nelmio\ApiDocBundle\Annotation\Model;
 use Nelmio\ApiDocBundle\Annotation\Security;
 use Symfony\Component\HttpFoundation\Request;
 use App\Controller\Apis\Config\ApiInterface;
+use App\Entity\Document;
+use App\Entity\DocumentTemporaire;
 use App\Entity\TempEtablissement;
 use App\Entity\TempProfessionnel;
 use App\Entity\Transaction;
 use App\Entity\User;
+use App\Repository\TempProfessionnelRepository;
 use App\Repository\TransactionRepository;
 use App\Repository\UserRepository;
 use App\Service\PaiementService;
@@ -57,6 +60,66 @@ class ApiPaiementController extends ApiInterface
         // On envoie la réponse
         return $response;
     }
+    #[Route('/info/transaction/{transactionId}', methods: ['GET'])]
+    /**
+     * liste historique.
+     * 
+     */
+    #[OA\Response(
+        response: 200,
+        description: 'Returns the rewards of an user',
+        content: new OA\JsonContent(
+            type: 'array',
+            items: new OA\Items(ref: new Model(type: Transaction::class, groups: ['full']))
+        )
+    )]
+    #[OA\Tag(name: 'paiements')]
+    // #[Security(name: 'Bearer')]
+    public function indexInfoTransaction(TransactionRepository $transactionRepository, $transactionId): Response
+    {
+        try {
+
+            $transactions = $transactionRepository->findOneBy(['reference' => $transactionId]);
+
+            $response = $this->responseData($transactions, 'group_user_trx', ['Content-Type' => 'application/json']);
+        } catch (\Exception $exception) {
+            $this->setMessage("");
+            $response = $this->response('[]');
+        }
+
+        // On envoie la réponse
+        return $response;
+    }
+    #[Route('/historique/{userId}', methods: ['GET'])]
+    /**
+     * liste historique.
+     * 
+     */
+    #[OA\Response(
+        response: 200,
+        description: 'Returns the rewards of an user',
+        content: new OA\JsonContent(
+            type: 'array',
+            items: new OA\Items(ref: new Model(type: Transaction::class, groups: ['full']))
+        )
+    )]
+    #[OA\Tag(name: 'paiements')]
+    // #[Security(name: 'Bearer')]
+    public function indexByUser(TransactionRepository $transactionRepository, $userId): Response
+    {
+        try {
+
+            $transactions = $transactionRepository->getAllTransactionByUser($userId);
+
+            $response = $this->responseData($transactions, 'group_user', ['Content-Type' => 'application/json']);
+        } catch (\Exception $exception) {
+            $this->setMessage("");
+            $response = $this->response('[]');
+        }
+
+        // On envoie la réponse
+        return $response;
+    }
     #[Route('/get/transaction/{trxReference}', methods: ['GET'])]
     /**
      * liste historique.
@@ -76,12 +139,11 @@ class ApiPaiementController extends ApiInterface
     {
         $transaction = $transactionRepository->findOneBy(['reference' => $trxReference]);
 
-            return $this->json(
-                [
-                    "data" => $transaction->getState() == 1 ? true : false
-                ]
-            );
-        
+        return $this->json(
+            [
+                "data" => $transaction->getState() == 1 ? true : false
+            ]
+        );
     }
 
 
@@ -129,9 +191,11 @@ class ApiPaiementController extends ApiInterface
     )]
     #[OA\Tag(name: 'paiements')]
     #[Security(name: 'Bearer')]
-    public function webHook(Request $request, TransactionRepository $transactionRepository, SessionInterface $session, PaiementService $paiementService): Response
+    public function webHook(Request $request, TransactionRepository $transactionRepository, TempProfessionnelRepository $tempProfessionnelRepository, SessionInterface $session, PaiementService $paiementService): Response
     {
         $response = $paiementService->methodeWebHook($request);
+
+
         return  $this->responseData($response, 'group1', ['Content-Type' => 'application/json']);
     }
 
@@ -221,7 +285,7 @@ class ApiPaiementController extends ApiInterface
     public function doPaiement(Request $request, PaiementService $paiementService)
     {
         $createTransactionData = $paiementService->traiterPaiement($request);
-    /* 
+        /* 
         if (!isset($createTransactionData['type'])) {
             return [
                 'code' => 400,
@@ -234,7 +298,7 @@ class ApiPaiementController extends ApiInterface
         } else {
             $resultat = $this->createEtablissemntTemp($request, $createTransactionData);
         }
-    
+
         return $resultat;
     }
 
@@ -332,7 +396,7 @@ class ApiPaiementController extends ApiInterface
         // etatpe 5
 
         $professionnel->setAppartenirOrganisation($request->get('appartenirOrganisation'));
-        $professionnel->setNom($request->get('organisationNom'));
+        $professionnel->setNomEntite($request->get('organisationNom'));
         $professionnel->setAnnee($request->get('organisationAnnee'));
         $professionnel->setNumero($request->get('organisationNumero'));
 
@@ -351,6 +415,8 @@ class ApiPaiementController extends ApiInterface
             'data' => $data
         ]);
     }
+
+    //CREATION DU TEMP ETABLISSEMENT
     public function createEtablissemntTemp(Request $request, $data)
     {
 
@@ -360,7 +426,7 @@ class ApiPaiementController extends ApiInterface
         $etablissement = new TempEtablissement();
 
 
-     
+
 
 
         //etape 1
@@ -370,7 +436,7 @@ class ApiPaiementController extends ApiInterface
         $etablissement->setUsername($request->get('nomEntreprise') . " " . $this->numero());
 
         $etablissement->setTypePersonne($request->get('typePersonne'));
-        $etablissement->setNatureEntreprise($request->get('natureEntreprise'));
+        /*  $etablissement->setNatureEntreprise($request->get('natureEntreprise'));
         $etablissement->setTypeEntreprise($request->get('typeEntreprise'));
         $etablissement->setGpsEntreprise($request->get('gpsEntreprise'));
         $etablissement->setNatureEntreprise($request->get('niveauEntreprise'));
@@ -378,32 +444,32 @@ class ApiPaiementController extends ApiInterface
         $etablissement->setNomEntreprise($request->get('nomEntreprise'));
         $etablissement->setEmailEntreprise($request->get('emailEntreprise'));
         $etablissement->setSpaceEntreprise($request->get('spaceEntreprise'));
-
-        $etablissement->setGenre($request->get('genre'));
+ */
+        /*  $etablissement->setGenre($request->get('genre'));
         $etablissement->setNomCompletPromoteur($request->get('nomCompletPromoteur'));
         $etablissement->setEmailPro($request->get('emailPro'));
         $etablissement->setProfession($request->get('profession'));
         $etablissement->setContactsPromoteur($request->get('contactsPromoteur'));
         $etablissement->setLieuResidence($request->get('lieuResidence'));
-        $etablissement->setNumeroCni($request->get('numeroCni'));
+        $etablissement->setNumeroCni($request->get('numeroCni')); */
 
 
-        $etablissement->setNomCompletTechnique($request->get('nomCompletTechnique'));
+        /*  $etablissement->setNomCompletTechnique($request->get('nomCompletTechnique'));
         $etablissement->setEmailProTechnique($request->get('emailProTechnique'));
         $etablissement->setProfessionTechnique($request->get('professionTechnique'));
         $etablissement->setContactProTechnique($request->get('contactProTechnique'));
         $etablissement->setLieuResidenceTechnique($request->get('lieuResidenceTechnique'));
-        $etablissement->setNumeroOrdreTechnique($request->get('numeroOrdreTechnique'));
+        $etablissement->setNumeroOrdreTechnique($request->get('numeroOrdreTechnique')); */
         $etablissement->setReference($data['reference']);
         $etablissement->setTypeUser(User::TYPE['ETABLISSEMENT']);
 
-        $uploadedPhoto = $request->files->get('photo');
-        $uploadedCni = $request->files->get('cni');
+        /*      $uploadedCni = $request->files->get('cni');
         $uploadedCv = $request->files->get('cv');
         $uploadedDiplome = $request->files->get('diplomeFile');
         $uploadeOrdinal = $request->files->get('ordreNational');
-        $uploadedDfe = $request->files->get('dfe');
+        $uploadedDfe = $request->files->get('dfe'); */
 
+        /*      $uploadedPhoto = $request->files->get('photo');
 
         if ($uploadedPhoto) {
             $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedPhoto, self::UPLOAD_PATH);
@@ -411,36 +477,29 @@ class ApiPaiementController extends ApiInterface
                 $etablissement->setPhoto($fichier);
             }
         }
-        if ($uploadedCni) {
-            $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedCni, self::UPLOAD_PATH);
-            if ($fichier) {
-                $etablissement->setCni($fichier);
+         */
+
+        $uploadedDocuments = $request->files->get('documents'); // Récupère les fichiers
+        $libelles = $request->request->get('documents'); // Récupère les libellés
+
+        if ($uploadedDocuments) {
+            foreach ($uploadedDocuments as $key => $uploadedDocument) {
+                $uploadedPhoto = $uploadedDocument['path'] ?? null;
+                $libelle = $libelles[$key]['libelle'] ?? null;
+
+                if ($uploadedPhoto) {
+                    $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedPhoto, self::UPLOAD_PATH);
+                    if ($fichier) {
+                        // Associez le fichier et le libellé
+                        $document = new DocumentTemporaire();
+                        $document->setPath($fichier);
+                        $document->setLibelle($libelle);
+                        $etablissement->addDocumentTemporaire($document); // Si vous avez une relation OneToMany
+                    }
+                }
             }
         }
-        if ($uploadedCv) {
-            $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedCv, self::UPLOAD_PATH);
-            if ($fichier) {
-                $etablissement->setCv($fichier);
-            }
-        }
-        if ($uploadedDiplome) {
-            $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedDiplome, self::UPLOAD_PATH);
-            if ($fichier) {
-                $etablissement->setDiplomeFile($fichier);
-            }
-        }
-        if ($uploadeOrdinal) {
-            $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadeOrdinal, self::UPLOAD_PATH);
-            if ($fichier) {
-                $etablissement->setOrdreNational($fichier);
-            }
-        }
-        if ($uploadedDfe) {
-            $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedDfe, self::UPLOAD_PATH);
-            if ($fichier) {
-                $etablissement->setDfe($fichier);
-            }
-        }
+
 
         $errorResponse = $this->errorResponse($etablissement);
         if ($errorResponse !== null) {

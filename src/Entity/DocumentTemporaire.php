@@ -2,31 +2,41 @@
 
 namespace App\Entity;
 
-use App\Repository\DocumentRepository;
+use App\Repository\DocumentTemporaireRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: DocumentRepository::class)]
-class Document
+#[ORM\Entity(repositoryClass: DocumentTemporaireRepository::class)]
+class DocumentTemporaire
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
+    #[ORM\ManyToOne(inversedBy: 'documentTemporaires')]
+    private ?TempEtablissement $tempEtablissement = null;
+
     #[ORM\Column(length: 255)]
     private ?Fichier $path = null;
-
-    #[ORM\ManyToOne(inversedBy: 'documents')]
-    private ?Etablissement $etablissement = null;
 
     #[ORM\Column(length: 255)]
     private ?string $libelle = null;
 
-  
-
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function getTempEtablissement(): ?TempEtablissement
+    {
+        return $this->tempEtablissement;
+    }
+
+    public function setTempEtablissement(?TempEtablissement $tempEtablissement): static
+    {
+        $this->tempEtablissement = $tempEtablissement;
+
+        return $this;
     }
 
     public function getPath(): ?Fichier
@@ -37,18 +47,6 @@ class Document
     public function setPath(?Fichier $path): static
     {
         $this->path = $path;
-
-        return $this;
-    }
-
-    public function getEtablissement(): ?Etablissement
-    {
-        return $this->etablissement;
-    }
-
-    public function setEtablissement(?Etablissement $etablissement): static
-    {
-        $this->etablissement = $etablissement;
 
         return $this;
     }
@@ -64,6 +62,4 @@ class Document
 
         return $this;
     }
-
-
 }

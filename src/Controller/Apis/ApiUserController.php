@@ -8,13 +8,17 @@ use App\Entity\Administrateur;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Entity\User;
 use App\Repository\AdministrateurRepository;
+use App\Repository\ResetPasswordTokenRepository;
 use App\Repository\UserRepository;
+use App\Service\ResetPasswordService;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use OpenApi\Attributes as OA;
 use Nelmio\ApiDocBundle\Annotation\Model;
 use Nelmio\ApiDocBundle\Annotation\Security;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 
 #[Route('/api/user')]
@@ -390,6 +394,7 @@ class ApiUserController extends ApiInterface
                 schema: new OA\Schema(
                     properties: [
                         new OA\Property(property: "password", type: "string"),
+                        new OA\Property(property: "newPassword", type: "string"),
                         new OA\Property(property: "userUpdate", type: "string"),
                         new OA\Property(property: "email", type: "string"),
                         new OA\Property(property: "avatar", type: "string", format: "binary"),
@@ -416,32 +421,39 @@ class ApiUserController extends ApiInterface
             $filePath = $this->getUploadDir(self::UPLOAD_PATH, true);
             $uploadedFile = $request->files->get('avatar');
 
-            if ($user != null) {
+            if ($user !== null) {
 
+                $password = $request->get('password');
+                $newPassword = $request->get('newPassword');
+                $userUpdate = $this->userRepository->find($request->get('userUpdate'));
 
+                if (!empty($password) && !empty($newPassword)) {
+                    if (!$this->hasher->isPasswordValid($user, $password)) {
+                        return $this->errorResponse($user, "L'ancien mot de passe ne correspond pas à celui qui existe en base");
+                    }
+                    $user->setPassword($this->hasher->hashPassword($user, $newPassword));
+                }
 
-                $user->setEmail($request->get('email'));
-                if ($request->get('password') != "")
-                    $user->setPassword($this->hasher->hashPassword($user,  $request->get('password')));
-                $user->setUpdatedBy($this->userRepository->find($request->get('userUpdate')));
+                // Mise à jour des informations utilisateur
+                $user->setUpdatedBy($userUpdate);
                 $user->setUpdatedAt(new \DateTime());
 
+                // Gestion de l'upload de l'avatar
                 if ($uploadedFile) {
-                    $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedFile, self::UPLOAD_PATH);
-                    if ($fichier) {
+                    if ($fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedFile, self::UPLOAD_PATH)) {
                         $user->setAvatar($fichier);
                     }
                 }
 
-                $errorResponse = $this->errorResponse($user);
-
-                if ($errorResponse !== null) {
-                    return $errorResponse; // Retourne la réponse d'erreur si des erreurs sont présentes
-                } else {
-                    $userRepository->add($user, true);
+                // Vérification des erreurs
+                if ($errorResponse = $this->errorResponse($user)) {
+                    return $errorResponse;
                 }
-                // On retourne la confirmation
-                $response = $this->responseData($user, 'group_user', ['Content-Type' => 'application/json']);
+
+                $userRepository->add($user, true);
+
+                // Retour de la réponse
+                return $this->responseData($user, 'group_user', ['Content-Type' => 'application/json']);
             } else {
                 $this->setMessage("Cette ressource est inexsitante");
                 $this->setStatusCode(300);
@@ -570,5 +582,48 @@ class ApiUserController extends ApiInterface
             $response = $this->response('[]');
         }
         return $response;
+    }
+
+
+
+    #[Route('/api/reset-password-request', methods: ['POST'])]
+    public function requestResetPassword(Request $request, UserRepository $userRepo, ResetPasswordService $resetPasswordService): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+        $email = $data['email'] ?? '';
+
+        $user = $userRepo->findOneBy(['email' => $email]);
+
+        if (!$user) {
+            return $this->json(['message' => 'Utilisateur non trouvé'], 404);
+        }
+
+        $resetPasswordService->sendResetPasswordEmail($user);
+
+        return $this->json(['message' => 'Email de réinitialisation envoyé']);
+    }
+
+
+
+    #[Route('/api/reset-password', methods: ['POST'])]
+    public function resetPassword(Request $request, ResetPasswordTokenRepository $tokenRepo, UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $em): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+        $token = $data['token'] ?? '';
+        $newPassword = $data['password'] ?? '';
+
+        $resetToken = $tokenRepo->findOneBy(['token' => $token]);
+
+        if (!$resetToken || $resetToken->isExpired()) {
+            return $this->json(['message' => 'Token invalide ou expiré'], 400);
+        }
+
+        $user = $resetToken->getUser();
+        $user->setPassword($passwordHasher->hashPassword($user, $newPassword));
+
+        $em->remove($resetToken); // On supprime le token après utilisation
+        $em->flush();
+
+        return $this->json(['message' => 'Mot de passe mis à jour avec succès']);
     }
 }

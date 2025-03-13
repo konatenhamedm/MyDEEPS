@@ -2,21 +2,21 @@
 
 namespace App\Repository;
 
-use App\Entity\TempEtablissement;
+use App\Entity\TypeProfession;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<TempEtablissement>
+ * @extends ServiceEntityRepository<TypeProfession>
  */
-class TempEtablissementRepository extends ServiceEntityRepository
+class TypeProfessionRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, TempEtablissement::class);
+        parent::__construct($registry, TypeProfession::class);
     }
 
-    public function add(TempEtablissement $entity, bool $flush = false): void
+    public function add(TypeProfession $entity, bool $flush = false): void
     {
         $this->getEntityManager()->persist($entity);
 
@@ -25,7 +25,7 @@ class TempEtablissementRepository extends ServiceEntityRepository
         }
     }
 
-    public function remove(TempEtablissement $entity, bool $flush = false): void
+    public function remove(TypeProfession $entity, bool $flush = false): void
     {
         $this->getEntityManager()->remove($entity);
 
@@ -34,8 +34,9 @@ class TempEtablissementRepository extends ServiceEntityRepository
         }
     }
 
+
     //    /**
-    //     * @return TempEtablissement[] Returns an array of TempEtablissement objects
+    //     * @return TypeProfession[] Returns an array of TypeProfession objects
     //     */
     //    public function findByExampleField($value): array
     //    {
@@ -49,7 +50,7 @@ class TempEtablissementRepository extends ServiceEntityRepository
     //        ;
     //    }
 
-    //    public function findOneBySomeField($value): ?TempEtablissement
+    //    public function findOneBySomeField($value): ?TypeProfession
     //    {
     //        return $this->createQueryBuilder('t')
     //            ->andWhere('t.exampleField = :val')

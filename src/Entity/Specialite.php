@@ -29,6 +29,10 @@ class Specialite
     #[ORM\OneToMany(targetEntity: Professionnel::class, mappedBy: 'specialite')]
     private Collection $professionnels;
 
+    #[ORM\Column]
+    #[Group(["group1","group_pro"])]
+    private ?bool $paiement = null;
+
     public function __construct()
     {
         $this->professionnels = new ArrayCollection();
@@ -77,6 +81,18 @@ class Specialite
                 $professionnel->setSpecialite(null);
             }
         }
+
+        return $this;
+    }
+
+    public function isPaiement(): ?bool
+    {
+        return $this->paiement;
+    }
+
+    public function setPaiement(bool $paiement): static
+    {
+        $this->paiement = $paiement;
 
         return $this;
     }

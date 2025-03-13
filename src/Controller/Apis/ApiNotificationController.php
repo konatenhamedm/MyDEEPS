@@ -3,12 +3,10 @@
 namespace  App\Controller\Apis;
 
 use App\Controller\Apis\Config\ApiInterface;
-use App\DTO\AvisDTO;
+use App\DTO\NotificationDTO;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use App\Entity\Avis;
-use App\Entity\Forum;
-use App\Repository\AvisRepository;
-use App\Repository\ForumRepository;
+use App\Entity\Notification;
+use App\Repository\NotificationRepository;
 use App\Repository\UserRepository;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -18,15 +16,12 @@ use Nelmio\ApiDocBundle\Annotation\Security;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 
-#[Route('/api/avis')]
-class ApiAvisController extends ApiInterface
+#[Route('/api/notification')]
+class ApiNotificationController extends ApiInterface
 {
-
-
-
     #[Route('/', methods: ['GET'])]
     /**
-     * Retourne la liste des avis.
+     * Retourne la liste des notifications.
      * 
      */
     #[OA\Response(
@@ -34,20 +29,20 @@ class ApiAvisController extends ApiInterface
         description: 'Returns the rewards of an user',
         content: new OA\JsonContent(
             type: 'array',
-            items: new OA\Items(ref: new Model(type: Avis::class, groups: ['full']))
+            items: new OA\Items(ref: new Model(type: Notification::class, groups: ['full']))
         )
     )]
-    #[OA\Tag(name: 'avis')]
+    #[OA\Tag(name: 'notification')]
     // #[Security(name: 'Bearer')]
-    public function index(AvisRepository $avisRepository): Response
+    public function index(NotificationRepository $notificationRepository): Response
     {
         try {
 
-            $avis = $avisRepository->findAll();
+            $notifications = $notificationRepository->findAll();
 
 
 
-            $response =  $this->responseData($avis, 'group1', ['Content-Type' => 'application/json']);
+            $response =  $this->responseData($notifications, 'group1', ['Content-Type' => 'application/json']);
         } catch (\Exception $exception) {
             $this->setMessage("");
             $response = $this->response('[]');
@@ -56,9 +51,9 @@ class ApiAvisController extends ApiInterface
         // On envoie la réponse
         return $response;
     }
-    #[Route('/avis/by/forum/{idForum}', methods: ['GET'])]
+    #[Route('/by/{userId}', methods: ['GET'])]
     /**
-     * Retourne la liste des avis dun forum'.
+     * Retourne la liste des notifications.
      * 
      */
     #[OA\Response(
@@ -66,20 +61,18 @@ class ApiAvisController extends ApiInterface
         description: 'Returns the rewards of an user',
         content: new OA\JsonContent(
             type: 'array',
-            items: new OA\Items(ref: new Model(type: Avis::class, groups: ['full']))
+            items: new OA\Items(ref: new Model(type: Notification::class, groups: ['full']))
         )
     )]
-    #[OA\Tag(name: 'avis')]
+    #[OA\Tag(name: 'notification')]
     // #[Security(name: 'Bearer')]
-    public function avisForum(AvisRepository $avisRepository, Forum $forum): Response
+    public function indexByUser(NotificationRepository $notificationRepository,$userId): Response
     {
         try {
 
-            $avis = $avisRepository->findBy(['forum' => $forum]);
+            $notifications = $notificationRepository->findBy(['user'=>$userId]);
 
-
-
-            $response =  $this->responseData($avis, 'group1', ['Content-Type' => 'application/json']);
+            $response =  $this->responseData($notifications, 'group1', ['Content-Type' => 'application/json']);
         } catch (\Exception $exception) {
             $this->setMessage("");
             $response = $this->response('[]');
@@ -92,14 +85,14 @@ class ApiAvisController extends ApiInterface
 
     #[Route('/get/one/{id}', methods: ['GET'])]
     /**
-     * Affiche un(e) avis en offrant un identifiant.
+     * Affiche un(e) notification en offrant un identifiant.
      */
     #[OA\Response(
         response: 200,
-        description: 'Affiche un(e) avis en offrant un identifiant',
+        description: 'Affiche un(e) notification en offrant un identifiant',
         content: new OA\JsonContent(
             type: 'array',
-            items: new OA\Items(ref: new Model(type: Avis::class, groups: ['full']))
+            items: new OA\Items(ref: new Model(type: Notification::class, groups: ['full']))
         )
     )]
     #[OA\Parameter(
@@ -107,17 +100,17 @@ class ApiAvisController extends ApiInterface
         in: 'query',
         schema: new OA\Schema(type: 'string')
     )]
-    #[OA\Tag(name: 'avis')]
+    #[OA\Tag(name: 'notification')]
     //#[Security(name: 'Bearer')]
-    public function getOne(?Avis $avis)
+    public function getOne(?Notification $notification)
     {
         try {
-            if ($avis) {
-                $response = $this->response($avis);
+            if ($notification) {
+                $response = $this->response($notification);
             } else {
                 $this->setMessage('Cette ressource est inexistante');
                 $this->setStatusCode(300);
-                $response = $this->response($avis);
+                $response = $this->response($notification);
             }
         } catch (\Exception $exception) {
             $this->setMessage($exception->getMessage());
@@ -131,7 +124,7 @@ class ApiAvisController extends ApiInterface
 
     #[Route('/create',  methods: ['POST'])]
     /**
-     * Permet de créer un(e) avis.
+     * Permet de créer un(e) notification.
      */
     #[OA\Post(
         summary: "Authentification admin",
@@ -140,8 +133,8 @@ class ApiAvisController extends ApiInterface
             required: true,
             content: new OA\JsonContent(
                 properties: [
-                    new OA\Property(property: "contenu", type: "string"),
-                    new OA\Property(property: "forum", type: "string"),
+                    new OA\Property(property: "libelle", type: "string"),
+                    new OA\Property(property: "user", type: "string"),
                     new OA\Property(property: "userUpdate", type: "string"),
 
                 ],
@@ -152,43 +145,72 @@ class ApiAvisController extends ApiInterface
             new OA\Response(response: 401, description: "Invalid credentials")
         ]
     )]
-    #[OA\Tag(name: 'avis')]
+    #[OA\Tag(name: 'notification')]
     #[Security(name: 'Bearer')]
-    public function create(Request $request, AvisRepository $avisRepository,ForumRepository $forumRepository): Response
+    public function create(Request $request, NotificationRepository $notificationRepository, UserRepository $userRepository): Response
     {
 
         $data = json_decode($request->getContent(), true);
-        $avis = new Avis();
-        $avis->setContenu($data['contenu']);
-        $avis->setUpdatedAt(new \DateTime());
-        $avis->setCreatedAtValue(new \DateTime());
-        $avis->setForum($forumRepository->find($data['forum']));
-        $avis->setCreatedBy($this->userRepository->find($data['userUpdate']));
-        $avis->setUser($this->userRepository->find($data['userUpdate']));
-        $avis->setUpdatedBy($this->userRepository->find($data['userUpdate']));
-        $errorResponse = $this->errorResponse($avis);
+        $notification = new Notification();
+        $notification->setLibelle($data['libelle']);
+        $notification->setUser($userRepository->find($data['user']));
+        $notification->setRead(false);
+        $notification->setCreatedBy($this->userRepository->find($data['userUpdate']));
+        $notification->setUpdatedBy($this->userRepository->find($data['userUpdate']));
+        $errorResponse = $this->errorResponse($notification);
         if ($errorResponse !== null) {
             return $errorResponse; // Retourne la réponse d'erreur si des erreurs sont présentes
         } else {
 
-            $avisRepository->add($avis, true);
+            $notificationRepository->add($notification, true);
         }
 
-        return $this->responseData($avis, 'group1', ['Content-Type' => 'application/json']);
+        return $this->responseData($notification, 'group1', ['Content-Type' => 'application/json']);
+    }
+    #[Route('/read/{id}',  methods: ['POST'])]
+    /**
+     * Permet de créer un(e) notification.
+     */
+    #[OA\Post(
+        summary: "Authentification admin",
+        description: "Génère un token JWT pour les administrateurs.",
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                properties: [],
+                type: "object"
+            )
+        ),
+        responses: [
+            new OA\Response(response: 401, description: "Invalid credentials")
+        ]
+    )]
+    #[OA\Tag(name: 'notification')]
+    #[Security(name: 'Bearer')]
+    public function Read(Request $request, Notification $notification, NotificationRepository $notificationRepository, UserRepository $userRepository): Response
+    {
+        if ($notification) {
+            $notification->setRead(true);
+            $notificationRepository->add($notification, true);
+        }
+
+
+        return $this->responseData($notification, 'group1', ['Content-Type' => 'application/json']);
     }
 
 
     #[Route('/update/{id}', methods: ['PUT', 'POST'])]
     #[OA\Post(
-        summary: "Creation de avis",
-        description: "Permet de créer un avis.",
+        summary: "Creation de notification",
+        description: "Permet de créer un notification.",
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
                 properties: [
-                    new OA\Property(property: "contenu", type: "string"),
-                    new OA\Property(property: "forum", type: "string"),
+                    new OA\Property(property: "libelle", type: "string"),
+                    new OA\Property(property: "user", type: "string"),
                     new OA\Property(property: "userUpdate", type: "string"),
+
                 ],
                 type: "object"
             )
@@ -197,30 +219,30 @@ class ApiAvisController extends ApiInterface
             new OA\Response(response: 401, description: "Invalid credentials")
         ]
     )]
-    #[OA\Tag(name: 'avis')]
+    #[OA\Tag(name: 'notification')]
     #[Security(name: 'Bearer')]
-    public function update(Request $request, Avis $avis, AvisRepository $avisRepository): Response
+    public function update(Request $request, Notification $notification, NotificationRepository $notificationRepository, UserRepository $userRepository): Response
     {
         try {
             $data = json_decode($request->getContent());
-            if ($avis != null) {
+            if ($notification != null) {
 
-                $avis->setContenu($data->contenu);
-                $avis->setForum($data->forum);
-                $avis->setUpdatedBy($this->userRepository->find($data->userUpdate));
-                $avis->setUpdatedAt(new \DateTime());
-                $errorResponse = $this->errorResponse($avis);
+                $notification->setLibelle($data->libelle);
+                $notification->setUser($userRepository->find($data->user));
+                $notification->setUpdatedBy($this->userRepository->find($data->userUpdate));
+                $notification->setUpdatedAt(new \DateTime());
+                $errorResponse = $this->errorResponse($notification);
 
                 if ($errorResponse !== null) {
                     return $errorResponse; // Retourne la réponse d'erreur si des erreurs sont présentes
                 } else {
-                    $avisRepository->add($avis, true);
+                    $notificationRepository->add($notification, true);
                 }
 
 
 
                 // On retourne la confirmation
-                $response = $this->responseData($avis, 'group1', ['Content-Type' => 'application/json']);
+                $response = $this->responseData($notification, 'group1', ['Content-Type' => 'application/json']);
             } else {
                 $this->setMessage("Cette ressource est inexsitante");
                 $this->setStatusCode(300);
@@ -237,29 +259,29 @@ class ApiAvisController extends ApiInterface
 
     #[Route('/delete/{id}',  methods: ['DELETE'])]
     /**
-     * permet de supprimer un(e) avis.
+     * permet de supprimer un(e) notification.
      */
     #[OA\Response(
         response: 200,
-        description: 'permet de supprimer un(e) avis',
+        description: 'permet de supprimer un(e) notification',
         content: new OA\JsonContent(
             type: 'array',
-            items: new OA\Items(ref: new Model(type: Avis::class, groups: ['full']))
+            items: new OA\Items(ref: new Model(type: Notification::class, groups: ['full']))
         )
     )]
-    #[OA\Tag(name: 'avis')]
+    #[OA\Tag(name: 'notification')]
     //#[Security(name: 'Bearer')]
-    public function delete(Request $request, Avis $avis, AvisRepository $villeRepository): Response
+    public function delete(Request $request, Notification $notification, NotificationRepository $notificationRepository): Response
     {
         try {
 
-            if ($avis != null) {
+            if ($notification != null) {
 
-                $villeRepository->remove($avis, true);
+                $notificationRepository->remove($notification, true);
 
                 // On retourne la confirmation
                 $this->setMessage("Operation effectuées avec success");
-                $response = $this->response($avis);
+                $response = $this->response($notification);
             } else {
                 $this->setMessage("Cette ressource est inexistante");
                 $this->setStatusCode(300);
@@ -274,28 +296,28 @@ class ApiAvisController extends ApiInterface
 
     #[Route('/delete/all',  methods: ['DELETE'])]
     /**
-     * Permet de supprimer plusieurs avis.
+     * Permet de supprimer plusieurs notification.
      */
     #[OA\Response(
         response: 200,
         description: 'Returns the rewards of an user',
         content: new OA\JsonContent(
             type: 'array',
-            items: new OA\Items(ref: new Model(type: Avis::class, groups: ['full']))
+            items: new OA\Items(ref: new Model(type: Notification::class, groups: ['full']))
         )
     )]
-    #[OA\Tag(name: 'avis')]
+    #[OA\Tag(name: 'notification')]
     #[Security(name: 'Bearer')]
-    public function deleteAll(Request $request, AvisRepository $villeRepository): Response
+    public function deleteAll(Request $request, NotificationRepository $notificationRepository): Response
     {
         try {
             $data = json_decode($request->getContent());
 
             foreach ($data->ids as $key => $value) {
-                $avis = $villeRepository->find($value['id']);
+                $notification = $notificationRepository->find($value['id']);
 
-                if ($avis != null) {
-                    $villeRepository->remove($avis);
+                if ($notification != null) {
+                    $notificationRepository->remove($notification);
                 }
             }
             $this->setMessage("Operation effectuées avec success");

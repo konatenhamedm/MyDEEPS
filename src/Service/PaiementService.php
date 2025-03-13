@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Controller\FileTrait;
 use App\Entity\Civilite;
+use App\Entity\Document;
 use App\Entity\Etablissement;
 use App\Entity\Genre;
 use App\Entity\Organisation;
@@ -21,6 +22,7 @@ use App\Repository\TempProfessionnelRepository;
 use App\Repository\TransactionRepository;
 use App\Repository\TypePersonneRepository;
 use App\Repository\VilleRepository;
+use DateTime;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
@@ -97,7 +99,18 @@ class PaiementService
             $transaction->setChannel($data['moyenPaiement']);
             $transaction->setData(json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
             $this->transactionRepository->add($transaction, true);
-            $response = $transaction->getTypeUser() =="professionnel" ?  $this->updateProfessionnel($data['codePaiement']) :  $this->updateEtablissement($data['codePaiement']);
+            $response = $transaction->getTypeUser() == "professionnel" ?  $this->updateProfessionnel($data['codePaiement']) :  $this->updateEtablissement($data['codePaiement']);
+            if ($response) {
+
+
+                if ($transaction->getTypeUser() == "professionnel") {
+                    $temp =  $this->tempProfessionnelRepository->findOneBy(['reference' => $data['codePaiement']]);
+                    $this->tempProfessionnelRepository->remove($temp, true);
+                } else {
+                    $temp =  $this->tempEtablissementRepository->findOneBy(['reference' => $data['codePaiement']]);
+                    $this->tempEtablissementRepository->remove($temp, true);
+                }
+            }
         } else {
             $response = [
                 'message' => 'Echec',
@@ -126,12 +139,12 @@ class PaiementService
         $transaction->setUpdatedAt(new \DateTime());
 
         $this->transactionRepository->add($transaction, true);
-        
+
         $requestData = [
             "code_paiement" => $transaction->getReference(),
             "nom_usager" => $request->get('nom'),
-            "prenom_usager" => $request->get('prenoms') ,
-            "telephone" => $request->get('numero') ,
+            "prenom_usager" => $request->get('prenoms'),
+            "telephone" => $request->get('numero'),
             "email" => $request->get('email'),
             "libelle_article" => "DEMANDE D'ADHESION",
             "quantite" => 1,
@@ -185,12 +198,11 @@ class PaiementService
         $professionnel->setProfessionnel($dataTemp->getProfessionnel());
         $professionnel->setAddressPro($dataTemp->getAddressPro());
         $professionnel->setProfession($dataTemp->getProfession());
-        if($dataTemp->getAppartenirOrganisation() == true){
+        if ($dataTemp->getAppartenirOrganisation() == true) {
 
             $professionnel->setAppartenirOrganisation("oui");
-        }else{
+        } else {
             $professionnel->setAppartenirOrganisation("non");
-
         }
 
 
@@ -208,6 +220,7 @@ class PaiementService
             $professionnel->setNationate($this->paysRepository->find($dataTemp->getNationate()));
         $professionnel->setDiplome($dataTemp->getDiplome());
         $professionnel->setSituationPro($dataTemp->getSituationPro());
+        $professionnel->setSituation($dataTemp->getSituation());
         if ($dataTemp->getSpecialite())
             $professionnel->setSpecialite($this->specialiteRepository->find($dataTemp->getSpecialite()));
         if ($dataTemp->getGenre())
@@ -218,6 +231,8 @@ class PaiementService
         $professionnel->setCni($dataTemp->getCni());
         $professionnel->setDiplomeFile($dataTemp->getDiplomeFile());
         $professionnel->setCertificat($dataTemp->getCertificat());
+        $professionnel->setUpdatedAt(new DateTime());
+        $professionnel->setCreatedAtValue(new DateTime());
 
         $this->em->persist($professionnel);
         $this->em->flush();
@@ -234,6 +249,8 @@ class PaiementService
         $user->setPayement(User::PAYEMENT['payed']);
         $user->setCreatedBy($user);
         $user->setUpdatedBy($user);
+        $user->setUpdatedAt(new DateTime());
+        $user->setCreatedAtValue(new DateTime());
         $this->em->persist($user);
         $this->em->flush();
 
@@ -259,6 +276,8 @@ class PaiementService
             $organisation->setEntite($professionnel);
             $organisation->setCreatedBy($user);
             $organisation->setUpdatedBy($user);
+            $organisation->setUpdatedAt(new DateTime());
+            $organisation->setCreatedAtValue(new DateTime());
             $this->em->persist($organisation);
             $this->em->flush();
         }
@@ -298,9 +317,19 @@ class PaiementService
 
 
         // Informations générales
-        if($dataTemp->getTypePersonne())
+        if ($dataTemp->getTypePersonne())
             $etablissement->setTypePersonne($this->typePersonneRepository->find($dataTemp->getTypePersonne()));
-        $etablissement->setNatureEntreprise($dataTemp->getNatureEntreprise());
+
+        if ($dataTemp->getDocumentTemporaires()) {
+            foreach ($dataTemp->getDocumentTemporaires() as $doc) {
+                $document = new Document();
+                $libelle = $doc->getLibelle() ?: 'Document sans libellé'; 
+                $document->setPath($libelle);
+                $document->setLibelle($libelle);
+                $etablissement->addDocument($document);
+            }
+        }
+        /*   $etablissement->setNatureEntreprise($dataTemp->getNatureEntreprise());
         $etablissement->setTypeEntreprise($dataTemp->getTypeEntreprise());
         $etablissement->setGpsEntreprise($dataTemp->getGpsEntreprise());
         $etablissement->setNiveauEntreprise($dataTemp->getNiveauEntreprise());
@@ -309,20 +338,20 @@ class PaiementService
         $etablissement->setEmailEntreprise($dataTemp->getEmailEntreprise());
         $etablissement->setSpaceEntreprise($dataTemp->getSpaceEntreprise());
         $etablissement->setAppartenirOrganisation('non');
-        $etablissement->setStatus('attente');
+        $etablissement->setStatus('attente'); */
 
         // Promoteur
-        if($dataTemp->getGenre())
-            $etablissement->setGenre($this->genreRepository->find($dataTemp->getGenre()));
-        $etablissement->setNomCompletPromoteur($dataTemp->getNomCompletPromoteur());
+        /* if ($dataTemp->getGenre())
+            $etablissement->setGenre($this->genreRepository->find($dataTemp->getGenre())); */
+        /*   $etablissement->setNomCompletPromoteur($dataTemp->getNomCompletPromoteur());
         $etablissement->setEmailPro($dataTemp->getEmailPro());
         $etablissement->setProfession($dataTemp->getProfession());
         $etablissement->setContactsPromoteur($dataTemp->getContactsPromoteur());
         $etablissement->setLieuResidence($dataTemp->getLieuResidence());
-        $etablissement->setNumeroCni($dataTemp->getNumeroCni());
+        $etablissement->setNumeroCni($dataTemp->getNumeroCni()); */
 
         // Technicien
-        $etablissement->setNomCompletTechnique($dataTemp->getNomCompletTechnique());
+        /*  $etablissement->setNomCompletTechnique($dataTemp->getNomCompletTechnique());
         $etablissement->setEmailProTechnique($dataTemp->getEmailProTechnique());
         $etablissement->setProfessionTechnique($dataTemp->getProfessionTechnique());
         $etablissement->setContactProTechnique($dataTemp->getContactProTechnique());
@@ -334,7 +363,7 @@ class PaiementService
         $etablissement->setPhoto($dataTemp->getPhoto());
         $etablissement->setOrdreNational($dataTemp->getOrdreNational());
         $etablissement->setCni($dataTemp->getCni());
-        $etablissement->setDfe($dataTemp->getDfe());
+        $etablissement->setDfe($dataTemp->getDfe()); */
 
 
         $this->em->persist($etablissement);

@@ -45,7 +45,7 @@ class ApiTypeDocumentController extends ApiInterface
 
             $typeDocuments = $typeDocumentRepository->findAll();
 
-          
+
 
             $response =  $this->responseData($typeDocuments, 'group1', ['Content-Type' => 'application/json']);
         } catch (\Exception $exception) {
@@ -115,16 +115,15 @@ class ApiTypeDocumentController extends ApiInterface
     )]
     #[OA\Tag(name: 'typeDocument')]
     //#[Security(name: 'Bearer')]
-    public function getDocByTypePersonne(?TypePersonne $typePersonne,TypeDocumentRepository $typeDocumentRepository)
+    public function getDocByTypePersonne(?TypePersonne $typePersonne, TypeDocumentRepository $typeDocumentRepository)
     {
         try {
             if ($typePersonne) {
 
-                $dataTypeDocuments = $typeDocumentRepository->findBy(['typePersonne'=>$typePersonne]);
+                $dataTypeDocuments = $typeDocumentRepository->findBy(['typePersonne' => $typePersonne]);
 
 
                 $response =  $this->responseData($dataTypeDocuments, 'group1', ['Content-Type' => 'application/json']);
-
             } else {
                 $this->setMessage('Cette ressource est inexistante');
                 $this->setStatusCode(300);
@@ -152,7 +151,8 @@ class ApiTypeDocumentController extends ApiInterface
             content: new OA\JsonContent(
                 properties: [
                     new OA\Property(property: "typePersonne", type: "string"),
-                    new OA\Property(property: "dataDocument", type: "string"),
+                    new OA\Property(property: "nombre", type: "string"),
+                    new OA\Property(property: "libelle", type: "string"),
                     new OA\Property(property: "userUpdate", type: "string"),
 
                 ],
@@ -165,33 +165,32 @@ class ApiTypeDocumentController extends ApiInterface
     )]
     #[OA\Tag(name: 'typeDocument')]
     #[Security(name: 'Bearer')]
-    public function create(Request $request, TypeDocumentRepository $typeDocumentRepository,TypePersonneRepository $typePersonneRepository): Response
+    public function create(Request $request, TypeDocumentRepository $typeDocumentRepository, TypePersonneRepository $typePersonneRepository): Response
     {
 
         $data = json_decode($request->getContent(), true);
 
-        $datasDocuments = $data['dataDocument'];
 
 
-        foreach ($datasDocuments as $key => $document) {
-            $typeDocument = new TypeDocument();
 
-            $typeDocument->setLibelle($document['libelle']);
-            $typeDocument->setNombre($document['nombre']);
-            $typeDocument->setTypePersonne($typePersonneRepository->find($document['typePersonne']));
-            $typeDocument->setCreatedAtValue(new \DateTime());
-            $typeDocument->setUpdatedAt(new \DateTime());
-            $typeDocument->setCreatedBy($this->userRepository->find($data['userUpdate']));
-            $typeDocument->setUpdatedBy($this->userRepository->find($data['userUpdate']));
+        $typeDocument = new TypeDocument();
 
-            $errorResponse = $this->errorResponse($typeDocument);
-            if ($errorResponse !== null) {
-                return $errorResponse; // Retourne la réponse d'erreur si des erreurs sont présentes
-            } else {
-    
-                $typeDocumentRepository->add($typeDocument, true);
-            }
+        $typeDocument->setLibelle($data['libelle']);
+        $typeDocument->setNombre($data['nombre']);
+        $typeDocument->setTypePersonne($typePersonneRepository->find($data['typePersonne']));
+        $typeDocument->setCreatedAtValue(new \DateTime());
+        $typeDocument->setUpdatedAt(new \DateTime());
+        $typeDocument->setCreatedBy($this->userRepository->find($data['userUpdate']));
+        $typeDocument->setUpdatedBy($this->userRepository->find($data['userUpdate']));
+
+        $errorResponse = $this->errorResponse($typeDocument);
+        if ($errorResponse !== null) {
+            return $errorResponse; // Retourne la réponse d'erreur si des erreurs sont présentes
+        } else {
+
+            $typeDocumentRepository->add($typeDocument, true);
         }
+
 
 
         $this->setMessage("Cette ressource est inexsitante");
@@ -210,7 +209,66 @@ class ApiTypeDocumentController extends ApiInterface
             required: true,
             content: new OA\JsonContent(
                 properties: [
-               
+
+                    new OA\Property(property: "libelle", type: "string"),
+                    new OA\Property(property: "nombre", type: "string"),
+                    new OA\Property(property: "typePersonne", type: "string"),
+                    new OA\Property(property: "userUpdate", type: "string"),
+
+                ],
+                type: "object"
+            )
+        ),
+        responses: [
+            new OA\Response(response: 401, description: "Invalid credentials")
+        ]
+    )]
+    #[OA\Tag(name: 'typeDocument')]
+    #[Security(name: 'Bearer')]
+    public function update(Request $request, TypeDocument $typeDocument, TypeDocumentRepository $typeDocumentRepository, TypePersonneRepository $typePersonneRepository): Response
+    {
+        try {
+            $data = json_decode($request->getContent());
+
+
+            if ($typeDocument != null) {
+
+                $typeDocument->setLibelle($data->libelle);
+                $typeDocument->setNombre($data->nombre);
+                $typeDocument->setTypePersonne($typePersonneRepository->find($data->typePersonne));
+                $typeDocument->setUpdatedAt(new \DateTime());
+                $typeDocument->setUpdatedBy($this->userRepository->find($data->userUpdate));
+                $errorResponse = $this->errorResponse($typeDocument);
+                if ($errorResponse !== null) {
+                    return $errorResponse; // Retourne la réponse d'erreur si des erreurs sont présentes
+                } else {
+
+                    $typeDocumentRepository->add($typeDocument, true);
+                }
+
+                $response = $this->responseData($typeDocument, 'group1', ['Content-Type' => 'application/json']);
+            } else {
+                $this->setMessage("Cette ressource est inexsitante");
+                $this->setStatusCode(300);
+                $response = $this->response('[]');
+            }
+            // On retourne la confirmation
+
+        } catch (\Exception $exception) {
+            $this->setMessage("");
+            $response = $this->response('[]');
+        }
+        return $response;
+    }
+    #[Route('/update/multiple/{id}', methods: ['PUT', 'POST'])]
+    #[OA\Post(
+        summary: "Creation de typeDocument",
+        description: "Permet de créer un typeDocument.",
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                properties: [
+
                     new OA\Property(property: "dataDocument", type: "string"),
                     new OA\Property(property: "dataDelete", type: "string"),
                     new OA\Property(property: "userUpdate", type: "string"),
@@ -225,7 +283,7 @@ class ApiTypeDocumentController extends ApiInterface
     )]
     #[OA\Tag(name: 'typeDocument')]
     #[Security(name: 'Bearer')]
-    public function update(Request $request, TypePersonne $typePersonne, TypeDocumentRepository $typeDocumentRepository,TypePersonneRepository $typePersonneRepository): Response
+    public function updateMultiple(Request $request, TypePersonne $typePersonne, TypeDocumentRepository $typeDocumentRepository, TypePersonneRepository $typePersonneRepository): Response
     {
         try {
             $data = json_decode($request->getContent());
@@ -237,7 +295,7 @@ class ApiTypeDocumentController extends ApiInterface
                 foreach ($datasDocuments as $key => $document) {
 
 
-                    if($document['id'] != null){
+                    if ($document['id'] != null) {
 
                         $typeDocument =  $typeDocumentRepository->find($document['id']);
 
@@ -249,11 +307,10 @@ class ApiTypeDocumentController extends ApiInterface
                         if ($errorResponse !== null) {
                             return $errorResponse; // Retourne la réponse d'erreur si des erreurs sont présentes
                         } else {
-                
+
                             $typeDocumentRepository->add($typeDocument, true);
                         }
-
-                    }else{
+                    } else {
 
                         $typeDocument = new TypeDocument();
                         $typeDocument->setLibelle($document['libelle']);
@@ -267,16 +324,15 @@ class ApiTypeDocumentController extends ApiInterface
                         if ($errorResponse !== null) {
                             return $errorResponse; // Retourne la réponse d'erreur si des erreurs sont présentes
                         } else {
-                
+
                             $typeDocumentRepository->add($typeDocument, true);
                         }
                     }
-
                 }
 
                 foreach ($datasDelete as $key => $value) {
                     $typeDocument = $typeDocumentRepository->find($value['id']);
-    
+
                     if ($typeDocument != null) {
                         $typeDocumentRepository->remove($typeDocument);
                     }

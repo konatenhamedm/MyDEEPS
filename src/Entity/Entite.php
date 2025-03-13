@@ -36,18 +36,19 @@ class Entite
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Group(['group_pro'])]
+    #[Group(['group_pro',"group_user_trx"])]
     private ?int $id = null;
 
 
     #[ORM\Column(nullable: true)]
-    #[Group(['group_pro'])]
+    #[Group(['group_pro',])]
     private ?string $appartenirOrganisation = null;
 
     /**
      * @var Collection<int, Organisation>
      */
     #[ORM\OneToMany(targetEntity: Organisation::class, mappedBy: 'entite')]
+    #[Group(["group_pro"])]
     private Collection $organisations;
 
     /**

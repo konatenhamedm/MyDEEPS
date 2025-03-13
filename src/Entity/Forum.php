@@ -7,6 +7,8 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups as Group;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ForumRepository::class)]
 class Forum
@@ -17,24 +19,30 @@ class Forum
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Group(["group1"])]
     private ?int $id = null;
 
     #[ORM\Column(type: Types::TEXT)]
+    #[Group(["group1"])]
     private ?string $contenu = null;
 
     #[ORM\Column(length: 255)]
+    #[Group(["group1"])]
     private ?string $status = null;
 
     #[ORM\ManyToOne(inversedBy: 'forums')]
+    #[Group(["group1"])]
     private ?User $user = null;
 
     #[ORM\Column(length: 255)]
+    #[Group(["group1"])]
     private ?string $titre = null;
 
     /**
      * @var Collection<int, Avis>
      */
     #[ORM\OneToMany(targetEntity: Avis::class, mappedBy: 'forum')]
+    #[Group(["group1"])]
     private Collection $avis;
 
     public function __construct()

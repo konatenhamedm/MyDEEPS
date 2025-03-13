@@ -20,6 +20,16 @@ class TransactionRepository extends ServiceEntityRepository
         parent::__construct($registry, Transaction::class);
     }
 
+   
+    public function remove(Transaction $entity, bool $flush = false): void
+    {
+        $this->getEntityManager()->remove($entity);
+
+        if ($flush) {
+            $this->getEntityManager()->flush();
+        }
+    }
+
     public function add(Transaction $entity, bool $flush = false): void
     {
         $this->getEntityManager()->persist($entity);
@@ -85,6 +95,17 @@ class TransactionRepository extends ServiceEntityRepository
         {
             return $this->createQueryBuilder('t')
                 ->andWhere('t.user is not null')
+                ->orderBy('t.id', 'ASC')
+              
+                ->getQuery()
+                ->getResult()
+            ;
+        }
+         public function getAllTransactionByUser($user): array
+        {
+            return $this->createQueryBuilder('t')
+                ->andWhere('t.user = :user')
+                ->setParameter('user', $user)
                 ->orderBy('t.id', 'ASC')
               
                 ->getQuery()

@@ -27,18 +27,18 @@ class Fichier implements \Serializable
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Group(["fichier", "groupe_batis"])]
+    #[Group(["fichier", "groupe_batis","group1"])]
     private ?int $id = null;
 
     #[ORM\Column(nullable: true)]
     private ?int $size = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Group(["fichier", "groupe_batis",'group_user','group_pro'])]
+    #[Group(["fichier", "groupe_batis",'group_user','group_pro',"group1"])]
     private ?string $path = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Group(["fichier", "groupe_batis",'group_user','group_pro'])]
+    #[Group(["fichier", "groupe_batis",'group_user','group_pro',"group1"])]
     private ?string $alt = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]

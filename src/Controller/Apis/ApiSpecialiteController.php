@@ -94,6 +94,43 @@ class ApiSpecialiteController extends ApiInterface
 
         return $response;
     }
+    #[Route('/get/status/paiement/{id}', methods: ['GET'])]
+    /**
+     * Affiche un(e) specialite en offrant un identifiant.
+     */
+    #[OA\Response(
+        response: 200,
+        description: 'Affiche etat paiement de la specialite',
+        content: new OA\JsonContent(
+            type: 'array',
+            items: new OA\Items(ref: new Model(type: Specialite::class, groups: ['full']))
+        )
+    )]
+    #[OA\Parameter(
+        name: 'code',
+        in: 'query',
+        schema: new OA\Schema(type: 'string')
+    )]
+    #[OA\Tag(name: 'specialite')]
+    //#[Security(name: 'Bearer')]
+    public function getPaiementStatus(?Specialite $specialite)
+    {
+        try {
+            if ($specialite) {
+                $response = $this->response($specialite->isPaiement());
+            } else {
+                $this->setMessage('Cette ressource est inexistante');
+                $this->setStatusCode(300);
+                $response = $this->response([]);
+            }
+        } catch (\Exception $exception) {
+            $this->setMessage($exception->getMessage());
+            $response = $this->response('[]');
+        }
+
+
+        return $response;
+    }
 
 
     #[Route('/create',  methods: ['POST'])]
@@ -108,6 +145,7 @@ class ApiSpecialiteController extends ApiInterface
             content: new OA\JsonContent(
                 properties: [
                     new OA\Property(property: "libelle", type: "string"),
+                    new OA\Property(property: "paiement", type: "string"),
                     new OA\Property(property: "userUpdate", type: "string"),
 
                 ],
@@ -126,6 +164,7 @@ class ApiSpecialiteController extends ApiInterface
         $data = json_decode($request->getContent(), true);
         $specialite = new Specialite();
         $specialite->setLibelle($data['libelle']);
+        $specialite->setPaiement($data['paiement']);
         $specialite->setCreatedBy($this->userRepository->find($data['userUpdate']));
         $specialite->setUpdatedBy($this->userRepository->find($data['userUpdate']));
         $errorResponse = $this->errorResponse($specialite);
@@ -169,6 +208,7 @@ class ApiSpecialiteController extends ApiInterface
             if ($specialite != null) {
 
                 $specialite->setLibelle($data->libelle);
+                $specialite->setPaiement($data->paiement);
                 $specialite->setUpdatedBy($this->userRepository->find($data->userUpdate));
                 $specialite->setUpdatedAt(new \DateTime());
                 $errorResponse = $this->errorResponse($specialite);

@@ -18,37 +18,38 @@ class Transaction
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'transactions')]
-    #[Group(["group_user"])]
+    #[Group(["group_user_trx"])]
     private ?User $user = null;
 
     #[ORM\Column(length: 255)]
-    #[Group(["group_user"])]
+    #[Group(["group_user_trx"])]
     private ?string $montant = null;
 
     #[ORM\Column(length: 255)]
-    #[Group(["group_user"])]
+    #[Group(["group_user_trx"])]
     private ?string $reference = null;
 
     #[ORM\Column(length: 255,nullable:true)]
-    #[Group(["group_user"])]
+    #[Group(["group_user_trx"])]
     private ?string $reference_channel = null;
 
     #[ORM\Column(length: 255,nullable:true)]
-    #[Group(["group_user"])]
+    #[Group(["group_user_trx"])]
     private ?string $channel = null;
 
     #[ORM\Column(length: 255)]
-    #[Group(["group_user"])]
+    #[Group(["group_user_trx"])]
     private ?string $type = null;
 
     #[ORM\Column]
-    #[Group(["group_user"])]
+    #[Group(["group_user_trx"])]
     private ?int $state = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $data = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group_user_trx"])]
     private ?string $typeUser = null;
 
     public function getId(): ?int

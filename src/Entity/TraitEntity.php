@@ -10,7 +10,7 @@ use Symfony\Component\Serializer\Annotation\Groups as Group;
 trait TraitEntity
 {
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
-    #[Group(["group_user"])]
+    #[Group(["group_user","group1","group_user_trx"])]
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
@@ -28,7 +28,7 @@ trait TraitEntity
 
     public function __construct()
     {
-       
+       $this->isR
     }
 
     #[ORM\PrePersist]

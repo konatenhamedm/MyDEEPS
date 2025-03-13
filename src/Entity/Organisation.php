@@ -16,15 +16,19 @@ class Organisation
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Group(["group_pro"])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group_pro"])]
     private ?string $nom = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group_pro"])]
     private ?string $numero = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group_pro"])]
     private ?string $annee = null;
 
     #[ORM\ManyToOne(inversedBy: 'organisations')]

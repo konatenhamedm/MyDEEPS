@@ -48,16 +48,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Group(["group1", "group_user", 'group_pro'])]
+    #[Group(["group1", "group_user", 'group_pro',"group_user_trx"])]
     private ?int $id = null;
 
     #[ORM\Column(type: 'string', unique: true, nullable: true)]
-    #[Group(["group1", "group_user", 'group_pro'])]
+    #[Group(["group1", "group_user", 'group_pro',"group_user_trx"])]
     private ?string $username = null;
 
     #[ORM\Column(type: 'string', unique: true, nullable: true)]
     #[Assert\Email]
-    #[Group(["group1", "group_user", 'group_pro'])]
+    #[Group(["group1", "group_user", 'group_pro',"group_user_trx"])]
     private ?string $email = null;
 
     #[ORM\Column]
@@ -90,7 +90,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\ManyToOne(cascade: ["persist"], fetch: "EAGER")]
     #[ORM\JoinColumn(nullable: true)]
-    #[Group(["group_user"])]
+    #[Group(["group_user","group1"])]
     private ?Fichier $avatar = null;
 
 
@@ -119,7 +119,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private Collection $transactions;
 
     #[ORM\ManyToOne(inversedBy: 'users')]
-    #[Group(["group1", "group_user", 'group_pro'])]
+    #[Group(["group1", "group_user", 'group_pro',"group_user_trx"])]
     private ?Entite $personne = null;
 
     /**
@@ -133,6 +133,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     #[ORM\OneToMany(targetEntity: Avis::class, mappedBy: 'user')]
     private Collection $avis;
+
+    /**
+     * @var Collection<int, Notification>
+     */
+    #[ORM\OneToMany(targetEntity: Notification::class, mappedBy: 'user')]
+    private Collection $notifications;
 
 
     public function __construct()
@@ -153,6 +159,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->transactions = new ArrayCollection();
         $this->forums = new ArrayCollection();
         $this->avis = new ArrayCollection();
+        $this->notifications = new ArrayCollection();
     }
 
 
@@ -488,6 +495,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             // set the owning side to null (unless already changed)
             if ($avi->getUser() === $this) {
                 $avi->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Notification>
+     */
+    public function getNotifications(): Collection
+    {
+        return $this->notifications;
+    }
+
+    public function addNotification(Notification $notification): static
+    {
+        if (!$this->notifications->contains($notification)) {
+            $this->notifications->add($notification);
+            $notification->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeNotification(Notification $notification): static
+    {
+        if ($this->notifications->removeElement($notification)) {
+            // set the owning side to null (unless already changed)
+            if ($notification->getUser() === $this) {
+                $notification->setUser(null);
             }
         }
 

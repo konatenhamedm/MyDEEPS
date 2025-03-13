@@ -17,17 +17,17 @@ class AdminDocument
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Group(["group_1"])]
+    #[Group(["group_pro"])]
     private ?int $id = null;
 
     #[ORM\ManyToOne(cascade: ["persist"], fetch: "EAGER")]
     #[ORM\JoinColumn(nullable: true)]
-    #[Group(["group_1"])]
+    #[Group(["group_pro"])]
     private ?Fichier $path = null;
 
 
     #[ORM\Column(length: 255)]
-    #[Group(["group_1"])]
+    #[Group(["group_pro"])]
     private ?string $libelle = null;
 
     public function getId(): ?int

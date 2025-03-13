@@ -56,6 +56,39 @@ class ApiForumController extends ApiInterface
         return $response;
     }
 
+    #[Route('/actif', methods: ['GET'])]
+    /**
+     * Retourne la liste des forums actif.
+     * 
+     */
+    #[OA\Response(
+        response: 200,
+        description: 'Returns the rewards of an user',
+        content: new OA\JsonContent(
+            type: 'array',
+            items: new OA\Items(ref: new Model(type: Forum::class, groups: ['full']))
+        )
+    )]
+    #[OA\Tag(name: 'forum')]
+    // #[Security(name: 'Bearer')]
+    public function indexActif(ForumRepository $forumRepository): Response
+    {
+        try {
+
+            $forums = $forumRepository->findBy(['status'=>'Actif']);
+
+          
+
+            $response =  $this->responseData($forums, 'group1', ['Content-Type' => 'application/json']);
+        } catch (\Exception $exception) {
+            $this->setMessage("");
+            $response = $this->response('[]');
+        }
+
+        // On envoie la réponse
+        return $response;
+    }
+
     #[Route('/forum/by/user/{userId}', methods: ['GET'])]
     /**
      * Retourne la liste des forums dun utilisateur.
@@ -71,11 +104,11 @@ class ApiForumController extends ApiInterface
     )]
     #[OA\Tag(name: 'forum')]
     // #[Security(name: 'Bearer')]
-    public function forumByUser(ForumRepository $forumRepository,User $user): Response
+    public function forumByUser(ForumRepository $forumRepository, $userId): Response
     {
         try {
 
-            $forums = $forumRepository->findBy(['user'=>$user]);
+            $forums = $forumRepository->findBy(['user'=>$userId]);
 
           
 
@@ -161,7 +194,7 @@ class ApiForumController extends ApiInterface
 
         $data = json_decode($request->getContent(), true);
         $forum = new Forum();
-        $forum->setContenu($data['libelle']);
+        $forum->setContenu($data['contenu']);
         $forum->setTitre($data['titre']);
         $forum->setStatus($data['status']);
         $forum->setCreatedAtValue(new \DateTime());

@@ -3,10 +3,10 @@
 namespace  App\Controller\Apis;
 
 use App\Controller\Apis\Config\ApiInterface;
-use App\DTO\CiviliteDTO;
+use App\DTO\TypeProfessionDTO;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use App\Entity\Civilite;
-use App\Repository\CiviliteRepository;
+use App\Entity\TypeProfession;
+use App\Repository\TypeProfessionRepository;
 use App\Repository\UserRepository;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -16,15 +16,13 @@ use Nelmio\ApiDocBundle\Annotation\Security;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 
-#[Route('/api/civilite')]
-class ApiCiviliteController extends ApiInterface
+#[Route('/api/typeProfession')]
+class ApiTypeProfessionController extends ApiInterface
 {
-
-
 
     #[Route('/', methods: ['GET'])]
     /**
-     * Retourne la liste des civilites.
+     * Retourne la liste des typeProfessions.
      * 
      */
     #[OA\Response(
@@ -32,20 +30,18 @@ class ApiCiviliteController extends ApiInterface
         description: 'Returns the rewards of an user',
         content: new OA\JsonContent(
             type: 'array',
-            items: new OA\Items(ref: new Model(type: Civilite::class, groups: ['full']))
+            items: new OA\Items(ref: new Model(type: TypeProfession::class, groups: ['full']))
         )
     )]
-    #[OA\Tag(name: 'civilite')]
+    #[OA\Tag(name: 'typeProfession')]
     // #[Security(name: 'Bearer')]
-    public function index(CiviliteRepository $civiliteRepository): Response
+    public function index(TypeProfessionRepository $typeProfessionRepository): Response
     {
         try {
-
-            $civilites = $civiliteRepository->findAll();
-
-          
-
-            $response =  $this->responseData($civilites, 'group1', ['Content-Type' => 'application/json']);
+            
+            $typeProfessions = $typeProfessionRepository->findAll();
+            
+            $response =  $this->responseData($typeProfessions, 'group2', ['Content-Type' => 'application/json']);
         } catch (\Exception $exception) {
             $this->setMessage("");
             $response = $this->response('[]');
@@ -58,14 +54,14 @@ class ApiCiviliteController extends ApiInterface
 
     #[Route('/get/one/{id}', methods: ['GET'])]
     /**
-     * Affiche un(e) civilite en offrant un identifiant.
+     * Affiche un(e) typeProfession en offrant un identifiant.
      */
     #[OA\Response(
         response: 200,
-        description: 'Affiche un(e) civilite en offrant un identifiant',
+        description: 'Affiche un(e) typeProfession en offrant un identifiant',
         content: new OA\JsonContent(
             type: 'array',
-            items: new OA\Items(ref: new Model(type: Civilite::class, groups: ['full']))
+            items: new OA\Items(ref: new Model(type: TypeProfession::class, groups: ['full']))
         )
     )]
     #[OA\Parameter(
@@ -73,17 +69,17 @@ class ApiCiviliteController extends ApiInterface
         in: 'query',
         schema: new OA\Schema(type: 'string')
     )]
-    #[OA\Tag(name: 'civilite')]
+    #[OA\Tag(name: 'typeProfession')]
     //#[Security(name: 'Bearer')]
-    public function getOne(?Civilite $civilite)
+    public function getOne(?TypeProfession $typeProfession)
     {
         try {
-            if ($civilite) {
-                $response = $this->response($civilite);
+            if ($typeProfession) {
+                $response = $this->response($typeProfession);
             } else {
                 $this->setMessage('Cette ressource est inexistante');
                 $this->setStatusCode(300);
-                $response = $this->response($civilite);
+                $response = $this->response($typeProfession);
             }
         } catch (\Exception $exception) {
             $this->setMessage($exception->getMessage());
@@ -97,7 +93,7 @@ class ApiCiviliteController extends ApiInterface
 
     #[Route('/create',  methods: ['POST'])]
     /**
-     * Permet de créer un(e) civilite.
+     * Permet de créer un(e) typeProfession.
      */
     #[OA\Post(
         summary: "Authentification admin",
@@ -118,33 +114,35 @@ class ApiCiviliteController extends ApiInterface
             new OA\Response(response: 401, description: "Invalid credentials")
         ]
     )]
-    #[OA\Tag(name: 'civilite')]
+    #[OA\Tag(name: 'typeProfession')]
     #[Security(name: 'Bearer')]
-    public function create(Request $request, CiviliteRepository $civiliteRepository): Response
+    public function create(Request $request, TypeProfessionRepository $typeProfessionRepository): Response
     {
 
         $data = json_decode($request->getContent(), true);
-        $civilite = new Civilite();
-        $civilite->setLibelle($data['libelle']);
-        $civilite->setCode($data['code']);
-        $civilite->setCreatedBy($this->userRepository->find($data['userUpdate']));
-        $civilite->setUpdatedBy($this->userRepository->find($data['userUpdate']));
-        $errorResponse = $this->errorResponse($civilite);
+        $typeProfession = new TypeProfession();
+        $typeProfession->setLibelle($data['libelle']);
+        $typeProfession->setCode($data['code']);
+        $typeProfession->setCreatedAtValue(new \DateTime());
+        $typeProfession->setUpdatedAt(new \DateTime());
+        $typeProfession->setCreatedBy($this->userRepository->find($data['userUpdate']));
+        $typeProfession->setUpdatedBy($this->userRepository->find($data['userUpdate']));
+        $errorResponse = $this->errorResponse($typeProfession);
         if ($errorResponse !== null) {
             return $errorResponse; // Retourne la réponse d'erreur si des erreurs sont présentes
         } else {
 
-            $civiliteRepository->add($civilite, true);
+            $typeProfessionRepository->add($typeProfession, true);
         }
 
-        return $this->responseData($civilite, 'group1', ['Content-Type' => 'application/json']);
+        return $this->responseData($typeProfession, 'group1', ['Content-Type' => 'application/json']);
     }
 
 
     #[Route('/update/{id}', methods: ['PUT', 'POST'])]
     #[OA\Post(
-        summary: "Creation de civilite",
-        description: "Permet de créer un civilite.",
+        summary: "Creation de typeProfession",
+        description: "Permet de créer un typeProfession.",
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
@@ -161,30 +159,30 @@ class ApiCiviliteController extends ApiInterface
             new OA\Response(response: 401, description: "Invalid credentials")
         ]
     )]
-    #[OA\Tag(name: 'civilite')]
+    #[OA\Tag(name: 'typeProfession')]
     #[Security(name: 'Bearer')]
-    public function update(Request $request, Civilite $civilite, CiviliteRepository $civiliteRepository): Response
+    public function update(Request $request, TypeProfession $typeProfession, TypeProfessionRepository $typeProfessionRepository): Response
     {
         try {
             $data = json_decode($request->getContent());
-            if ($civilite != null) {
+            if ($typeProfession != null) {
 
-                $civilite->setLibelle($data->libelle);
-                $civilite->setCode($data->code);
-                $civilite->setUpdatedBy($this->userRepository->find($data->userUpdate));
-                $civilite->setUpdatedAt(new \DateTime());
-                $errorResponse = $this->errorResponse($civilite);
+                $typeProfession->setLibelle($data->libelle);
+                $typeProfession->setCode($data->code);
+                $typeProfession->setUpdatedBy($this->userRepository->find($data->userUpdate));
+                $typeProfession->setUpdatedAt(new \DateTime());
+                $errorResponse = $this->errorResponse($typeProfession);
 
                 if ($errorResponse !== null) {
                     return $errorResponse; // Retourne la réponse d'erreur si des erreurs sont présentes
                 } else {
-                    $civiliteRepository->add($civilite, true);
+                    $typeProfessionRepository->add($typeProfession, true);
                 }
 
 
 
                 // On retourne la confirmation
-                $response = $this->responseData($civilite, 'group1', ['Content-Type' => 'application/json']);
+                $response = $this->responseData($typeProfession, 'group1', ['Content-Type' => 'application/json']);
             } else {
                 $this->setMessage("Cette ressource est inexsitante");
                 $this->setStatusCode(300);
@@ -201,29 +199,29 @@ class ApiCiviliteController extends ApiInterface
 
     #[Route('/delete/{id}',  methods: ['DELETE'])]
     /**
-     * permet de supprimer un(e) civilite.
+     * permet de supprimer un(e) typeProfession.
      */
     #[OA\Response(
         response: 200,
-        description: 'permet de supprimer un(e) civilite',
+        description: 'permet de supprimer un(e) typeProfession',
         content: new OA\JsonContent(
             type: 'array',
-            items: new OA\Items(ref: new Model(type: Civilite::class, groups: ['full']))
+            items: new OA\Items(ref: new Model(type: TypeProfession::class, groups: ['full']))
         )
     )]
-    #[OA\Tag(name: 'civilite')]
+    #[OA\Tag(name: 'typeProfession')]
     //#[Security(name: 'Bearer')]
-    public function delete(Request $request, Civilite $civilite, CiviliteRepository $villeRepository): Response
+    public function delete(Request $request, TypeProfession $typeProfession, TypeProfessionRepository $villeRepository): Response
     {
         try {
 
-            if ($civilite != null) {
+            if ($typeProfession != null) {
 
-                $villeRepository->remove($civilite, true);
+                $villeRepository->remove($typeProfession, true);
 
                 // On retourne la confirmation
                 $this->setMessage("Operation effectuées avec success");
-                $response = $this->response($civilite);
+                $response = $this->response($typeProfession);
             } else {
                 $this->setMessage("Cette ressource est inexistante");
                 $this->setStatusCode(300);
@@ -238,28 +236,28 @@ class ApiCiviliteController extends ApiInterface
 
     #[Route('/delete/all',  methods: ['DELETE'])]
     /**
-     * Permet de supprimer plusieurs civilite.
+     * Permet de supprimer plusieurs typeProfession.
      */
     #[OA\Response(
         response: 200,
         description: 'Returns the rewards of an user',
         content: new OA\JsonContent(
             type: 'array',
-            items: new OA\Items(ref: new Model(type: Civilite::class, groups: ['full']))
+            items: new OA\Items(ref: new Model(type: TypeProfession::class, groups: ['full']))
         )
     )]
-    #[OA\Tag(name: 'civilite')]
+    #[OA\Tag(name: 'typeProfession')]
     #[Security(name: 'Bearer')]
-    public function deleteAll(Request $request, CiviliteRepository $villeRepository): Response
+    public function deleteAll(Request $request, TypeProfessionRepository $villeRepository): Response
     {
         try {
             $data = json_decode($request->getContent());
 
             foreach ($data->ids as $key => $value) {
-                $civilite = $villeRepository->find($value['id']);
+                $typeProfession = $villeRepository->find($value['id']);
 
-                if ($civilite != null) {
-                    $villeRepository->remove($civilite);
+                if ($typeProfession != null) {
+                    $villeRepository->remove($typeProfession);
                 }
             }
             $this->setMessage("Operation effectuées avec success");

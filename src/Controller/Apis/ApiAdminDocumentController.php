@@ -43,7 +43,7 @@ class ApiAdminDocumentController extends ApiInterface
 
             $adminDocuments = $adminDocumentRepository->findAll();
 
-            $response =  $this->responseData($adminDocuments, 'group1', ['Content-Type' => 'application/json']);
+            $response =  $this->responseData($adminDocuments, 'group_pro', ['Content-Type' => 'application/json']);
         } catch (\Exception $exception) {
             $this->setMessage("");
             $response = $this->response('[]');
@@ -94,7 +94,7 @@ class ApiAdminDocumentController extends ApiInterface
 
 
     #[Route('/create',  methods: ['POST'])]
-     /**
+    /**
      * Permet de créer un(e) doc.
      */
     #[OA\Post(
@@ -138,14 +138,14 @@ class ApiAdminDocumentController extends ApiInterface
         $adminDocument->setLibelle($request->get('libelle'));
         $adminDocument->setCreatedAtValue(new \DateTime());
         $adminDocument->setUpdatedAt(new \DateTime());
-        $adminDocument->setCreatedBy($this->userRepository->find($data['userUpdate']));
-        $adminDocument->setUpdatedBy($this->userRepository->find($data['userUpdate']));
+        $adminDocument->setCreatedBy($this->userRepository->find($request->get('userUpdate')));
+        $adminDocument->setUpdatedBy($this->userRepository->find($request->get('userUpdate')));
         $errorResponse = $this->errorResponse($adminDocument);
 
         if ($uploadedFile) {
             $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedFile, self::UPLOAD_PATH);
             if ($fichier) {
-             
+
                 $adminDocument->setPath($fichier);
             }
         }
@@ -193,30 +193,25 @@ class ApiAdminDocumentController extends ApiInterface
     #[Security(name: 'Bearer')]
     public function update(Request $request, AdminDocument $adminDocument, AdminDocumentRepository $adminDocumentRepository): Response
     {
-        
-        
-
         try {
             $data = json_decode($request->getContent());
 
             $names = 'document_' . '01';
-        $filePrefix  = str_slug($names);
-        $filePath = $this->getUploadDir(self::UPLOAD_PATH, true);
-        $uploadedFile = $request->files->get('path');
+            $filePrefix  = str_slug($names);
+            $filePath = $this->getUploadDir(self::UPLOAD_PATH, true);
+            $uploadedFile = $request->files->get('path');
 
             if ($adminDocument != null) {
 
                 $adminDocument->setLibelle($request->get('libelle'));
-                $adminDocument->setCreatedAtValue(new \DateTime());
                 $adminDocument->setUpdatedAt(new \DateTime());
-                $adminDocument->setCreatedBy($this->userRepository->find($data['userUpdate']));
-                $adminDocument->setUpdatedBy($this->userRepository->find($data['userUpdate']));
+                $adminDocument->setUpdatedBy($this->userRepository->find($request->get('userUpdate')));
                 $errorResponse = $this->errorResponse($adminDocument);
-        
+
                 if ($uploadedFile) {
                     $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedFile, self::UPLOAD_PATH);
                     if ($fichier) {
-                     
+
                         $adminDocument->setPath($fichier);
                     }
                 }
@@ -224,7 +219,7 @@ class ApiAdminDocumentController extends ApiInterface
                 if ($errorResponse !== null) {
                     return $errorResponse; // Retourne la réponse d'erreur si des erreurs sont présentes
                 } else {
-        
+
                     $adminDocumentRepository->add($adminDocument, true);
                 }
                 // On retourne la confirmation
