@@ -198,13 +198,8 @@ class PaiementService
         $professionnel->setProfessionnel($dataTemp->getProfessionnel());
         $professionnel->setAddressPro($dataTemp->getAddressPro());
         $professionnel->setProfession($dataTemp->getProfession());
-        if ($dataTemp->getAppartenirOrganisation() == true) {
-
-            $professionnel->setAppartenirOrganisation("oui");
-        } else {
-            $professionnel->setAppartenirOrganisation("non");
-        }
-
+       
+        $professionnel->setAppartenirOrganisation($dataTemp->getAppartenirOrganisation());
 
         $professionnel->setLieuResidence($dataTemp->getLieuResidence());
         $professionnel->setLieuDiplome($dataTemp->getLieuDiplome());
@@ -267,7 +262,7 @@ class PaiementService
         $this->transactionRepository->add($transaction, true);
 
 
-        if ($dataTemp->getAppartenirOrganisation() == true) {
+        if ($dataTemp->getAppartenirOrganisation() == "oui") {
 
             $organisation = new Organisation();
             $organisation->setNom($dataTemp->getNomEntite());

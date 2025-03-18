@@ -81,6 +81,36 @@ class ApiNotificationController extends ApiInterface
         // On envoie la réponse
         return $response;
     }
+    #[Route('/nombre/{userId}', methods: ['GET'])]
+    /**
+     * Retourne la liste des notifications.
+     * 
+     */
+    #[OA\Response(
+        response: 200,
+        description: 'Returns the rewards of an user',
+        content: new OA\JsonContent(
+            type: 'array',
+            items: new OA\Items(ref: new Model(type: Notification::class, groups: ['full']))
+        )
+    )]
+    #[OA\Tag(name: 'notification')]
+    // #[Security(name: 'Bearer')]
+    public function indexNombreNotificationNonlu(NotificationRepository $notificationRepository,$userId): Response
+    {
+        try {
+
+            $notifications = $notificationRepository->findBy(['user'=>$userId,'isRead'=> 0]);
+
+            $response =  $this->responseData($notifications, 'group1', ['Content-Type' => 'application/json']);
+        } catch (\Exception $exception) {
+            $this->setMessage("");
+            $response = $this->response('[]');
+        }
+
+        // On envoie la réponse
+        return $response;
+    }
 
 
     #[Route('/get/one/{id}', methods: ['GET'])]

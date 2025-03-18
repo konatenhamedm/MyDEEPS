@@ -51,7 +51,7 @@ class ApiPaiementController extends ApiInterface
 
             $transactions = $transactionRepository->getAllTransaction();
 
-            $response = $this->responseData($transactions, 'group_user', ['Content-Type' => 'application/json']);
+            $response = $this->responseData($transactions, 'group_user_trx', ['Content-Type' => 'application/json']);
         } catch (\Exception $exception) {
             $this->setMessage("");
             $response = $this->response('[]');
@@ -111,7 +111,7 @@ class ApiPaiementController extends ApiInterface
 
             $transactions = $transactionRepository->getAllTransactionByUser($userId);
 
-            $response = $this->responseData($transactions, 'group_user', ['Content-Type' => 'application/json']);
+            $response = $this->responseData($transactions, 'group_user_trx', ['Content-Type' => 'application/json']);
         } catch (\Exception $exception) {
             $this->setMessage("");
             $response = $this->response('[]');

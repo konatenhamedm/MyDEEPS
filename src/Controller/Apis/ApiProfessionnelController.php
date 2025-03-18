@@ -312,7 +312,7 @@ class ApiProfessionnelController extends ApiInterface
                         // etatpe 5
 
 
-                        new OA\Property(property: "appartenirOrganisation", type: "string"), // oui ou non
+                        new OA\Property(property: "appartenirOrganisation", type: "boolean"), // oui ou non
                         new OA\Property(property: "organisationNom", type: "string"),
                         new OA\Property(property: "organisationNumero", type: "string"),
                         new OA\Property(property: "organisationAnnee", type: "string"),
@@ -384,7 +384,7 @@ class ApiProfessionnelController extends ApiInterface
             $professionnel->setAddress($request->get('address'));
             $professionnel->setProfessionnel($request->get('professionnel'));
             $professionnel->setAddressPro($request->get('adresseEmail'));
-            $professionnel->setProfession($request->get('professionnel'));
+            $professionnel->setProfession($request->get('profession'));
             $professionnel->setLieuResidence($request->get('lieuResidence'));
             $professionnel->setLieuDiplome($request->get('lieuDiplome'));
             $professionnel->setCivilite($civiliteRepository->findOneByCode($request->get('civilite')));
@@ -397,6 +397,7 @@ class ApiProfessionnelController extends ApiInterface
             $professionnel->setNationate($paysRepository->find($request->get('nationate')));
             $professionnel->setDiplome($request->get('diplome'));
             $professionnel->setSituationPro($request->get('situationPro'));
+            $professionnel->setSituation($request->get('situation'));
             $professionnel->setSpecialite($specialiteRepository->find($request->get('specialite')));
             $professionnel->setGenre($genreRepository->find($request->get('genre')));
             $professionnel->setUpdatedAt(new DateTime());
@@ -449,7 +450,7 @@ class ApiProfessionnelController extends ApiInterface
 
 
 
-            $professionnel->setAppartenirOrganisation($request->get('appartenirOrganisation') == false ? "non" : "oui");
+            $professionnel->setAppartenirOrganisation($request->get('appartenirOrganisation'));
             /* $professionnel->setUser($user); */
 
 
@@ -483,7 +484,7 @@ class ApiProfessionnelController extends ApiInterface
                 );
 
 
-                if ($professionnel->getAppartenirOrganisation() == "oui") {
+                if ($request->get('appartenirOrganisation') == "oui") {
 
                     $organisation = new Organisation();
                     $organisation->setNom($request->get('organisationNom'));
@@ -652,15 +653,12 @@ class ApiProfessionnelController extends ApiInterface
 
                 $professionnel->setAppartenirOrganisation($request->get('appartenirOrganisation'));
 
-
-
-
                 $professionnel->setCreatedBy($this->userRepository->find($request->get('userUpdate')));
                 $professionnel->setUpdatedBy($this->userRepository->find($request->get('userUpdate')));
 
                 $errorResponse = $this->errorResponse($professionnel);
 
-                if ($professionnel->getAppartenirOrganisation() == "oui") {
+                if ($request->get('appartenirOrganisation') == "oui") {
 
                     $organisation = new Organisation();
                     $organisation->setNom($request->get('organisationNom'));

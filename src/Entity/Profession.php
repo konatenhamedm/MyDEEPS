@@ -33,6 +33,14 @@ class Profession
     #[Group(["group1"])]
     private ?TypeProfession $typeProfession = null;
 
+    #[ORM\Column(length: 255)]
+    #[Group(["group1","group2"])]
+    private ?string $montantNouvelleDemande = null;
+
+    #[ORM\Column(length: 255)]
+    #[Group(["group1","group2"])]
+    private ?string $montantRenouvellement = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -70,6 +78,30 @@ class Profession
     public function setTypeProfession(?TypeProfession $typeProfession): static
     {
         $this->typeProfession = $typeProfession;
+
+        return $this;
+    }
+
+    public function getMontantNouvelleDemande(): ?string
+    {
+        return $this->montantNouvelleDemande;
+    }
+
+    public function setMontantNouvelleDemande(string $montantNouvelleDemande): static
+    {
+        $this->montantNouvelleDemande = $montantNouvelleDemande;
+
+        return $this;
+    }
+
+    public function getMontantRenouvellement(): ?string
+    {
+        return $this->montantRenouvellement;
+    }
+
+    public function setMontantRenouvellement(string $montantRenouvellement): static
+    {
+        $this->montantRenouvellement = $montantRenouvellement;
 
         return $this;
     }

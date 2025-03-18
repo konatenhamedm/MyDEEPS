@@ -46,7 +46,7 @@ class ApiUserController extends ApiInterface
 
             $users = $userRepository->findAll();
 
-            $context = [AbstractNormalizer::GROUPS => 'group1'];
+            $context = [AbstractNormalizer::GROUPS => 'group_pro'];
             $json = $this->serializer->serialize($users, 'json', $context);
 
             return new JsonResponse(['code' => 200, 'data' => json_decode($json)]);
@@ -58,6 +58,46 @@ class ApiUserController extends ApiInterface
         // On envoie la réponse
         return $response;
     }
+
+    #[Route('/check/email/existe/{email}', methods: ['GET'])]
+    /**
+     * Affiche un(e) specialite en offrant un identifiant.
+     */
+    #[OA\Response(
+        response: 200,
+        description: 'Affiche etat paiement de la specialite',
+        content: new OA\JsonContent(
+            type: 'array',
+            items: new OA\Items(ref: new Model(type: User::class, groups: ['full']))
+        )
+    )]
+    #[OA\Parameter(
+        name: 'code',
+        in: 'query',
+        schema: new OA\Schema(type: 'string')
+    )]
+    #[OA\Tag(name: 'specialite')]
+    //#[Security(name: 'Bearer')]
+    public function getPaiementStatus($email,UserRepository $userRepository)
+    {
+        try {
+
+            $user = $userRepository->findOneBy(['email' => $email]);
+            if ($user != null) {
+                $response = $this->response(true);
+            } else {
+                
+                $response = $this->response(false);
+            }
+        } catch (\Exception $exception) {
+            $this->setMessage($exception->getMessage());
+            $response = $this->response('[]');
+        }
+
+
+        return $response;
+    }
+
     #[Route('/get/admin', methods: ['GET'])]
     /**
      * Retourne la liste des users admin.

@@ -26,10 +26,6 @@ trait TraitEntity
     #[ORM\JoinColumn(nullable: true)]
     private ?User $updatedBy = null;
 
-    public function __construct()
-    {
-       $this->isR
-    }
 
     #[ORM\PrePersist]
     public function setCreatedAtValue(): void

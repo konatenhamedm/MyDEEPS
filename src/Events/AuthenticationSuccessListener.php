@@ -50,6 +50,7 @@ class AuthenticationSuccessListener
                 'username' => $userData->getUserIdentifier(),
                 'avatar' => $userData->getAvatar() ? $userData->getAvatar()->getPath() .'/'. $userData->getAvatar()->getAlt() : null,
                 'status' => $userData->getTypeUser() == "PROFESSIONNEL" ? $userData->getPersonne()->getStatus() : null,
+                'nom' => $userData->getTypeUser() == "PROFESSIONNEL" ? $userData->getPersonne()->getNom() ." ".$userData->getPersonne()->getPrenoms() : null,
                 'payement' => $userData->getPayement(),
                 'type' => $userData->getTypeUser(),
                 'personneId'=> $userData->getTypeUser() == "ADMINISTRATEUR" ? null : $userData->getPersonne()->getId()
