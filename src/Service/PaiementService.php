@@ -14,8 +14,12 @@ use App\Entity\TempProfessionnel;
 use App\Entity\Transaction;
 use App\Entity\User;
 use App\Repository\CiviliteRepository;
+use App\Repository\CommuneRepository;
+use App\Repository\DistrictRepository;
 use App\Repository\GenreRepository;
 use App\Repository\PaysRepository;
+use App\Repository\RegionRepository;
+use App\Repository\SituationProfessionnelleRepository;
 use App\Repository\SpecialiteRepository;
 use App\Repository\TempEtablissementRepository;
 use App\Repository\TempProfessionnelRepository;
@@ -55,12 +59,16 @@ class PaiementService
         private GenreRepository $genreRepository,
         private SpecialiteRepository $specialiteRepository,
         private TempProfessionnelRepository $tempProfessionnelRepository,
+        private SituationProfessionnelleRepository $situationProfessionnelleRepository,
         private TempEtablissementRepository $tempEtablissementRepository,
         private TypePersonneRepository $typePersonneRepository,
         private VilleRepository $villeRepository,
         private SendMailService $sendMailService,
         private PaysRepository $paysRepository,
-        private UserPasswordHasherInterface $hasher
+        private UserPasswordHasherInterface $hasher,
+       private  RegionRepository $regionRepository,
+        private DistrictRepository $districtRepository,
+        private CommuneRepository $communeRepository,
 
 
     ) {
@@ -132,7 +140,7 @@ class PaiementService
         $transaction->setReference($this->genererNumero());
         $transaction->setMontant("15000");
         $transaction->setReferenceChannel("");
-        $transaction->setType("Renouvellement");
+        $transaction->setType("NOUVELLE DEMANDE");
         $transaction->setTypeUser($request->get('type'));
         $transaction->setState(0);
         $transaction->setCreatedAtValue(new \DateTime());
@@ -187,39 +195,54 @@ class PaiementService
         /* dd($dataTemp); */
 
         $professionnel = new Professionnel();
+
+
+
+        $professionnel->setPoleSanitaire($dataTemp->getPoleSanitaire());
+        $professionnel->setRegion($this->regionRepository->find($dataTemp->getRegion()));
+        $professionnel->setDistrict($this->districtRepository->find($dataTemp->getDistrict()));
+        $professionnel->setVille($this->villeRepository->find($dataTemp->getVille()));
+        $professionnel->setCommune($this->communeRepository->find($dataTemp->getCommune()));
+        $professionnel->setQuartier($dataTemp->getQuartier());
+
+        $professionnel->setNom($dataTemp->getNom());
+        $professionnel->setPrenoms($dataTemp->getPrenoms());
+        $professionnel->setProfessionnel($dataTemp->getProfessionnel());
+        $professionnel->setEmail($dataTemp->getEmailAutre());
+        $professionnel->setLieuExercicePro($dataTemp->getLieuExercicePro());
+
+
+
         $professionnel->setNumber($dataTemp->getNumber());
         $professionnel->setStatus('attente');
-        $professionnel->setNom($dataTemp->getNom());
-        if ($dataTemp->getVille())
-            $professionnel->setVille($this->villeRepository->findOneByCode($dataTemp->getVille()));
-        $professionnel->setPrenoms($dataTemp->getPrenoms());
         $professionnel->setEmailPro($dataTemp->getEmailPro());
-        $professionnel->setAddress($dataTemp->getAddress());
-        $professionnel->setProfessionnel($dataTemp->getProfessionnel());
-        $professionnel->setAddressPro($dataTemp->getAddressPro());
         $professionnel->setProfession($dataTemp->getProfession());
-       
         $professionnel->setAppartenirOrganisation($dataTemp->getAppartenirOrganisation());
-
-        $professionnel->setLieuResidence($dataTemp->getLieuResidence());
         $professionnel->setLieuDiplome($dataTemp->getLieuDiplome());
         if ($dataTemp->getCivilite())
-            $professionnel->setCivilite($this->civiliteRepository->findOneByCode($dataTemp->getCivilite()));
-        $professionnel->setAdresseEmail($dataTemp->getAdresseEmail());
-        $professionnel->setDateDiplome($dataTemp->getDateDiplome());
-        $professionnel->setDateNaissance($dataTemp->getDateNaissance());
-        $professionnel->setContactPro($dataTemp->getContactPro());
+            $professionnel->setCivilite($this->civiliteRepository->find($dataTemp->getCivilite()));
 
-        $professionnel->setDateEmploi($dataTemp->getDateEmploi());
+        $professionnel->setDateDiplome(new DateTimeImmutable(($dataTemp->getDateDiplome())));
         if ($dataTemp->getNationate())
             $professionnel->setNationate($this->paysRepository->find($dataTemp->getNationate()));
+       /*  $professionnel->setSituationPro($dataTemp->getSituationPro()); */
         $professionnel->setDiplome($dataTemp->getDiplome());
-        $professionnel->setSituationPro($dataTemp->getSituationPro());
         $professionnel->setSituation($dataTemp->getSituation());
-        if ($dataTemp->getSpecialite())
-            $professionnel->setSpecialite($this->specialiteRepository->find($dataTemp->getSpecialite()));
-        if ($dataTemp->getGenre())
-            $professionnel->setGenre($this->genreRepository->find($dataTemp->getGenre()));
+        $professionnel->setDateNaissance(new DateTimeImmutable(($dataTemp->getDateNaissance())));
+        $professionnel->setPoleSanitairePro($dataTemp->getPoleSanitairePro());
+        $professionnel->setSituationPro($this->situationProfessionnelleRepository->find($dataTemp->getSituationPro()));
+
+        $professionnel->setDatePremierDiplome($dataTemp->getDatePremierDiplome());
+
+
+        if ($dataTemp->getAppartenirOrganisation() == "oui") {
+
+           
+            $professionnel->setOrganisationNom($dataTemp->getOrganisationNom());
+           
+        }
+
+
         $professionnel->setCv($dataTemp->getCv());
         $professionnel->setPhoto($dataTemp->getPhoto());
         $professionnel->setCasier($dataTemp->getCasier());
@@ -254,29 +277,10 @@ class PaiementService
         $this->em->persist($professionnel);
         $this->em->flush();
 
-
-
         $transaction->setUser($user);
         $transaction->setCreatedBy($user);
         $transaction->setUpdatedBy($user);
         $this->transactionRepository->add($transaction, true);
-
-
-        if ($dataTemp->getAppartenirOrganisation() == "oui") {
-
-            $organisation = new Organisation();
-            $organisation->setNom($dataTemp->getNomEntite());
-            $organisation->setAnnee($dataTemp->getAnnee());
-            $organisation->setNumero($dataTemp->getNumero());
-            $organisation->setEntite($professionnel);
-            $organisation->setCreatedBy($user);
-            $organisation->setUpdatedBy($user);
-            $organisation->setUpdatedAt(new DateTime());
-            $organisation->setCreatedAtValue(new DateTime());
-            $this->em->persist($organisation);
-            $this->em->flush();
-        }
-
 
 
 
@@ -318,7 +322,7 @@ class PaiementService
         if ($dataTemp->getDocumentTemporaires()) {
             foreach ($dataTemp->getDocumentTemporaires() as $doc) {
                 $document = new Document();
-                $libelle = $doc->getLibelle() ?: 'Document sans libellé'; 
+                $libelle = $doc->getLibelle() ?: 'Document sans libellé';
                 $document->setPath($libelle);
                 $document->setLibelle($libelle);
                 $etablissement->addDocument($document);
@@ -418,7 +422,7 @@ class PaiementService
         ];
     }
 
-    private function genererNumero(): string
+    public function genererNumero(): string
     {
         $query = $this->em->createQueryBuilder();
         $query->select("count(a.id)")

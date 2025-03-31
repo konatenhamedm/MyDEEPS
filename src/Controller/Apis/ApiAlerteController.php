@@ -60,6 +60,40 @@ class ApiAlerteController extends ApiInterface
         return $response;
     }
 
+    #[Route('/get/all/{type}', methods: ['GET'])]
+    /**
+     * Retourne la liste des alertes.
+     * 
+     */
+    #[OA\Response(
+        response: 200,
+        description: 'Returns the rewards of an user',
+        content: new OA\JsonContent(
+            type: 'array',
+            items: new OA\Items(ref: new Model(type: Alerte::class, groups: ['full']))
+        )
+    )]
+    #[OA\Tag(name: 'alerte')]
+    // #[Security(name: 'Bearer')]
+    public function indexAlerteByType(AlerteRepository $alerteRepository, string $type): Response
+    {
+        try {
+
+            $alertes = $alerteRepository->getAllAlerteByTypeUser($type);
+
+            $context = [AbstractNormalizer::GROUPS => 'group1'];
+            $json = $this->serializer->serialize($alertes, 'json', $context);
+
+            return new JsonResponse(['code' => 200, 'data' => json_decode($json)]);
+        } catch (\Exception $exception) {
+            $this->setMessage("");
+            $response = $this->response('[]');
+        }
+
+        // On envoie la réponse
+        return $response;
+    }
+
 
     #[Route('/get/one/{id}', methods: ['GET'])]
     /**
@@ -99,47 +133,7 @@ class ApiAlerteController extends ApiInterface
         return $response;
     }
 
-    #[Route('/get/all/{userId}', methods: ['GET'])]
-    #[OA\Get(
-        path: "/get/all/{userId}",
-        summary: "Liste des alerte dun user",
-        parameters: [
-            new OA\Parameter(
-                name: "userId",
-                in: "path",
-                required: true,
-                schema: new OA\Schema(type: "string"),
-                description: "Liste des alerte dun user"
-            ),
-           
-        ],
-        responses: [
-            new OA\Response(
-                response: 200,
-                description: "Liste des alerte dun user",
-                content: new OA\JsonContent(
-                    type: "array",
-                    items: new OA\Items(ref: new Model(type: Alerte::class, groups: ['full']))
-                )
-            )
-        ]
-    )]
-    #[OA\Tag(name: 'alerte')]
-    public function listeAlerteByUser(
-        string $userId,
-        AlerteRepository $alerteRepository
-    ): JsonResponse {
-        try {
-            $alertes = $alerteRepository->findBy(['user' => $userId]);
-
-          
-            return $this->responseData($alertes, 'group1', ['Content-Type' => 'application/json']);
-        } catch (\Exception $exception) {
-            $this->setMessage("Cette ressource est inexsitante");
-            $this->setStatusCode(500);
-            return $this->response('[]');
-        }
-    }
+   
 
 
     #[Route('/create',  methods: ['POST'])]

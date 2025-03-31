@@ -3,11 +3,11 @@
 namespace  App\Controller\Apis;
 
 use App\Controller\Apis\Config\ApiInterface;
-use App\DTO\VilleDTO;
+use App\DTO\DistrictDTO;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use App\Entity\Ville;
+use App\Entity\District;
 use App\Repository\DistrictRepository;
-use App\Repository\VilleRepository;
+use App\Repository\RegionRepository;
 use App\Repository\UserRepository;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -17,15 +17,15 @@ use Nelmio\ApiDocBundle\Annotation\Security;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 
-#[Route('/api/ville')]
-class ApiVilleController extends ApiInterface
+#[Route('/api/district')]
+class ApiDistrictController extends ApiInterface
 {
 
 
 
     #[Route('/', methods: ['GET'])]
     /**
-     * Retourne la liste des villes.
+     * Retourne la liste des districts.
      * 
      */
     #[OA\Response(
@@ -33,20 +33,20 @@ class ApiVilleController extends ApiInterface
         description: 'Returns the rewards of an user',
         content: new OA\JsonContent(
             type: 'array',
-            items: new OA\Items(ref: new Model(type: Ville::class, groups: ['full']))
+            items: new OA\Items(ref: new Model(type: District::class, groups: ['full']))
         )
     )]
-    #[OA\Tag(name: 'ville')]
+    #[OA\Tag(name: 'district')]
     // #[Security(name: 'Bearer')]
-    public function index(VilleRepository $villeRepository): Response
+    public function index(DistrictRepository $districtRepository): Response
     {
         try {
 
-            $villes = $villeRepository->findAll();
+            $districts = $districtRepository->findAll();
 
           
 
-            $response =  $this->responseData($villes, 'group1', ['Content-Type' => 'application/json']);
+            $response =  $this->responseData($districts, 'group1', ['Content-Type' => 'application/json']);
         } catch (\Exception $exception) {
             $this->setMessage("");
             $response = $this->response('[]');
@@ -55,10 +55,9 @@ class ApiVilleController extends ApiInterface
         // On envoie la réponse
         return $response;
     }
-
-    #[Route('/{district}', methods: ['GET'])]
+    #[Route('/{region}', methods: ['GET'])]
     /**
-     * Retourne la liste des villes.
+     * Retourne la liste des districts.
      * 
      */
     #[OA\Response(
@@ -66,20 +65,20 @@ class ApiVilleController extends ApiInterface
         description: 'Returns the rewards of an user',
         content: new OA\JsonContent(
             type: 'array',
-            items: new OA\Items(ref: new Model(type: Ville::class, groups: ['full']))
+            items: new OA\Items(ref: new Model(type: District::class, groups: ['full']))
         )
     )]
-    #[OA\Tag(name: 'ville')]
+    #[OA\Tag(name: 'district')]
     // #[Security(name: 'Bearer')]
-    public function indexByDistrict(VilleRepository $villeRepository,$district): Response
+    public function indexByRegion(DistrictRepository $districtRepository, $region): Response
     {
         try {
 
-            $villes = $villeRepository->findBy(['district' => $district]);
+            $districts = $districtRepository->findBy(['region' => $region]);
 
           
 
-            $response =  $this->responseData($villes, 'group1', ['Content-Type' => 'application/json']);
+            $response =  $this->responseData($districts, 'group1', ['Content-Type' => 'application/json']);
         } catch (\Exception $exception) {
             $this->setMessage("");
             $response = $this->response('[]');
@@ -92,14 +91,14 @@ class ApiVilleController extends ApiInterface
 
     #[Route('/get/one/{id}', methods: ['GET'])]
     /**
-     * Affiche un(e) ville en offrant un identifiant.
+     * Affiche un(e) district en offrant un identifiant.
      */
     #[OA\Response(
         response: 200,
-        description: 'Affiche un(e) ville en offrant un identifiant',
+        description: 'Affiche un(e) district en offrant un identifiant',
         content: new OA\JsonContent(
             type: 'array',
-            items: new OA\Items(ref: new Model(type: Ville::class, groups: ['full']))
+            items: new OA\Items(ref: new Model(type: District::class, groups: ['full']))
         )
     )]
     #[OA\Parameter(
@@ -107,17 +106,17 @@ class ApiVilleController extends ApiInterface
         in: 'query',
         schema: new OA\Schema(type: 'string')
     )]
-    #[OA\Tag(name: 'ville')]
+    #[OA\Tag(name: 'district')]
     //#[Security(name: 'Bearer')]
-    public function getOne(?Ville $ville)
+    public function getOne(?District $district)
     {
         try {
-            if ($ville) {
-                $response = $this->response($ville);
+            if ($district) {
+                $response = $this->response($district);
             } else {
                 $this->setMessage('Cette ressource est inexistante');
                 $this->setStatusCode(300);
-                $response = $this->response($ville);
+                $response = $this->response($district);
             }
         } catch (\Exception $exception) {
             $this->setMessage($exception->getMessage());
@@ -131,7 +130,7 @@ class ApiVilleController extends ApiInterface
 
     #[Route('/create',  methods: ['POST'])]
     /**
-     * Permet de créer un(e) ville.
+     * Permet de créer un(e) district.
      */
     #[OA\Post(
         summary: "Authentification admin",
@@ -141,8 +140,7 @@ class ApiVilleController extends ApiInterface
             content: new OA\JsonContent(
                 properties: [
                     new OA\Property(property: "libelle", type: "string"),
-                    new OA\Property(property: "code", type: "string"),
-                    new OA\Property(property: "district", type: "string"),
+                    new OA\Property(property: "region", type: "string"),
                     new OA\Property(property: "userUpdate", type: "string"),
 
                 ],
@@ -153,41 +151,40 @@ class ApiVilleController extends ApiInterface
             new OA\Response(response: 401, description: "Invalid credentials")
         ]
     )]
-    #[OA\Tag(name: 'ville')]
+    #[OA\Tag(name: 'district')]
     #[Security(name: 'Bearer')]
-    public function create(Request $request, VilleRepository $villeRepository,DistrictRepository $districtRepository): Response
+    public function create(Request $request,RegionRepository $regionRepository, DistrictRepository $districtRepository): Response
     {
 
         $data = json_decode($request->getContent(), true);
-        $ville = new Ville();
-        $ville->setLibelle($data['libelle']);
-        $ville->setCode($data['code']);
-        $ville->setDistrict($districtRepository->find($data['district']));
-        $ville->setCreatedBy($this->userRepository->find($data['userUpdate']));
-        $ville->setUpdatedBy($this->userRepository->find($data['userUpdate']));
-        $errorResponse = $this->errorResponse($ville);
+        $district = new District();
+        $district->setLibelle($data['libelle']);
+        $district->setRegion($regionRepository->find($data['region']));
+        $district->setCreatedBy($this->userRepository->find($data['userUpdate']));
+        $district->setUpdatedBy($this->userRepository->find($data['userUpdate']));
+        $errorResponse = $this->errorResponse($district);
         if ($errorResponse !== null) {
             return $errorResponse; // Retourne la réponse d'erreur si des erreurs sont présentes
         } else {
 
-            $villeRepository->add($ville, true);
+            $districtRepository->add($district, true);
         }
 
-        return $this->responseData($ville, 'group1', ['Content-Type' => 'application/json']);
+        return $this->responseData($district, 'group1', ['Content-Type' => 'application/json']);
     }
 
 
     #[Route('/update/{id}', methods: ['PUT', 'POST'])]
     #[OA\Post(
-        summary: "Creation de ville",
-        description: "Permet de créer un ville.",
+        summary: "Creation de district",
+        description: "Permet de créer un district.",
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
                 properties: [
                     new OA\Property(property: "libelle", type: "string"),
                     new OA\Property(property: "code", type: "string"),
-                    new OA\Property(property: "district", type: "string"),
+                    new OA\Property(property: "codeGeneration", type: "string"),
                     new OA\Property(property: "userUpdate", type: "string"),
 
                 ],
@@ -198,31 +195,30 @@ class ApiVilleController extends ApiInterface
             new OA\Response(response: 401, description: "Invalid credentials")
         ]
     )]
-    #[OA\Tag(name: 'ville')]
+    #[OA\Tag(name: 'district')]
     #[Security(name: 'Bearer')]
-    public function update(Request $request, Ville $ville, VilleRepository $villeRepository,DistrictRepository $districtRepository): Response
+    public function update(Request $request, District $district,RegionRepository $regionRepository, DistrictRepository $districtRepository): Response
     {
         try {
             $data = json_decode($request->getContent());
-            if ($ville != null) {
+            if ($district != null) {
 
-                $ville->setLibelle($data->libelle);
-                $ville->setCode($data->code);
-                $ville->setDistrict($districtRepository->find($data->district));
-                $ville->setUpdatedBy($this->userRepository->find($data->userUpdate));
-                $ville->setUpdatedAt(new \DateTime());
-                $errorResponse = $this->errorResponse($ville);
+                $district->setLibelle($data->libelle);
+                $district->setRegion($regionRepository->find($data->region));
+                $district->setUpdatedBy($this->userRepository->find($data->userUpdate));
+                $district->setUpdatedAt(new \DateTime());
+                $errorResponse = $this->errorResponse($district);
 
                 if ($errorResponse !== null) {
                     return $errorResponse; // Retourne la réponse d'erreur si des erreurs sont présentes
                 } else {
-                    $villeRepository->add($ville, true);
+                    $districtRepository->add($district, true);
                 }
 
 
 
                 // On retourne la confirmation
-                $response = $this->responseData($ville, 'group1', ['Content-Type' => 'application/json']);
+                $response = $this->responseData($district, 'group1', ['Content-Type' => 'application/json']);
             } else {
                 $this->setMessage("Cette ressource est inexsitante");
                 $this->setStatusCode(300);
@@ -239,29 +235,29 @@ class ApiVilleController extends ApiInterface
 
     #[Route('/delete/{id}',  methods: ['DELETE'])]
     /**
-     * permet de supprimer un(e) ville.
+     * permet de supprimer un(e) district.
      */
     #[OA\Response(
         response: 200,
-        description: 'permet de supprimer un(e) ville',
+        description: 'permet de supprimer un(e) district',
         content: new OA\JsonContent(
             type: 'array',
-            items: new OA\Items(ref: new Model(type: Ville::class, groups: ['full']))
+            items: new OA\Items(ref: new Model(type: District::class, groups: ['full']))
         )
     )]
-    #[OA\Tag(name: 'ville')]
+    #[OA\Tag(name: 'district')]
     //#[Security(name: 'Bearer')]
-    public function delete(Request $request, Ville $ville, VilleRepository $villeRepository): Response
+    public function delete(Request $request, District $district, DistrictRepository $villeRepository): Response
     {
         try {
 
-            if ($ville != null) {
+            if ($district != null) {
 
-                $villeRepository->remove($ville, true);
+                $villeRepository->remove($district, true);
 
                 // On retourne la confirmation
                 $this->setMessage("Operation effectuées avec success");
-                $response = $this->response($ville);
+                $response = $this->response($district);
             } else {
                 $this->setMessage("Cette ressource est inexistante");
                 $this->setStatusCode(300);
@@ -276,28 +272,28 @@ class ApiVilleController extends ApiInterface
 
     #[Route('/delete/all',  methods: ['DELETE'])]
     /**
-     * Permet de supprimer plusieurs ville.
+     * Permet de supprimer plusieurs district.
      */
     #[OA\Response(
         response: 200,
         description: 'Returns the rewards of an user',
         content: new OA\JsonContent(
             type: 'array',
-            items: new OA\Items(ref: new Model(type: Ville::class, groups: ['full']))
+            items: new OA\Items(ref: new Model(type: District::class, groups: ['full']))
         )
     )]
-    #[OA\Tag(name: 'ville')]
+    #[OA\Tag(name: 'district')]
     #[Security(name: 'Bearer')]
-    public function deleteAll(Request $request, VilleRepository $villeRepository): Response
+    public function deleteAll(Request $request, DistrictRepository $villeRepository): Response
     {
         try {
             $data = json_decode($request->getContent());
 
             foreach ($data->ids as $key => $value) {
-                $ville = $villeRepository->find($value['id']);
+                $district = $villeRepository->find($value['id']);
 
-                if ($ville != null) {
-                    $villeRepository->remove($ville);
+                if ($district != null) {
+                    $villeRepository->remove($district);
                 }
             }
             $this->setMessage("Operation effectuées avec success");

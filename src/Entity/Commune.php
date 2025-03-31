@@ -2,17 +2,17 @@
 
 namespace App\Entity;
 
-use App\Repository\PaysRepository;
+use App\Repository\CommuneRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups as Group;
-use Symfony\Component\Validator\Constraints as Assert;
 
 
-#[ORM\Entity(repositoryClass: PaysRepository::class)]
-class Pays
+#[ORM\Entity(repositoryClass: CommuneRepository::class)]
+class Commune
 {
+
     use TraitEntity; 
 
     #[ORM\Id]
@@ -23,20 +23,21 @@ class Pays
 
     #[ORM\Column(length: 255)]
     #[Group(["group1","group_pro"])]
-    #[Assert\NotBlank(message: 'Veuillez rensigner le libellé')]
     private ?string $libelle = null;
+
+    #[ORM\ManyToOne(inversedBy: 'communes')]
+    #[Group(["group1","group_pro"])]
+    private ?Ville $ville = null;
 
     /**
      * @var Collection<int, Professionnel>
      */
-    #[ORM\OneToMany(targetEntity: Professionnel::class, mappedBy: 'nationate')]
+    #[ORM\OneToMany(targetEntity: Professionnel::class, mappedBy: 'commune')]
     private Collection $professionnels;
 
     public function __construct()
     {
         $this->professionnels = new ArrayCollection();
-        $this->createdAt = new \DateTimeImmutable(); 
-        $this->updatedAt = new \DateTimeImmutable(); 
     }
 
     public function getId(): ?int
@@ -56,6 +57,18 @@ class Pays
         return $this;
     }
 
+    public function getVille(): ?Ville
+    {
+        return $this->ville;
+    }
+
+    public function setVille(?Ville $ville): static
+    {
+        $this->ville = $ville;
+
+        return $this;
+    }
+
     /**
      * @return Collection<int, Professionnel>
      */
@@ -68,7 +81,7 @@ class Pays
     {
         if (!$this->professionnels->contains($professionnel)) {
             $this->professionnels->add($professionnel);
-            $professionnel->setNationate($this);
+            $professionnel->setCommune($this);
         }
 
         return $this;
@@ -78,8 +91,8 @@ class Pays
     {
         if ($this->professionnels->removeElement($professionnel)) {
             // set the owning side to null (unless already changed)
-            if ($professionnel->getNationate() === $this) {
-                $professionnel->setNationate(null);
+            if ($professionnel->getCommune() === $this) {
+                $professionnel->setCommune(null);
             }
         }
 

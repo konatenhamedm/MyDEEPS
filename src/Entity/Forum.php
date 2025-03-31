@@ -13,36 +13,36 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Entity(repositoryClass: ForumRepository::class)]
 class Forum
 {
-    use TraitEntity; 
+    use TraitEntity;
 
-    
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Group(["group1"])]
+    #[Group(["group1", "group_pro"])]
     private ?int $id = null;
 
     #[ORM\Column(type: Types::TEXT)]
-    #[Group(["group1"])]
+    #[Group(["group1", "group_pro"])]
     private ?string $contenu = null;
 
     #[ORM\Column(length: 255)]
-    #[Group(["group1"])]
+    #[Group(["group1", "group_pro"])]
     private ?string $status = null;
 
     #[ORM\ManyToOne(inversedBy: 'forums')]
-    #[Group(["group1"])]
+    #[Group(["group1", "group_pro"])]
     private ?User $user = null;
 
     #[ORM\Column(length: 255)]
-    #[Group(["group1"])]
+    #[Group(["group1", "group_pro"])]
     private ?string $titre = null;
 
     /**
      * @var Collection<int, Avis>
      */
     #[ORM\OneToMany(targetEntity: Avis::class, mappedBy: 'forum')]
-    #[Group(["group1"])]
+    #[Group(["group1", "group_pro"])]
     private Collection $avis;
 
     public function __construct()

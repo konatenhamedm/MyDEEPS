@@ -28,14 +28,105 @@ class TempProfessionnel
     #[ORM\Column]
     private ?string $password = null;
 
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $nomEntite = null;
+
+
+    //ETAPE 2
 
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $numero = null;
+    #[Group(["group1", "group_user", 'group_pro'])]
+    private ?string $code = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $annee = null;
+    #[Group(["group_pro","group_user_trx"])]
+    private ?string $poleSanitaire = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group_pro","group_user_trx"])]
+    private ?string $nom = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group_pro"])]
+    private ?string $professionnel = null; // structure 
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group_pro","group_user_trx"])]
+    private ?string $prenoms = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group_pro","group_user_trx"])]
+    private ?string $lieuExercicePro = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group_pro","group_user_trx"])]
+    private ?string $emailAutre = null;
+
+
+    //ETAPE 3
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group_pro"])]
+    private ?string $profession = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group_pro"])]
+    private ?string $civilite = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group_pro"])]
+    private ?string $emailPro = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group_pro"])]
+    private ?string $dateDiplome = null;
+
+    //
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group_pro"])]
+    private ?string $dateNaissance = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group_pro","group_user_trx"])]
+    private ?string $number = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group_pro"])]
+    private ?string $lieuDiplome = null;
+    
+    //
+    
+    
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group1","group_pro"])]
+    private ?string $nationate = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group_pro"])]
+    private ?string $situation = null;
+
+
+
+    
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    #[Group(["group_pro"])]
+    private ?\DateTimeInterface $datePremierDiplome = null;
+
+
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $poleSanitairePro = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group_pro"])]
+    private ?string $diplome = null;
+
+    
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group_pro"])]
+    private ?string $situationPro = null;
+
+    
+
+
 
     public function getId(): ?int
     {
@@ -58,82 +149,7 @@ class TempProfessionnel
     #[Group(["group_pro"])]
     private ?string $status = null;
 
-    #[ORM\Column(length: 255, nullable: true)]
-    #[Group(["group_pro"])]
-    private ?string $number = null;
 
-    #[ORM\Column(length: 255, nullable: true)]
-    #[Group(["group_pro"])]
-    private ?string $nom = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    #[Group(["group_pro"])]
-    private ?string $prenoms = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    #[Group(["group_pro"])]
-    private ?string $emailPro = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    #[Group(["group_pro"])]
-    private ?string $address = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    #[Group(["group_pro"])]
-    private ?string $professionnel = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    #[Group(["group_pro"])]
-    private ?string $addressPro = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    #[Group(["group_pro"])]
-    private ?string $profession = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    #[Group(["group_pro"])]
-    private ?string $civilite = null;
-
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
-    #[Group(["group_pro"])]
-    private ?\DateTimeInterface $dateNaissance = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $nationate = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    #[Group(["group_pro"])]
-    private ?string $lieuResidence = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    #[Group(["group_pro"])]
-    private ?string $adresseEmail = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    #[Group(["group_pro"])]
-    private ?string $contactPro = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    #[Group(["group_pro"])]
-    private ?string $situation = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    #[Group(["group_pro"])]
-    private ?string $diplome = null;
-
-   
-
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
-    #[Group(["group_pro"])]
-    private ?\DateTimeInterface $dateDiplome = null;
-
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
-    #[Group(["group_pro"])]
-    private ?\DateTimeInterface $dateEmploi = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    #[Group(["group_pro"])]
-    private ?string $situationPro = null;
 
     #[ORM\ManyToOne(cascade: ["persist"], fetch: "EAGER")]
     #[ORM\JoinColumn(nullable: true)]
@@ -175,14 +191,33 @@ class TempProfessionnel
     #[Group(["group_pro"])]
     private ?string $ville = null;
 
-    #[ORM\Column(length: 255)]
-    private ?string $lieuDiplome = null;
+
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $reference = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $typeUser = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $numero = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group_pro"])]
+    private ?string $organisationNom = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $region = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $district = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $commune = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $quartier = null;
+
 
     public function getReference(): ?string
     {
@@ -358,25 +393,7 @@ class TempProfessionnel
         return $this;
     }
 
-    /**
-     * Get the value of address
-     */ 
-    public function getAddress()
-    {
-        return $this->address;
-    }
-
-    /**
-     * Set the value of address
-     *
-     * @return  self
-     */ 
-    public function setAddress($address)
-    {
-        $this->address = $address;
-
-        return $this;
-    }
+   
 
     /**
      * Get the value of professionnel
@@ -398,25 +415,7 @@ class TempProfessionnel
         return $this;
     }
 
-    /**
-     * Get the value of addressPro
-     */ 
-    public function getAddressPro()
-    {
-        return $this->addressPro;
-    }
-
-    /**
-     * Set the value of addressPro
-     *
-     * @return  self
-     */ 
-    public function setAddressPro($addressPro)
-    {
-        $this->addressPro = $addressPro;
-
-        return $this;
-    }
+  
 
     /**
      * Get the value of profession
@@ -498,65 +497,6 @@ class TempProfessionnel
         return $this;
     }
 
-    /**
-     * Get the value of lieuResidence
-     */ 
-    public function getLieuResidence()
-    {
-        return $this->lieuResidence;
-    }
-
-    /**
-     * Set the value of lieuResidence
-     *
-     * @return  self
-     */ 
-    public function setLieuResidence($lieuResidence)
-    {
-        $this->lieuResidence = $lieuResidence;
-
-        return $this;
-    }
-
-    /**
-     * Get the value of adresseEmail
-     */ 
-    public function getAdresseEmail()
-    {
-        return $this->adresseEmail;
-    }
-
-    /**
-     * Set the value of adresseEmail
-     *
-     * @return  self
-     */ 
-    public function setAdresseEmail($adresseEmail)
-    {
-        $this->adresseEmail = $adresseEmail;
-
-        return $this;
-    }
-
-    /**
-     * Get the value of contactPro
-     */ 
-    public function getContactPro()
-    {
-        return $this->contactPro;
-    }
-
-    /**
-     * Set the value of contactPro
-     *
-     * @return  self
-     */ 
-    public function setContactPro($contactPro)
-    {
-        $this->contactPro = $contactPro;
-
-        return $this;
-    }
 
     /**
      * Get the value of situation
@@ -618,25 +558,7 @@ class TempProfessionnel
         return $this;
     }
 
-    /**
-     * Get the value of dateEmploi
-     */ 
-    public function getDateEmploi()
-    {
-        return $this->dateEmploi;
-    }
-
-    /**
-     * Set the value of dateEmploi
-     *
-     * @return  self
-     */ 
-    public function setDateEmploi($dateEmploi)
-    {
-        $this->dateEmploi = $dateEmploi;
-
-        return $this;
-    }
+ 
 
     /**
      * Get the value of situationPro
@@ -898,65 +820,6 @@ class TempProfessionnel
         return $this;
     }
 
-    /**
-     * Get the value of nomEntite
-     */ 
-    public function getNomEntite()
-    {
-        return $this->nomEntite;
-    }
-
-    /**
-     * Set the value of nomEntite
-     *
-     * @return  self
-     */ 
-    public function setNomEntite($nomEntite)
-    {
-        $this->nomEntite = $nomEntite;
-
-        return $this;
-    }
-
-    /**
-     * Get the value of numero
-     */ 
-    public function getNumero()
-    {
-        return $this->numero;
-    }
-
-    /**
-     * Set the value of numero
-     *
-     * @return  self
-     */ 
-    public function setNumero($numero)
-    {
-        $this->numero = $numero;
-
-        return $this;
-    }
-
-    /**
-     * Get the value of annee
-     */ 
-    public function getAnnee()
-    {
-        return $this->annee;
-    }
-
-    /**
-     * Set the value of annee
-     *
-     * @return  self
-     */ 
-    public function setAnnee($annee)
-    {
-        $this->annee = $annee;
-
-        return $this;
-    }
 
     public function getTypeUser(): ?string
     {
@@ -966,6 +829,150 @@ class TempProfessionnel
     public function setTypeUser(?string $typeUser): static
     {
         $this->typeUser = $typeUser;
+
+        return $this;
+    }
+
+    public function getCode(): ?string
+    {
+        return $this->code;
+    }
+
+    public function setCode(?string $code): static
+    {
+        $this->code = $code;
+
+        return $this;
+    }
+
+    public function getLieuExercicePro(): ?string
+    {
+        return $this->lieuExercicePro;
+    }
+
+    public function setLieuExercicePro(?string $lieuExercicePro): static
+    {
+        $this->lieuExercicePro = $lieuExercicePro;
+
+        return $this;
+    }
+
+    public function getEmailAutre(): ?string
+    {
+        return $this->emailAutre;
+    }
+
+    public function setEmailAutre(?string $emailAutre): static
+    {
+        $this->emailAutre = $emailAutre;
+
+        return $this;
+    }
+
+    public function getDatePremierDiplome(): ?\DateTimeInterface
+    {
+        return $this->datePremierDiplome;
+    }
+
+    public function setDatePremierDiplome(?\DateTimeInterface $datePremierDiplome): static
+    {
+        $this->datePremierDiplome = $datePremierDiplome;
+
+        return $this;
+    }
+
+    public function getPoleSanitaire(): ?string
+    {
+        return $this->poleSanitaire;
+    }
+
+    public function setPoleSanitaire(?string $poleSanitaire): static
+    {
+        $this->poleSanitaire = $poleSanitaire;
+
+        return $this;
+    }
+
+    public function getPoleSanitairePro(): ?string
+    {
+        return $this->poleSanitairePro;
+    }
+
+    public function setPoleSanitairePro(?string $poleSanitairePro): static
+    {
+        $this->poleSanitairePro = $poleSanitairePro;
+
+        return $this;
+    }
+
+    public function getNumero(): ?string
+    {
+        return $this->numero;
+    }
+
+    public function setNumero(?string $numero): static
+    {
+        $this->numero = $numero;
+
+        return $this;
+    }
+
+    public function getOrganisationNom(): ?string
+    {
+        return $this->organisationNom;
+    }
+
+    public function setOrganisationNom(string $organisationNom): static
+    {
+        $this->organisationNom = $organisationNom;
+
+        return $this;
+    }
+
+    public function getRegion(): ?string
+    {
+        return $this->region;
+    }
+
+    public function setRegion(?string $region): static
+    {
+        $this->region = $region;
+
+        return $this;
+    }
+
+    public function getDistrict(): ?string
+    {
+        return $this->district;
+    }
+
+    public function setDistrict(?string $district): static
+    {
+        $this->district = $district;
+
+        return $this;
+    }
+
+    public function getCommune(): ?string
+    {
+        return $this->commune;
+    }
+
+    public function setCommune(?string $commune): static
+    {
+        $this->commune = $commune;
+
+        return $this;
+    }
+
+    public function getQuartier(): ?string
+    {
+        return $this->quartier;
+    }
+
+    public function setQuartier(?string $quartier): static
+    {
+        $this->quartier = $quartier;
 
         return $this;
     }

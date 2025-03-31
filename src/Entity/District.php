@@ -2,17 +2,17 @@
 
 namespace App\Entity;
 
-use App\Repository\PaysRepository;
+use App\Repository\DistrictRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups as Group;
-use Symfony\Component\Validator\Constraints as Assert;
 
 
-#[ORM\Entity(repositoryClass: PaysRepository::class)]
-class Pays
+#[ORM\Entity(repositoryClass: DistrictRepository::class)]
+class District
 {
+
     use TraitEntity; 
 
     #[ORM\Id]
@@ -23,20 +23,28 @@ class Pays
 
     #[ORM\Column(length: 255)]
     #[Group(["group1","group_pro"])]
-    #[Assert\NotBlank(message: 'Veuillez rensigner le libellé')]
     private ?string $libelle = null;
+
+    #[ORM\ManyToOne(inversedBy: 'districts')]
+    #[Group(["group1","group_pro"])]
+    private ?Region $region = null;
+
+    /**
+     * @var Collection<int, Ville>
+     */
+    #[ORM\OneToMany(targetEntity: Ville::class, mappedBy: 'district')]
+    private Collection $villes;
 
     /**
      * @var Collection<int, Professionnel>
      */
-    #[ORM\OneToMany(targetEntity: Professionnel::class, mappedBy: 'nationate')]
+    #[ORM\OneToMany(targetEntity: Professionnel::class, mappedBy: 'district')]
     private Collection $professionnels;
 
     public function __construct()
     {
+        $this->villes = new ArrayCollection();
         $this->professionnels = new ArrayCollection();
-        $this->createdAt = new \DateTimeImmutable(); 
-        $this->updatedAt = new \DateTimeImmutable(); 
     }
 
     public function getId(): ?int
@@ -56,6 +64,48 @@ class Pays
         return $this;
     }
 
+    public function getRegion(): ?Region
+    {
+        return $this->region;
+    }
+
+    public function setRegion(?Region $region): static
+    {
+        $this->region = $region;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Ville>
+     */
+    public function getVilles(): Collection
+    {
+        return $this->villes;
+    }
+
+    public function addVille(Ville $ville): static
+    {
+        if (!$this->villes->contains($ville)) {
+            $this->villes->add($ville);
+            $ville->setDistrict($this);
+        }
+
+        return $this;
+    }
+
+    public function removeVille(Ville $ville): static
+    {
+        if ($this->villes->removeElement($ville)) {
+            // set the owning side to null (unless already changed)
+            if ($ville->getDistrict() === $this) {
+                $ville->setDistrict(null);
+            }
+        }
+
+        return $this;
+    }
+
     /**
      * @return Collection<int, Professionnel>
      */
@@ -68,7 +118,7 @@ class Pays
     {
         if (!$this->professionnels->contains($professionnel)) {
             $this->professionnels->add($professionnel);
-            $professionnel->setNationate($this);
+            $professionnel->setDistrict($this);
         }
 
         return $this;
@@ -78,8 +128,8 @@ class Pays
     {
         if ($this->professionnels->removeElement($professionnel)) {
             // set the owning side to null (unless already changed)
-            if ($professionnel->getNationate() === $this) {
-                $professionnel->setNationate(null);
+            if ($professionnel->getDistrict() === $this) {
+                $professionnel->setDistrict(null);
             }
         }
 

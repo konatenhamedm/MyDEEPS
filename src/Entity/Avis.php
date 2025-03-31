@@ -18,15 +18,15 @@ class Avis
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Group(["group1"])]
+    #[Group(["group1","group_pro"])]
     private ?int $id = null;
 
     #[ORM\Column(type: Types::TEXT)]
-    #[Group(["group1"])]
+    #[Group(["group1","group_pro"])]
     private ?string $contenu = null;
 
     #[ORM\ManyToOne(inversedBy: 'avis')]
-    #[Group(["group1"])]
+    #[Group(["group1","group_pro"])]
     private ?User $user = null;
 
     #[ORM\ManyToOne(inversedBy: 'avis')]

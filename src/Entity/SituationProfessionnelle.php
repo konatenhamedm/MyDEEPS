@@ -2,41 +2,38 @@
 
 namespace App\Entity;
 
-use App\Repository\PaysRepository;
+use App\Repository\SituationProfessionnelleRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups as Group;
-use Symfony\Component\Validator\Constraints as Assert;
 
 
-#[ORM\Entity(repositoryClass: PaysRepository::class)]
-class Pays
+#[ORM\Entity(repositoryClass: SituationProfessionnelleRepository::class)]
+class SituationProfessionnelle
 {
+
     use TraitEntity; 
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Group(["group1","group_pro"])]
+    #[Group(["group1", "group_pro"])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Group(["group1","group_pro"])]
-    #[Assert\NotBlank(message: 'Veuillez rensigner le libellé')]
+    #[Group(["group1", "group_pro"])]
     private ?string $libelle = null;
 
     /**
      * @var Collection<int, Professionnel>
      */
-    #[ORM\OneToMany(targetEntity: Professionnel::class, mappedBy: 'nationate')]
+    #[ORM\OneToMany(targetEntity: Professionnel::class, mappedBy: 'situationPro')]
     private Collection $professionnels;
 
     public function __construct()
     {
         $this->professionnels = new ArrayCollection();
-        $this->createdAt = new \DateTimeImmutable(); 
-        $this->updatedAt = new \DateTimeImmutable(); 
     }
 
     public function getId(): ?int
@@ -68,7 +65,7 @@ class Pays
     {
         if (!$this->professionnels->contains($professionnel)) {
             $this->professionnels->add($professionnel);
-            $professionnel->setNationate($this);
+            $professionnel->setSituationPro($this);
         }
 
         return $this;
@@ -78,8 +75,8 @@ class Pays
     {
         if ($this->professionnels->removeElement($professionnel)) {
             // set the owning side to null (unless already changed)
-            if ($professionnel->getNationate() === $this) {
-                $professionnel->setNationate(null);
+            if ($professionnel->getSituationPro() === $this) {
+                $professionnel->setSituationPro(null);
             }
         }
 

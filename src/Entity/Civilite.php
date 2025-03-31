@@ -37,6 +37,10 @@ class Civilite
     #[ORM\OneToMany(targetEntity: Professionnel::class, mappedBy: 'civilite')]
     private Collection $professionnels;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group1", "group_pro"])]
+    private ?string $codeGeneration = null;
+
     public function __construct()
     {
         $this->professionnels = new ArrayCollection();
@@ -97,6 +101,18 @@ class Civilite
                 $professionnel->setCivilite(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getCodeGeneration(): ?string
+    {
+        return $this->codeGeneration;
+    }
+
+    public function setCodeGeneration(?string $codeGeneration): static
+    {
+        $this->codeGeneration = $codeGeneration;
 
         return $this;
     }

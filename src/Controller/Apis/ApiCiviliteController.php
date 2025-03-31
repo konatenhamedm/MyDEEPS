@@ -108,6 +108,7 @@ class ApiCiviliteController extends ApiInterface
                 properties: [
                     new OA\Property(property: "libelle", type: "string"),
                     new OA\Property(property: "code", type: "string"),
+                    new OA\Property(property: "codeGeneration", type: "string"),
                     new OA\Property(property: "userUpdate", type: "string"),
 
                 ],
@@ -126,6 +127,7 @@ class ApiCiviliteController extends ApiInterface
         $data = json_decode($request->getContent(), true);
         $civilite = new Civilite();
         $civilite->setLibelle($data['libelle']);
+        $civilite->setCodeGeneration($data['codeGeneration']);
         $civilite->setCode($data['code']);
         $civilite->setCreatedBy($this->userRepository->find($data['userUpdate']));
         $civilite->setUpdatedBy($this->userRepository->find($data['userUpdate']));
@@ -151,6 +153,7 @@ class ApiCiviliteController extends ApiInterface
                 properties: [
                     new OA\Property(property: "libelle", type: "string"),
                     new OA\Property(property: "code", type: "string"),
+                    new OA\Property(property: "codeGeneration", type: "string"),
                     new OA\Property(property: "userUpdate", type: "string"),
 
                 ],
@@ -171,6 +174,7 @@ class ApiCiviliteController extends ApiInterface
 
                 $civilite->setLibelle($data->libelle);
                 $civilite->setCode($data->code);
+                $civilite->setCodeGeneration($data->codeGeneration);
                 $civilite->setUpdatedBy($this->userRepository->find($data->userUpdate));
                 $civilite->setUpdatedAt(new \DateTime());
                 $errorResponse = $this->errorResponse($civilite);

@@ -39,6 +39,19 @@ class TransactionRepository extends ServiceEntityRepository
         }
     }
 
+    public function findLastTransactionByUser($userId): ?Transaction
+    {
+        return $this->createQueryBuilder('t')
+            ->andWhere('t.user = :userId')
+             ->andWhere('t.type = :state')
+            ->setParameter('state', "NOUVELLE DEMANDE") 
+            ->setParameter('userId', $userId)
+            ->orderBy('t.createdAt', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
 
     public function nextNumero($annee)
     {

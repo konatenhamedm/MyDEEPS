@@ -45,7 +45,7 @@ class ApiProfessionController extends ApiInterface
         in: 'query',
         schema: new OA\Schema(type: 'string')
     )]
-    #[OA\Tag(name: 'specialite')]
+    #[OA\Tag(name: 'profession')]
     //#[Security(name: 'Bearer')]
     public function getPaiementStatus($code, ProfessionRepository $professionRepository)
     {
@@ -58,6 +58,45 @@ class ApiProfessionController extends ApiInterface
                 $this->setMessage('Cette ressource est inexistante');
                 $this->setStatusCode(300);
                 $response = $this->response(false);
+            }
+        } catch (\Exception $exception) {
+            $this->setMessage($exception->getMessage());
+            $response = $this->response('[]');
+        }
+
+
+        return $response;
+    }
+    #[Route('/get/by/code/{code}', methods: ['GET'])]
+    /**
+     * Affiche un(e) specialite en offrant un identifiant.
+     */
+    #[OA\Response(
+        response: 200,
+        description: 'Affiche etat paiement de la specialite',
+        content: new OA\JsonContent(
+            type: 'array',
+            items: new OA\Items(ref: new Model(type: Profession::class, groups: ['full']))
+        )
+    )]
+    #[OA\Parameter(
+        name: 'code',
+        in: 'query',
+        schema: new OA\Schema(type: 'string')
+    )]
+    #[OA\Tag(name: 'profession')]
+    //#[Security(name: 'Bearer')]
+    public function getByCodes($code, ProfessionRepository $professionRepository)
+    {
+        try {
+
+            $profession = $professionRepository->findOneBy(['code' => $code]);
+            if ($profession) {
+                $response = $this->response($profession->getLibelle());
+            } else {
+                $this->setMessage('Cette ressource est inexistante');
+                $this->setStatusCode(300);
+                $response = $this->response('');
             }
         } catch (\Exception $exception) {
             $this->setMessage($exception->getMessage());
@@ -1826,6 +1865,8 @@ class ApiProfessionController extends ApiInterface
                     new OA\Property(property: "montantNouvelleDemande", type: "string"),
                     new OA\Property(property: "montantRenouvellement", type: "string"),
                     new OA\Property(property: "userUpdate", type: "string"),
+                    new OA\Property(property: "code", type: "string"),
+                    new OA\Property(property: "codeGeneration", type: "string"),
 
                 ],
                 type: "object"
@@ -1845,6 +1886,7 @@ class ApiProfessionController extends ApiInterface
 
         $profession = new Profession();
         $profession->setLibelle($data['libelle']);
+        $profession->setCodeGeneration($data['codeGeneration']);
         $profession->setCreatedAtValue(new \DateTime());
         $profession->setUpdatedAt(new \DateTime());
         $profession->setTypeProfession($typeProfessionRepository->find($data['typeProfession']));
@@ -1876,7 +1918,10 @@ class ApiProfessionController extends ApiInterface
                     new OA\Property(property: "libelle", type: "string"),
                     new OA\Property(property: "typeProfession", type: "string"),
                     new OA\Property(property: "userUpdate", type: "string"),
-
+                    new OA\Property(property: "montantNouvelleDemande", type: "string"),
+                    new OA\Property(property: "montantRenouvellement", type: "string"),
+                    new OA\Property(property: "codeGeneration", type: "string"),
+                    new OA\Property(property: "code", type: "string"),
                 ],
                 type: "object"
             )
@@ -1894,6 +1939,7 @@ class ApiProfessionController extends ApiInterface
             if ($profession != null) {
 
                 $profession->setLibelle($data->libelle);
+                $profession->setCodeGeneration($data->codeGeneration);
                 $profession->setTypeProfession($typeProfessionRepository->find($data->typeProfession));
                 $profession->setMontantNouvelleDemande($data->montantNouvelleDemande);
                 $profession->setMontantRenouvellement($data->montantRenouvellement);

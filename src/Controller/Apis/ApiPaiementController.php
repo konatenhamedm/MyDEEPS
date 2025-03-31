@@ -90,6 +90,36 @@ class ApiPaiementController extends ApiInterface
         // On envoie la réponse
         return $response;
     }
+    #[Route('/info/transaction/last/transaction/{userId}', methods: ['GET'])]
+    /**
+     * liste historique.
+     * 
+     */
+    #[OA\Response(
+        response: 200,
+        description: 'Returns the rewards of an user',
+        content: new OA\JsonContent(
+            type: 'array',
+            items: new OA\Items(ref: new Model(type: Transaction::class, groups: ['full']))
+        )
+    )]
+    #[OA\Tag(name: 'paiements')]
+    // #[Security(name: 'Bearer')]
+    public function indexInfoTransactionLastTransaction(TransactionRepository $transactionRepository, $userId): Response
+    {
+        try {
+
+            $transactions = $transactionRepository->findLastTransactionByUser($userId);
+
+            $response = $this->responseData($transactions, 'group_user_trx', ['Content-Type' => 'application/json']);
+        } catch (\Exception $exception) {
+            $this->setMessage("yuyuyu");
+            $response = $this->response('[]');
+        }
+
+        // On envoie la réponse
+        return $response;
+    }
     #[Route('/historique/{userId}', methods: ['GET'])]
     /**
      * liste historique.
@@ -318,31 +348,45 @@ class ApiPaiementController extends ApiInterface
         $professionnel->setUsername($request->get('nom') . " " . $this->numero());
 
         // etatpe 2
-        $professionnel->setNumber($request->get('numero'));
+
+        $professionnel->setPoleSanitaire($request->get('poleSanitaire'));
+        $professionnel->setRegion($request->get('region'));
+        $professionnel->setDistrict($request->get('district'));
+        $professionnel->setVille($request->get('ville'));
+        $professionnel->setCommune($request->get('commune'));
+        $professionnel->setQuartier($request->get('quartier'));
+
         $professionnel->setNom($request->get('nom'));
-        $professionnel->setPrenoms($request->get('prenoms'));
-        $professionnel->setSpecialite($request->get('specialite'));
         $professionnel->setProfessionnel($request->get('professionnel'));
-        $professionnel->setAddress($request->get('address'));
-        $professionnel->setEmailPro($request->get('emailPro'));
+        $professionnel->setPrenoms($request->get('prenoms'));
+        $professionnel->setEmail($request->get('emailAutre'));
+        $professionnel->setLieuExercicePro($request->get('lieuExercicePro'));
 
         // etatpe 3
 
         $professionnel->setProfession($request->get('profession'));
-        $professionnel->setGenre($request->get('genre'));
+        $professionnel->setEmailAutre($request->get('EmailAutre'));
         $professionnel->setCivilite($request->get('civilite'));
-        $professionnel->setVille($request->get('ville'));
-        $professionnel->setEmailPro($request->get('adresseEmail'));
-        $professionnel->setDateDiplome(new DateTimeImmutable($request->get('dateDiplome')));
-        $professionnel->setDateNaissance(new DateTimeImmutable($request->get('dateNaissance')));
-        $professionnel->setContactPro($request->get('contactPro'));
+        $professionnel->setEmailPro($request->get('emailPro'));
+        $professionnel->setDateDiplome($request->get('dateDiplome'));
+        $professionnel->setDateNaissance($request->get('dateNaissance'));
+        $professionnel->setNumber($request->get('numero'));
         $professionnel->setLieuDiplome($request->get('lieuDiplome'));
-        $professionnel->setNationate($request->get('nationate'));
+        $professionnel->setNationate($request->get('nationalite'));
         $professionnel->setSituation($request->get('situation'));
-        $professionnel->setDateEmploi(new DateTimeImmutable($request->get('dateEmploi')));
-        $professionnel->setLieuResidence($request->get('lieuResidence'));
+        $professionnel->setDatePremierDiplome(new DateTimeImmutable($request->get('datePremierDiplome')));
+        $professionnel->setPoleSanitairePro($request->get('poleSanitairePro'));
         $professionnel->setDiplome($request->get('diplome'));
         $professionnel->setSituationPro($request->get('situationPro'));
+        $professionnel->setAppartenirOrganisation($request->get('appartenirOrganisation'));
+
+        if ($request->get('appartenirOrganisation') == "oui") {
+
+
+            $professionnel->setOrganisationNom($request->get('organisationNom'));
+        }
+
+
         $professionnel->setReference($data['reference']);
         $professionnel->setTypeUser(User::TYPE['PROFESSIONNEL']);
 
@@ -395,10 +439,8 @@ class ApiPaiementController extends ApiInterface
 
         // etatpe 5
 
-        $professionnel->setAppartenirOrganisation($request->get('appartenirOrganisation'));
-        $professionnel->setNomEntite($request->get('organisationNom'));
-        $professionnel->setAnnee($request->get('organisationAnnee'));
-        $professionnel->setNumero($request->get('organisationNumero'));
+
+
 
         $errorResponse = $this->errorResponse($professionnel);
         if ($errorResponse !== null) {

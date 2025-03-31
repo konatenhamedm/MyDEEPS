@@ -36,9 +36,19 @@ class Ville
     #[ORM\OneToMany(targetEntity: Professionnel::class, mappedBy: 'ville')]
     private Collection $professionnels;
 
+    #[ORM\ManyToOne(inversedBy: 'villes')]
+    private ?District $district = null;
+
+    /**
+     * @var Collection<int, Commune>
+     */
+    #[ORM\OneToMany(targetEntity: Commune::class, mappedBy: 'ville')]
+    private Collection $communes;
+
     public function __construct()
     {
         $this->professionnels = new ArrayCollection();
+        $this->communes = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -94,6 +104,48 @@ class Ville
             // set the owning side to null (unless already changed)
             if ($professionnel->getVille() === $this) {
                 $professionnel->setVille(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getDistrict(): ?District
+    {
+        return $this->district;
+    }
+
+    public function setDistrict(?District $district): static
+    {
+        $this->district = $district;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Commune>
+     */
+    public function getCommunes(): Collection
+    {
+        return $this->communes;
+    }
+
+    public function addCommune(Commune $commune): static
+    {
+        if (!$this->communes->contains($commune)) {
+            $this->communes->add($commune);
+            $commune->setVille($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCommune(Commune $commune): static
+    {
+        if ($this->communes->removeElement($commune)) {
+            // set the owning side to null (unless already changed)
+            if ($commune->getVille() === $this) {
+                $commune->setVille(null);
             }
         }
 

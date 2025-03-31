@@ -79,7 +79,7 @@ class ApiForumController extends ApiInterface
 
           
 
-            $response =  $this->responseData($forums, 'group1', ['Content-Type' => 'application/json']);
+            $response =  $this->responseData($forums, 'group_pro', ['Content-Type' => 'application/json']);
         } catch (\Exception $exception) {
             $this->setMessage("");
             $response = $this->response('[]');
@@ -142,11 +142,12 @@ class ApiForumController extends ApiInterface
     )]
     #[OA\Tag(name: 'forum')]
     //#[Security(name: 'Bearer')]
-    public function getOne(?Forum $forum)
+    public function getOne(ForumRepository $forumRepository,$id)
     {
         try {
+            $forum = $forumRepository->find($id);
             if ($forum) {
-                $response = $this->response($forum);
+                $response =  $this->responseData($forum, 'group_pro', ['Content-Type' => 'application/json']);
             } else {
                 $this->setMessage('Cette ressource est inexistante');
                 $this->setStatusCode(300);

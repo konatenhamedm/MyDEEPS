@@ -3,11 +3,10 @@
 namespace  App\Controller\Apis;
 
 use App\Controller\Apis\Config\ApiInterface;
-use App\DTO\VilleDTO;
+use App\DTO\RacineSequenceDTO;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use App\Entity\Ville;
-use App\Repository\DistrictRepository;
-use App\Repository\VilleRepository;
+use App\Entity\RacineSequence;
+use App\Repository\RacineSequenceRepository;
 use App\Repository\UserRepository;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -17,15 +16,15 @@ use Nelmio\ApiDocBundle\Annotation\Security;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 
-#[Route('/api/ville')]
-class ApiVilleController extends ApiInterface
+#[Route('/api/racineSequence')]
+class ApiRacineSequenceController extends ApiInterface
 {
 
 
 
     #[Route('/', methods: ['GET'])]
     /**
-     * Retourne la liste des villes.
+     * Retourne la liste des racineSequence.
      * 
      */
     #[OA\Response(
@@ -33,53 +32,21 @@ class ApiVilleController extends ApiInterface
         description: 'Returns the rewards of an user',
         content: new OA\JsonContent(
             type: 'array',
-            items: new OA\Items(ref: new Model(type: Ville::class, groups: ['full']))
+            items: new OA\Items(ref: new Model(type: RacineSequence::class, groups: ['full']))
         )
     )]
-    #[OA\Tag(name: 'ville')]
+    #[OA\Tag(name: 'racineSequence')]
     // #[Security(name: 'Bearer')]
-    public function index(VilleRepository $villeRepository): Response
+    public function index(RacineSequenceRepository $racineSequenceRepository): Response
     {
         try {
 
-            $villes = $villeRepository->findAll();
+            $racineSequence = $racineSequenceRepository->findAll();
 
-          
+            $context = [AbstractNormalizer::GROUPS => 'group1'];
+            $json = $this->serializer->serialize($racineSequence, 'json', $context);
 
-            $response =  $this->responseData($villes, 'group1', ['Content-Type' => 'application/json']);
-        } catch (\Exception $exception) {
-            $this->setMessage("");
-            $response = $this->response('[]');
-        }
-
-        // On envoie la réponse
-        return $response;
-    }
-
-    #[Route('/{district}', methods: ['GET'])]
-    /**
-     * Retourne la liste des villes.
-     * 
-     */
-    #[OA\Response(
-        response: 200,
-        description: 'Returns the rewards of an user',
-        content: new OA\JsonContent(
-            type: 'array',
-            items: new OA\Items(ref: new Model(type: Ville::class, groups: ['full']))
-        )
-    )]
-    #[OA\Tag(name: 'ville')]
-    // #[Security(name: 'Bearer')]
-    public function indexByDistrict(VilleRepository $villeRepository,$district): Response
-    {
-        try {
-
-            $villes = $villeRepository->findBy(['district' => $district]);
-
-          
-
-            $response =  $this->responseData($villes, 'group1', ['Content-Type' => 'application/json']);
+            return new JsonResponse(['code' => 200, 'data' => json_decode($json)]);
         } catch (\Exception $exception) {
             $this->setMessage("");
             $response = $this->response('[]');
@@ -92,14 +59,14 @@ class ApiVilleController extends ApiInterface
 
     #[Route('/get/one/{id}', methods: ['GET'])]
     /**
-     * Affiche un(e) ville en offrant un identifiant.
+     * Affiche un(e) racineSequence en offrant un identifiant.
      */
     #[OA\Response(
         response: 200,
-        description: 'Affiche un(e) ville en offrant un identifiant',
+        description: 'Affiche un(e) racineSequence en offrant un identifiant',
         content: new OA\JsonContent(
             type: 'array',
-            items: new OA\Items(ref: new Model(type: Ville::class, groups: ['full']))
+            items: new OA\Items(ref: new Model(type: RacineSequence::class, groups: ['full']))
         )
     )]
     #[OA\Parameter(
@@ -107,17 +74,17 @@ class ApiVilleController extends ApiInterface
         in: 'query',
         schema: new OA\Schema(type: 'string')
     )]
-    #[OA\Tag(name: 'ville')]
+    #[OA\Tag(name: 'racineSequence')]
     //#[Security(name: 'Bearer')]
-    public function getOne(?Ville $ville)
+    public function getOne(?RacineSequence $racineSequence)
     {
         try {
-            if ($ville) {
-                $response = $this->response($ville);
+            if ($racineSequence) {
+                $response = $this->response($racineSequence);
             } else {
                 $this->setMessage('Cette ressource est inexistante');
                 $this->setStatusCode(300);
-                $response = $this->response($ville);
+                $response = $this->response($racineSequence);
             }
         } catch (\Exception $exception) {
             $this->setMessage($exception->getMessage());
@@ -131,7 +98,7 @@ class ApiVilleController extends ApiInterface
 
     #[Route('/create',  methods: ['POST'])]
     /**
-     * Permet de créer un(e) ville.
+     * Permet de créer un(e) racineSequence.
      */
     #[OA\Post(
         summary: "Authentification admin",
@@ -141,8 +108,6 @@ class ApiVilleController extends ApiInterface
             content: new OA\JsonContent(
                 properties: [
                     new OA\Property(property: "libelle", type: "string"),
-                    new OA\Property(property: "code", type: "string"),
-                    new OA\Property(property: "district", type: "string"),
                     new OA\Property(property: "userUpdate", type: "string"),
 
                 ],
@@ -153,41 +118,37 @@ class ApiVilleController extends ApiInterface
             new OA\Response(response: 401, description: "Invalid credentials")
         ]
     )]
-    #[OA\Tag(name: 'ville')]
+    #[OA\Tag(name: 'racineSequence')]
     #[Security(name: 'Bearer')]
-    public function create(Request $request, VilleRepository $villeRepository,DistrictRepository $districtRepository): Response
+    public function create(Request $request, RacineSequenceRepository $racineSequenceRepository): Response
     {
 
         $data = json_decode($request->getContent(), true);
-        $ville = new Ville();
-        $ville->setLibelle($data['libelle']);
-        $ville->setCode($data['code']);
-        $ville->setDistrict($districtRepository->find($data['district']));
-        $ville->setCreatedBy($this->userRepository->find($data['userUpdate']));
-        $ville->setUpdatedBy($this->userRepository->find($data['userUpdate']));
-        $errorResponse = $this->errorResponse($ville);
+        $racineSequence = new RacineSequence();
+        $racineSequence->setCode($data['libelle']);
+        $racineSequence->setCreatedBy($this->userRepository->find($data['userUpdate']));
+        $racineSequence->setUpdatedBy($this->userRepository->find($data['userUpdate']));
+        $errorResponse = $this->errorResponse($racineSequence);
         if ($errorResponse !== null) {
             return $errorResponse; // Retourne la réponse d'erreur si des erreurs sont présentes
         } else {
 
-            $villeRepository->add($ville, true);
+            $racineSequenceRepository->add($racineSequence, true);
         }
 
-        return $this->responseData($ville, 'group1', ['Content-Type' => 'application/json']);
+        return $this->responseData($racineSequence, 'group1', ['Content-Type' => 'application/json']);
     }
 
 
     #[Route('/update/{id}', methods: ['PUT', 'POST'])]
     #[OA\Post(
-        summary: "Creation de ville",
-        description: "Permet de créer un ville.",
+        summary: "Creation de racineSequence",
+        description: "Permet de créer un racineSequence.",
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
                 properties: [
                     new OA\Property(property: "libelle", type: "string"),
-                    new OA\Property(property: "code", type: "string"),
-                    new OA\Property(property: "district", type: "string"),
                     new OA\Property(property: "userUpdate", type: "string"),
 
                 ],
@@ -198,31 +159,30 @@ class ApiVilleController extends ApiInterface
             new OA\Response(response: 401, description: "Invalid credentials")
         ]
     )]
-    #[OA\Tag(name: 'ville')]
+    #[OA\Tag(name: 'racineSequence')]
     #[Security(name: 'Bearer')]
-    public function update(Request $request, Ville $ville, VilleRepository $villeRepository,DistrictRepository $districtRepository): Response
+    public function update(Request $request, RacineSequence $racineSequence, RacineSequenceRepository $racineSequenceRepository): Response
     {
         try {
             $data = json_decode($request->getContent());
-            if ($ville != null) {
+            if ($racineSequence != null) {
 
-                $ville->setLibelle($data->libelle);
-                $ville->setCode($data->code);
-                $ville->setDistrict($districtRepository->find($data->district));
-                $ville->setUpdatedBy($this->userRepository->find($data->userUpdate));
-                $ville->setUpdatedAt(new \DateTime());
-                $errorResponse = $this->errorResponse($ville);
+                $racineSequence->setCode($data->libelle);
+                $racineSequence->setUpdatedBy($this->userRepository->find($data->userUpdate));
+                $racineSequence->setUpdatedAt(new \DateTime());
+
+                $errorResponse = $this->errorResponse($racineSequence);
 
                 if ($errorResponse !== null) {
                     return $errorResponse; // Retourne la réponse d'erreur si des erreurs sont présentes
                 } else {
-                    $villeRepository->add($ville, true);
+                    $racineSequenceRepository->add($racineSequence, true);
                 }
 
 
 
                 // On retourne la confirmation
-                $response = $this->responseData($ville, 'group1', ['Content-Type' => 'application/json']);
+                $response = $this->responseData($racineSequence, 'group1', ['Content-Type' => 'application/json']);
             } else {
                 $this->setMessage("Cette ressource est inexsitante");
                 $this->setStatusCode(300);
@@ -239,29 +199,29 @@ class ApiVilleController extends ApiInterface
 
     #[Route('/delete/{id}',  methods: ['DELETE'])]
     /**
-     * permet de supprimer un(e) ville.
+     * permet de supprimer un(e) racineSequence.
      */
     #[OA\Response(
         response: 200,
-        description: 'permet de supprimer un(e) ville',
+        description: 'permet de supprimer un(e) racineSequence',
         content: new OA\JsonContent(
             type: 'array',
-            items: new OA\Items(ref: new Model(type: Ville::class, groups: ['full']))
+            items: new OA\Items(ref: new Model(type: RacineSequence::class, groups: ['full']))
         )
     )]
-    #[OA\Tag(name: 'ville')]
+    #[OA\Tag(name: 'racineSequence')]
     //#[Security(name: 'Bearer')]
-    public function delete(Request $request, Ville $ville, VilleRepository $villeRepository): Response
+    public function delete(Request $request, RacineSequence $racineSequence, RacineSequenceRepository $villeRepository): Response
     {
         try {
 
-            if ($ville != null) {
+            if ($racineSequence != null) {
 
-                $villeRepository->remove($ville, true);
+                $villeRepository->remove($racineSequence, true);
 
                 // On retourne la confirmation
                 $this->setMessage("Operation effectuées avec success");
-                $response = $this->response($ville);
+                $response = $this->response($racineSequence);
             } else {
                 $this->setMessage("Cette ressource est inexistante");
                 $this->setStatusCode(300);
@@ -276,28 +236,28 @@ class ApiVilleController extends ApiInterface
 
     #[Route('/delete/all',  methods: ['DELETE'])]
     /**
-     * Permet de supprimer plusieurs ville.
+     * Permet de supprimer plusieurs racineSequence.
      */
     #[OA\Response(
         response: 200,
         description: 'Returns the rewards of an user',
         content: new OA\JsonContent(
             type: 'array',
-            items: new OA\Items(ref: new Model(type: Ville::class, groups: ['full']))
+            items: new OA\Items(ref: new Model(type: RacineSequence::class, groups: ['full']))
         )
     )]
-    #[OA\Tag(name: 'ville')]
+    #[OA\Tag(name: 'racineSequence')]
     #[Security(name: 'Bearer')]
-    public function deleteAll(Request $request, VilleRepository $villeRepository): Response
+    public function deleteAll(Request $request, RacineSequenceRepository $villeRepository): Response
     {
         try {
             $data = json_decode($request->getContent());
 
             foreach ($data->ids as $key => $value) {
-                $ville = $villeRepository->find($value['id']);
+                $racineSequence = $villeRepository->find($value['id']);
 
-                if ($ville != null) {
-                    $villeRepository->remove($ville);
+                if ($racineSequence != null) {
+                    $villeRepository->remove($racineSequence);
                 }
             }
             $this->setMessage("Operation effectuées avec success");

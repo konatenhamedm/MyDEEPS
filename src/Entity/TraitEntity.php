@@ -10,7 +10,7 @@ use Symfony\Component\Serializer\Annotation\Groups as Group;
 trait TraitEntity
 {
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
-    #[Group(["group_user","group1","group_user_trx"])]
+    #[Group(["group_user","group1","group_user_trx","group_pro"])]
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
@@ -19,7 +19,7 @@ trait TraitEntity
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: true)]
- 
+    #[Group(["group_pro"])]
     private ?User $createdBy = null;
 
     #[ORM\ManyToOne(targetEntity: User::class)]

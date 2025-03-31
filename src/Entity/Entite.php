@@ -44,12 +44,7 @@ class Entite
     #[Group(['group_pro',])]
     private ?string $appartenirOrganisation = null;
 
-    /**
-     * @var Collection<int, Organisation>
-     */
-    #[ORM\OneToMany(targetEntity: Organisation::class, mappedBy: 'entite')]
-    #[Group(["group_pro"])]
-    private Collection $organisations;
+   
 
     /**
      * @var Collection<int, User>
@@ -69,11 +64,18 @@ class Entite
     #[Group(["group_pro"])]
     private ?string $status = null;
 
+    /**
+     * @var Collection<int, ValidationWorkflow>
+     */
+    #[ORM\OneToMany(targetEntity: ValidationWorkflow::class, mappedBy: 'personne')]
+    private Collection $validationWorkflows;
+
  
     public function __construct()
     {
-        $this->organisations = new ArrayCollection();
+    
         $this->users = new ArrayCollection();
+        $this->validationWorkflows = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -94,35 +96,7 @@ class Entite
         return $this;
     }
 
-    /**
-     * @return Collection<int, Organisation>
-     */
-    public function getOrganisations(): Collection
-    {
-        return $this->organisations;
-    }
 
-    public function addOrganisation(Organisation $organisation): static
-    {
-        if (!$this->organisations->contains($organisation)) {
-            $this->organisations->add($organisation);
-            $organisation->setEntite($this);
-        }
-
-        return $this;
-    }
-
-    public function removeOrganisation(Organisation $organisation): static
-    {
-        if ($this->organisations->removeElement($organisation)) {
-            // set the owning side to null (unless already changed)
-            if ($organisation->getEntite() === $this) {
-                $organisation->setEntite(null);
-            }
-        }
-
-        return $this;
-    }
 
     /**
      * @return Collection<int, User>
@@ -186,6 +160,36 @@ class Entite
     public function setStatus(?string $status): static
     {
         $this->status = $status;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ValidationWorkflow>
+     */
+    public function getValidationWorkflows(): Collection
+    {
+        return $this->validationWorkflows;
+    }
+
+    public function addValidationWorkflow(ValidationWorkflow $validationWorkflow): static
+    {
+        if (!$this->validationWorkflows->contains($validationWorkflow)) {
+            $this->validationWorkflows->add($validationWorkflow);
+            $validationWorkflow->setPersonne($this);
+        }
+
+        return $this;
+    }
+
+    public function removeValidationWorkflow(ValidationWorkflow $validationWorkflow): static
+    {
+        if ($this->validationWorkflows->removeElement($validationWorkflow)) {
+            // set the owning side to null (unless already changed)
+            if ($validationWorkflow->getPersonne() === $this) {
+                $validationWorkflow->setPersonne(null);
+            }
+        }
 
         return $this;
     }

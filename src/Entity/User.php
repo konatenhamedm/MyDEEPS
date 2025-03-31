@@ -90,13 +90,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\ManyToOne(cascade: ["persist"], fetch: "EAGER")]
     #[ORM\JoinColumn(nullable: true)]
-    #[Group(["group_user","group1"])]
+    #[Group(["group_user","group1",'group_pro'])]
     private ?Fichier $avatar = null;
 
 
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Group(["group_user", 'group_pro','group_user_trx'])]
+    #[Group(["group_user","group1" ,'group_pro','group_user_trx'])]
     private ?string $typeUser = null;
 
     #[ORM\Column]

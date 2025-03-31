@@ -3,12 +3,12 @@
 namespace  App\Controller\Apis;
 
 use App\Controller\Apis\Config\ApiInterface;
-use App\DTO\VilleDTO;
+use App\DTO\CommuneDTO;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use App\Entity\Ville;
-use App\Repository\DistrictRepository;
-use App\Repository\VilleRepository;
+use App\Entity\Commune;
+use App\Repository\CommuneRepository;
 use App\Repository\UserRepository;
+use App\Repository\VilleRepository;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use OpenApi\Attributes as OA;
@@ -17,15 +17,15 @@ use Nelmio\ApiDocBundle\Annotation\Security;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 
-#[Route('/api/ville')]
-class ApiVilleController extends ApiInterface
+#[Route('/api/commune')]
+class ApiCommuneController extends ApiInterface
 {
 
 
 
     #[Route('/', methods: ['GET'])]
     /**
-     * Retourne la liste des villes.
+     * Retourne la liste des communes.
      * 
      */
     #[OA\Response(
@@ -33,20 +33,20 @@ class ApiVilleController extends ApiInterface
         description: 'Returns the rewards of an user',
         content: new OA\JsonContent(
             type: 'array',
-            items: new OA\Items(ref: new Model(type: Ville::class, groups: ['full']))
+            items: new OA\Items(ref: new Model(type: Commune::class, groups: ['full']))
         )
     )]
-    #[OA\Tag(name: 'ville')]
+    #[OA\Tag(name: 'commune')]
     // #[Security(name: 'Bearer')]
-    public function index(VilleRepository $villeRepository): Response
+    public function index(CommuneRepository $communeRepository): Response
     {
         try {
 
-            $villes = $villeRepository->findAll();
+            $communes = $communeRepository->findAll();
 
           
 
-            $response =  $this->responseData($villes, 'group1', ['Content-Type' => 'application/json']);
+            $response =  $this->responseData($communes, 'group1', ['Content-Type' => 'application/json']);
         } catch (\Exception $exception) {
             $this->setMessage("");
             $response = $this->response('[]');
@@ -56,9 +56,9 @@ class ApiVilleController extends ApiInterface
         return $response;
     }
 
-    #[Route('/{district}', methods: ['GET'])]
+    #[Route('/{ville}', methods: ['GET'])]
     /**
-     * Retourne la liste des villes.
+     * Retourne la liste des communes.
      * 
      */
     #[OA\Response(
@@ -66,20 +66,20 @@ class ApiVilleController extends ApiInterface
         description: 'Returns the rewards of an user',
         content: new OA\JsonContent(
             type: 'array',
-            items: new OA\Items(ref: new Model(type: Ville::class, groups: ['full']))
+            items: new OA\Items(ref: new Model(type: Commune::class, groups: ['full']))
         )
     )]
-    #[OA\Tag(name: 'ville')]
+    #[OA\Tag(name: 'commune')]
     // #[Security(name: 'Bearer')]
-    public function indexByDistrict(VilleRepository $villeRepository,$district): Response
+    public function indexByVile(CommuneRepository $communeRepository,$ville): Response
     {
         try {
 
-            $villes = $villeRepository->findBy(['district' => $district]);
+            $communes = $communeRepository->findByVille($ville);
 
           
 
-            $response =  $this->responseData($villes, 'group1', ['Content-Type' => 'application/json']);
+            $response =  $this->responseData($communes, 'group1', ['Content-Type' => 'application/json']);
         } catch (\Exception $exception) {
             $this->setMessage("");
             $response = $this->response('[]');
@@ -92,14 +92,14 @@ class ApiVilleController extends ApiInterface
 
     #[Route('/get/one/{id}', methods: ['GET'])]
     /**
-     * Affiche un(e) ville en offrant un identifiant.
+     * Affiche un(e) commune en offrant un identifiant.
      */
     #[OA\Response(
         response: 200,
-        description: 'Affiche un(e) ville en offrant un identifiant',
+        description: 'Affiche un(e) commune en offrant un identifiant',
         content: new OA\JsonContent(
             type: 'array',
-            items: new OA\Items(ref: new Model(type: Ville::class, groups: ['full']))
+            items: new OA\Items(ref: new Model(type: Commune::class, groups: ['full']))
         )
     )]
     #[OA\Parameter(
@@ -107,17 +107,17 @@ class ApiVilleController extends ApiInterface
         in: 'query',
         schema: new OA\Schema(type: 'string')
     )]
-    #[OA\Tag(name: 'ville')]
+    #[OA\Tag(name: 'commune')]
     //#[Security(name: 'Bearer')]
-    public function getOne(?Ville $ville)
+    public function getOne(?Commune $commune)
     {
         try {
-            if ($ville) {
-                $response = $this->response($ville);
+            if ($commune) {
+                $response = $this->response($commune);
             } else {
                 $this->setMessage('Cette ressource est inexistante');
                 $this->setStatusCode(300);
-                $response = $this->response($ville);
+                $response = $this->response($commune);
             }
         } catch (\Exception $exception) {
             $this->setMessage($exception->getMessage());
@@ -131,7 +131,7 @@ class ApiVilleController extends ApiInterface
 
     #[Route('/create',  methods: ['POST'])]
     /**
-     * Permet de créer un(e) ville.
+     * Permet de créer un(e) commune.
      */
     #[OA\Post(
         summary: "Authentification admin",
@@ -141,8 +141,7 @@ class ApiVilleController extends ApiInterface
             content: new OA\JsonContent(
                 properties: [
                     new OA\Property(property: "libelle", type: "string"),
-                    new OA\Property(property: "code", type: "string"),
-                    new OA\Property(property: "district", type: "string"),
+                    new OA\Property(property: "ville", type: "string"),
                     new OA\Property(property: "userUpdate", type: "string"),
 
                 ],
@@ -153,41 +152,39 @@ class ApiVilleController extends ApiInterface
             new OA\Response(response: 401, description: "Invalid credentials")
         ]
     )]
-    #[OA\Tag(name: 'ville')]
+    #[OA\Tag(name: 'commune')]
     #[Security(name: 'Bearer')]
-    public function create(Request $request, VilleRepository $villeRepository,DistrictRepository $districtRepository): Response
+    public function create(Request $request, CommuneRepository $communeRepository, VilleRepository $villeRepository): Response
     {
 
         $data = json_decode($request->getContent(), true);
-        $ville = new Ville();
-        $ville->setLibelle($data['libelle']);
-        $ville->setCode($data['code']);
-        $ville->setDistrict($districtRepository->find($data['district']));
-        $ville->setCreatedBy($this->userRepository->find($data['userUpdate']));
-        $ville->setUpdatedBy($this->userRepository->find($data['userUpdate']));
-        $errorResponse = $this->errorResponse($ville);
+        $commune = new Commune();
+        $commune->setLibelle($data['libelle']);
+        $commune->setVille($villeRepository->find($data['ville']));
+        $commune->setCreatedBy($this->userRepository->find($data['userUpdate']));
+        $commune->setUpdatedBy($this->userRepository->find($data['userUpdate']));
+        $errorResponse = $this->errorResponse($commune);
         if ($errorResponse !== null) {
             return $errorResponse; // Retourne la réponse d'erreur si des erreurs sont présentes
         } else {
 
-            $villeRepository->add($ville, true);
+            $communeRepository->add($commune, true);
         }
 
-        return $this->responseData($ville, 'group1', ['Content-Type' => 'application/json']);
+        return $this->responseData($commune, 'group1', ['Content-Type' => 'application/json']);
     }
 
 
     #[Route('/update/{id}', methods: ['PUT', 'POST'])]
     #[OA\Post(
-        summary: "Creation de ville",
-        description: "Permet de créer un ville.",
+        summary: "Creation de commune",
+        description: "Permet de créer un commune.",
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
                 properties: [
                     new OA\Property(property: "libelle", type: "string"),
-                    new OA\Property(property: "code", type: "string"),
-                    new OA\Property(property: "district", type: "string"),
+                    new OA\Property(property: "ville", type: "string"),
                     new OA\Property(property: "userUpdate", type: "string"),
 
                 ],
@@ -198,31 +195,31 @@ class ApiVilleController extends ApiInterface
             new OA\Response(response: 401, description: "Invalid credentials")
         ]
     )]
-    #[OA\Tag(name: 'ville')]
+    #[OA\Tag(name: 'commune')]
     #[Security(name: 'Bearer')]
-    public function update(Request $request, Ville $ville, VilleRepository $villeRepository,DistrictRepository $districtRepository): Response
+    public function update(Request $request, Commune $commune, CommuneRepository $communeRepository, VilleRepository $villeRepository): Response
     {
         try {
             $data = json_decode($request->getContent());
-            if ($ville != null) {
+            if ($commune != null) {
 
-                $ville->setLibelle($data->libelle);
-                $ville->setCode($data->code);
-                $ville->setDistrict($districtRepository->find($data->district));
-                $ville->setUpdatedBy($this->userRepository->find($data->userUpdate));
-                $ville->setUpdatedAt(new \DateTime());
-                $errorResponse = $this->errorResponse($ville);
+                $commune->setLibelle($data->libelle);
+                $commune->setVille($villeRepository->find($data->ville));
+               
+                $commune->setUpdatedBy($this->userRepository->find($data->userUpdate));
+                $commune->setUpdatedAt(new \DateTime());
+                $errorResponse = $this->errorResponse($commune);
 
                 if ($errorResponse !== null) {
                     return $errorResponse; // Retourne la réponse d'erreur si des erreurs sont présentes
                 } else {
-                    $villeRepository->add($ville, true);
+                    $communeRepository->add($commune, true);
                 }
 
 
 
                 // On retourne la confirmation
-                $response = $this->responseData($ville, 'group1', ['Content-Type' => 'application/json']);
+                $response = $this->responseData($commune, 'group1', ['Content-Type' => 'application/json']);
             } else {
                 $this->setMessage("Cette ressource est inexsitante");
                 $this->setStatusCode(300);
@@ -239,29 +236,29 @@ class ApiVilleController extends ApiInterface
 
     #[Route('/delete/{id}',  methods: ['DELETE'])]
     /**
-     * permet de supprimer un(e) ville.
+     * permet de supprimer un(e) commune.
      */
     #[OA\Response(
         response: 200,
-        description: 'permet de supprimer un(e) ville',
+        description: 'permet de supprimer un(e) commune',
         content: new OA\JsonContent(
             type: 'array',
-            items: new OA\Items(ref: new Model(type: Ville::class, groups: ['full']))
+            items: new OA\Items(ref: new Model(type: Commune::class, groups: ['full']))
         )
     )]
-    #[OA\Tag(name: 'ville')]
+    #[OA\Tag(name: 'commune')]
     //#[Security(name: 'Bearer')]
-    public function delete(Request $request, Ville $ville, VilleRepository $villeRepository): Response
+    public function delete(Request $request, Commune $commune, CommuneRepository $villeRepository): Response
     {
         try {
 
-            if ($ville != null) {
+            if ($commune != null) {
 
-                $villeRepository->remove($ville, true);
+                $villeRepository->remove($commune, true);
 
                 // On retourne la confirmation
                 $this->setMessage("Operation effectuées avec success");
-                $response = $this->response($ville);
+                $response = $this->response($commune);
             } else {
                 $this->setMessage("Cette ressource est inexistante");
                 $this->setStatusCode(300);
@@ -276,28 +273,28 @@ class ApiVilleController extends ApiInterface
 
     #[Route('/delete/all',  methods: ['DELETE'])]
     /**
-     * Permet de supprimer plusieurs ville.
+     * Permet de supprimer plusieurs commune.
      */
     #[OA\Response(
         response: 200,
         description: 'Returns the rewards of an user',
         content: new OA\JsonContent(
             type: 'array',
-            items: new OA\Items(ref: new Model(type: Ville::class, groups: ['full']))
+            items: new OA\Items(ref: new Model(type: Commune::class, groups: ['full']))
         )
     )]
-    #[OA\Tag(name: 'ville')]
+    #[OA\Tag(name: 'commune')]
     #[Security(name: 'Bearer')]
-    public function deleteAll(Request $request, VilleRepository $villeRepository): Response
+    public function deleteAll(Request $request, CommuneRepository $villeRepository): Response
     {
         try {
             $data = json_decode($request->getContent());
 
             foreach ($data->ids as $key => $value) {
-                $ville = $villeRepository->find($value['id']);
+                $commune = $villeRepository->find($value['id']);
 
-                if ($ville != null) {
-                    $villeRepository->remove($ville);
+                if ($commune != null) {
+                    $villeRepository->remove($commune);
                 }
             }
             $this->setMessage("Operation effectuées avec success");

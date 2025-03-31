@@ -23,13 +23,7 @@ class Organisation
     #[Group(["group_pro"])]
     private ?string $nom = null;
 
-    #[ORM\Column(length: 255, nullable: true)]
-    #[Group(["group_pro"])]
-    private ?string $numero = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    #[Group(["group_pro"])]
-    private ?string $annee = null;
+   
 
     #[ORM\ManyToOne(inversedBy: 'organisations')]
     private ?Entite $entite = null;
@@ -51,30 +45,7 @@ class Organisation
         return $this;
     }
 
-    public function getNumero(): ?string
-    {
-        return $this->numero;
-    }
-
-    public function setNumero(?string $numero): static
-    {
-        $this->numero = $numero;
-
-        return $this;
-    }
-
-    public function getAnnee(): ?string
-    {
-        return $this->annee;
-    }
-
-    public function setAnnee(?string $annee): static
-    {
-        $this->annee = $annee;
-
-        return $this;
-    }
-
+ 
     public function getEntite(): ?Entite
     {
         return $this->entite;

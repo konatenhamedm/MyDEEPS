@@ -40,6 +40,10 @@ class Profession
     #[ORM\Column(length: 255)]
     #[Group(["group1","group2"])]
     private ?string $montantRenouvellement = null;
+    
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group1","group2"])]
+    private ?string $codeGeneration = null;
 
     public function getId(): ?int
     {
@@ -102,6 +106,18 @@ class Profession
     public function setMontantRenouvellement(string $montantRenouvellement): static
     {
         $this->montantRenouvellement = $montantRenouvellement;
+
+        return $this;
+    }
+
+    public function getCodeGeneration(): ?string
+    {
+        return $this->codeGeneration;
+    }
+
+    public function setCodeGeneration(?string $codeGeneration): static
+    {
+        $this->codeGeneration = $codeGeneration;
 
         return $this;
     }

@@ -3,12 +3,12 @@
 namespace  App\Controller\Apis;
 
 use App\Controller\Apis\Config\ApiInterface;
-use App\DTO\VilleDTO;
+use App\DTO\ValidationWorkflowDTO;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use App\Entity\Ville;
-use App\Repository\DistrictRepository;
-use App\Repository\VilleRepository;
+use App\Entity\ValidationWorkflow;
+use App\Repository\ValidationWorkflowRepository;
 use App\Repository\UserRepository;
+use DateTime;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use OpenApi\Attributes as OA;
@@ -17,15 +17,15 @@ use Nelmio\ApiDocBundle\Annotation\Security;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 
-#[Route('/api/ville')]
-class ApiVilleController extends ApiInterface
+#[Route('/api/ValidationWorkflow')]
+class ApiValidationWorkflowController extends ApiInterface
 {
 
 
 
     #[Route('/', methods: ['GET'])]
     /**
-     * Retourne la liste des villes.
+     * Retourne la liste des validationWorkflow.
      * 
      */
     #[OA\Response(
@@ -33,20 +33,20 @@ class ApiVilleController extends ApiInterface
         description: 'Returns the rewards of an user',
         content: new OA\JsonContent(
             type: 'array',
-            items: new OA\Items(ref: new Model(type: Ville::class, groups: ['full']))
+            items: new OA\Items(ref: new Model(type: ValidationWorkflow::class, groups: ['full']))
         )
     )]
-    #[OA\Tag(name: 'ville')]
+    #[OA\Tag(name: 'ValidationWorkflow')]
     // #[Security(name: 'Bearer')]
-    public function index(VilleRepository $villeRepository): Response
+    public function index(ValidationWorkflowRepository $civiliteRepository): Response
     {
         try {
 
-            $villes = $villeRepository->findAll();
+            $validationWorkflow = $civiliteRepository->findAll();
 
           
 
-            $response =  $this->responseData($villes, 'group1', ['Content-Type' => 'application/json']);
+            $response =  $this->responseData($validationWorkflow, 'group1', ['Content-Type' => 'application/json']);
         } catch (\Exception $exception) {
             $this->setMessage("");
             $response = $this->response('[]');
@@ -55,10 +55,9 @@ class ApiVilleController extends ApiInterface
         // On envoie la réponse
         return $response;
     }
-
-    #[Route('/{district}', methods: ['GET'])]
+    #[Route('/{idPersoone}', methods: ['GET'])]
     /**
-     * Retourne la liste des villes.
+     * Retourne la liste des validationWorkflow.
      * 
      */
     #[OA\Response(
@@ -66,20 +65,20 @@ class ApiVilleController extends ApiInterface
         description: 'Returns the rewards of an user',
         content: new OA\JsonContent(
             type: 'array',
-            items: new OA\Items(ref: new Model(type: Ville::class, groups: ['full']))
+            items: new OA\Items(ref: new Model(type: ValidationWorkflow::class, groups: ['full']))
         )
     )]
-    #[OA\Tag(name: 'ville')]
+    #[OA\Tag(name: 'ValidationWorkflow')]
     // #[Security(name: 'Bearer')]
-    public function indexByDistrict(VilleRepository $villeRepository,$district): Response
+    public function suiviByUser(ValidationWorkflowRepository $validationWorkflowRepository, string $idPersoone): Response
     {
         try {
 
-            $villes = $villeRepository->findBy(['district' => $district]);
+            $validationWorkflow = $validationWorkflowRepository->findBy(['personne' => $idPersoone]);
 
           
 
-            $response =  $this->responseData($villes, 'group1', ['Content-Type' => 'application/json']);
+            $response =  $this->responseData($validationWorkflow, 'group_pro', ['Content-Type' => 'application/json']);
         } catch (\Exception $exception) {
             $this->setMessage("");
             $response = $this->response('[]');
@@ -92,14 +91,14 @@ class ApiVilleController extends ApiInterface
 
     #[Route('/get/one/{id}', methods: ['GET'])]
     /**
-     * Affiche un(e) ville en offrant un identifiant.
+     * Affiche un(e) ValidationWorkflow en offrant un identifiant.
      */
     #[OA\Response(
         response: 200,
-        description: 'Affiche un(e) ville en offrant un identifiant',
+        description: 'Affiche un(e) ValidationWorkflow en offrant un identifiant',
         content: new OA\JsonContent(
             type: 'array',
-            items: new OA\Items(ref: new Model(type: Ville::class, groups: ['full']))
+            items: new OA\Items(ref: new Model(type: ValidationWorkflow::class, groups: ['full']))
         )
     )]
     #[OA\Parameter(
@@ -107,17 +106,17 @@ class ApiVilleController extends ApiInterface
         in: 'query',
         schema: new OA\Schema(type: 'string')
     )]
-    #[OA\Tag(name: 'ville')]
+    #[OA\Tag(name: 'ValidationWorkflow')]
     //#[Security(name: 'Bearer')]
-    public function getOne(?Ville $ville)
+    public function getOne(?ValidationWorkflow $ValidationWorkflow)
     {
         try {
-            if ($ville) {
-                $response = $this->response($ville);
+            if ($ValidationWorkflow) {
+                $response = $this->response($ValidationWorkflow);
             } else {
                 $this->setMessage('Cette ressource est inexistante');
                 $this->setStatusCode(300);
-                $response = $this->response($ville);
+                $response = $this->response($ValidationWorkflow);
             }
         } catch (\Exception $exception) {
             $this->setMessage($exception->getMessage());
@@ -131,7 +130,7 @@ class ApiVilleController extends ApiInterface
 
     #[Route('/create',  methods: ['POST'])]
     /**
-     * Permet de créer un(e) ville.
+     * Permet de créer un(e) ValidationWorkflow.
      */
     #[OA\Post(
         summary: "Authentification admin",
@@ -140,11 +139,10 @@ class ApiVilleController extends ApiInterface
             required: true,
             content: new OA\JsonContent(
                 properties: [
-                    new OA\Property(property: "libelle", type: "string"),
-                    new OA\Property(property: "code", type: "string"),
-                    new OA\Property(property: "district", type: "string"),
+                    new OA\Property(property: "personne", type: "string"),
+                    new OA\Property(property: "etape", type: "string"),
+                    new OA\Property(property: "raison", type: "string"),
                     new OA\Property(property: "userUpdate", type: "string"),
-
                 ],
                 type: "object"
             )
@@ -153,41 +151,43 @@ class ApiVilleController extends ApiInterface
             new OA\Response(response: 401, description: "Invalid credentials")
         ]
     )]
-    #[OA\Tag(name: 'ville')]
+    #[OA\Tag(name: 'ValidationWorkflow')]
     #[Security(name: 'Bearer')]
-    public function create(Request $request, VilleRepository $villeRepository,DistrictRepository $districtRepository): Response
+    public function create(Request $request, ValidationWorkflowRepository $civiliteRepository): Response
     {
 
         $data = json_decode($request->getContent(), true);
-        $ville = new Ville();
-        $ville->setLibelle($data['libelle']);
-        $ville->setCode($data['code']);
-        $ville->setDistrict($districtRepository->find($data['district']));
-        $ville->setCreatedBy($this->userRepository->find($data['userUpdate']));
-        $ville->setUpdatedBy($this->userRepository->find($data['userUpdate']));
-        $errorResponse = $this->errorResponse($ville);
+        $ValidationWorkflow = new ValidationWorkflow();
+        $ValidationWorkflow->setEtape($data['etape']);
+        $ValidationWorkflow->setPersonne($data['personne']);
+        $ValidationWorkflow->setRaison($data['raison']);
+        $ValidationWorkflow->setCreatedAtValue(new DateTime());
+        $ValidationWorkflow->setUpdatedAt(new DateTime());
+        $ValidationWorkflow->setCreatedBy($this->userRepository->find($data['userUpdate']));
+        $ValidationWorkflow->setUpdatedBy($this->userRepository->find($data['userUpdate']));
+        $errorResponse = $this->errorResponse($ValidationWorkflow);
         if ($errorResponse !== null) {
             return $errorResponse; // Retourne la réponse d'erreur si des erreurs sont présentes
         } else {
 
-            $villeRepository->add($ville, true);
+            $civiliteRepository->add($ValidationWorkflow, true);
         }
 
-        return $this->responseData($ville, 'group1', ['Content-Type' => 'application/json']);
+        return $this->responseData($ValidationWorkflow, 'group1', ['Content-Type' => 'application/json']);
     }
 
 
     #[Route('/update/{id}', methods: ['PUT', 'POST'])]
     #[OA\Post(
-        summary: "Creation de ville",
-        description: "Permet de créer un ville.",
+        summary: "Creation de ValidationWorkflow",
+        description: "Permet de créer un ValidationWorkflow.",
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
                 properties: [
-                    new OA\Property(property: "libelle", type: "string"),
-                    new OA\Property(property: "code", type: "string"),
-                    new OA\Property(property: "district", type: "string"),
+                    new OA\Property(property: "personne", type: "string"),
+                    new OA\Property(property: "etape", type: "string"),
+                    new OA\Property(property: "raison", type: "string"),
                     new OA\Property(property: "userUpdate", type: "string"),
 
                 ],
@@ -198,31 +198,28 @@ class ApiVilleController extends ApiInterface
             new OA\Response(response: 401, description: "Invalid credentials")
         ]
     )]
-    #[OA\Tag(name: 'ville')]
+    #[OA\Tag(name: 'ValidationWorkflow')]
     #[Security(name: 'Bearer')]
-    public function update(Request $request, Ville $ville, VilleRepository $villeRepository,DistrictRepository $districtRepository): Response
+    public function update(Request $request, ValidationWorkflow $ValidationWorkflow, ValidationWorkflowRepository $civiliteRepository): Response
     {
         try {
             $data = json_decode($request->getContent());
-            if ($ville != null) {
+            if ($ValidationWorkflow != null) {
 
-                $ville->setLibelle($data->libelle);
-                $ville->setCode($data->code);
-                $ville->setDistrict($districtRepository->find($data->district));
-                $ville->setUpdatedBy($this->userRepository->find($data->userUpdate));
-                $ville->setUpdatedAt(new \DateTime());
-                $errorResponse = $this->errorResponse($ville);
+                $ValidationWorkflow->setPersonne($data->personne);
+                $ValidationWorkflow->setEtape($data->etape);
+                $ValidationWorkflow->setRaison($data->raison);
+                $ValidationWorkflow->setUpdatedBy($this->userRepository->find($data->userUpdate));
+                $ValidationWorkflow->setUpdatedAt(new \DateTime());
+                $errorResponse = $this->errorResponse($ValidationWorkflow);
 
                 if ($errorResponse !== null) {
                     return $errorResponse; // Retourne la réponse d'erreur si des erreurs sont présentes
                 } else {
-                    $villeRepository->add($ville, true);
+                    $civiliteRepository->add($ValidationWorkflow, true);
                 }
-
-
-
                 // On retourne la confirmation
-                $response = $this->responseData($ville, 'group1', ['Content-Type' => 'application/json']);
+                $response = $this->responseData($ValidationWorkflow, 'group1', ['Content-Type' => 'application/json']);
             } else {
                 $this->setMessage("Cette ressource est inexsitante");
                 $this->setStatusCode(300);
@@ -239,29 +236,29 @@ class ApiVilleController extends ApiInterface
 
     #[Route('/delete/{id}',  methods: ['DELETE'])]
     /**
-     * permet de supprimer un(e) ville.
+     * permet de supprimer un(e) ValidationWorkflow.
      */
     #[OA\Response(
         response: 200,
-        description: 'permet de supprimer un(e) ville',
+        description: 'permet de supprimer un(e) ValidationWorkflow',
         content: new OA\JsonContent(
             type: 'array',
-            items: new OA\Items(ref: new Model(type: Ville::class, groups: ['full']))
+            items: new OA\Items(ref: new Model(type: ValidationWorkflow::class, groups: ['full']))
         )
     )]
-    #[OA\Tag(name: 'ville')]
+    #[OA\Tag(name: 'ValidationWorkflow')]
     //#[Security(name: 'Bearer')]
-    public function delete(Request $request, Ville $ville, VilleRepository $villeRepository): Response
+    public function delete(Request $request, ValidationWorkflow $ValidationWorkflow, ValidationWorkflowRepository $villeRepository): Response
     {
         try {
 
-            if ($ville != null) {
+            if ($ValidationWorkflow != null) {
 
-                $villeRepository->remove($ville, true);
+                $villeRepository->remove($ValidationWorkflow, true);
 
                 // On retourne la confirmation
                 $this->setMessage("Operation effectuées avec success");
-                $response = $this->response($ville);
+                $response = $this->response($ValidationWorkflow);
             } else {
                 $this->setMessage("Cette ressource est inexistante");
                 $this->setStatusCode(300);
@@ -276,28 +273,28 @@ class ApiVilleController extends ApiInterface
 
     #[Route('/delete/all',  methods: ['DELETE'])]
     /**
-     * Permet de supprimer plusieurs ville.
+     * Permet de supprimer plusieurs ValidationWorkflow.
      */
     #[OA\Response(
         response: 200,
         description: 'Returns the rewards of an user',
         content: new OA\JsonContent(
             type: 'array',
-            items: new OA\Items(ref: new Model(type: Ville::class, groups: ['full']))
+            items: new OA\Items(ref: new Model(type: ValidationWorkflow::class, groups: ['full']))
         )
     )]
-    #[OA\Tag(name: 'ville')]
+    #[OA\Tag(name: 'ValidationWorkflow')]
     #[Security(name: 'Bearer')]
-    public function deleteAll(Request $request, VilleRepository $villeRepository): Response
+    public function deleteAll(Request $request, ValidationWorkflowRepository $villeRepository): Response
     {
         try {
             $data = json_decode($request->getContent());
 
             foreach ($data->ids as $key => $value) {
-                $ville = $villeRepository->find($value['id']);
+                $ValidationWorkflow = $villeRepository->find($value['id']);
 
-                if ($ville != null) {
-                    $villeRepository->remove($ville);
+                if ($ValidationWorkflow != null) {
+                    $villeRepository->remove($ValidationWorkflow);
                 }
             }
             $this->setMessage("Operation effectuées avec success");
