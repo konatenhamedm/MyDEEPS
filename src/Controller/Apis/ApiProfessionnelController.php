@@ -87,6 +87,7 @@ class ApiProfessionnelController extends ApiInterface
                             'montantRenouvellement'=> $professionRepository->findOneByCode($professionnel->getPersonne()->getProfession())->getMontantRenouvellement()
 
                         ] : null,
+                        'id' => $professionnel->getPersonne()->getId(),
                         'nom' => $professionnel->getPersonne()->getNom(),
                         'lieuDiplome' => $professionnel->getPersonne()->getLieuDiplome(),
                         'code' => $professionnel->getPersonne()->getCode(),

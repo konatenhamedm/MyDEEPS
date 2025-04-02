@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Profession;
+use App\Entity\Professionnel;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -33,6 +34,36 @@ class ProfessionRepository extends ServiceEntityRepository
             $this->getEntityManager()->flush();
         }
     }
+
+    public function countSpecialiteProfByGenre($genre)
+    {
+   
+
+        if($genre == "tout"){
+            return $this->getEntityManager()->createQueryBuilder()
+            ->select('c.libelle AS civilite, g.libelle AS genre, COUNT(e.id) AS nombre')
+            ->from(Profession::class, 'c')
+            ->leftJoin(Professionnel::class, 'e', 'WITH', 'e.civilite = c.id')
+           /*  ->leftJoin('e.genre', 'g') */
+            /* ->groupBy('c.id, g.id') */
+            ->getQuery()
+            ->getResult();
+        }else{
+            return $this->getEntityManager()->createQueryBuilder()
+            ->select('c.libelle AS civilite, g.libelle AS genre, COUNT(e.id) AS nombre')
+            ->from(Profession::class, 'c')
+            ->leftJoin(Professionnel::class, 'e', 'WITH', 'e.civilite = c.id')
+            ->leftJoin('e.genre', 'g')
+            ->andWhere("g.libelle = :val")
+            ->setParameter('val', $genre)
+            ->groupBy('c.id, g.id')
+            ->getQuery()
+            ->getResult();
+        }
+        
+
+    }
+
 
 
     //    /**
