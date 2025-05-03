@@ -51,22 +51,29 @@
 <body style="font-family:Verdana;color:#aaaaaa;">
 
 <div style="background-color:#ffff;padding:15px;text-align:center;">
-    <img src="{{ asset('assets/logo-depps.png') }}">
+    <img src="http://depps.leadagro.net/uploads/logo-depps.png">
 </div>
 <hr size="10" style="background-color:#2AD10F;">
 <div style="overflow:auto">
 
 
     <div class="main">
-       
+       {#if message is not empty #}
+
+        {% if message is not empty %}
+           
+        <p>{{ info_user.message }} </p>
+        {% else %}
+
         <p>Cette etape {{ info_user.etape }} de votre dossier par {{ info_user.user }} </p>
+        {% endif %}
 
     </div>
 
 
 </div>
 <br>
-<div style="background-color:#2AD10F;text-align:center;padding:10px;margin-top:7px;"><h3 style="color: white;">© copyright MYDEPPS</h3></div>
+<div style="background-color:#4b9bd8;text-align:center;padding:10px;margin-top:7px;"><h3 style="color: white;">© copyright MYDEPPS</h3></div>
 
 </body>
 </html>

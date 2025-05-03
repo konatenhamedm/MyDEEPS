@@ -15,6 +15,7 @@ use App\Entity\Transaction;
 use App\Repository\CiviliteRepository;
 use App\Repository\EtablissementRepository;
 use App\Repository\ProfessionnelRepository;
+use App\Repository\ProfessionRepository;
 use App\Repository\SpecialiteRepository;
 
 #[Route('/api/statistique')]
@@ -173,10 +174,10 @@ class ApiStatistiqueController extends ApiInterface
     )]
     #[OA\Tag(name: 'statistiques')]
     // #[Security(name: 'Bearer')]
-    public function indexSpecialite($genre, EtablissementRepository $etablissementRepository, ProfessionnelRepository $professionnelRepository, SpecialiteRepository $specialiteRepository): Response
+    public function indexSpecialite($genre, EtablissementRepository $etablissementRepository, ProfessionRepository $professionRepository, SpecialiteRepository $specialiteRepository): Response
     {
         try {
-            $stats = $specialiteRepository->countSpecialiteProfByGenre($genre);
+            $stats = $professionRepository->countSpecialiteProfByGenre($genre);
 
 
             $formattedStats = [];

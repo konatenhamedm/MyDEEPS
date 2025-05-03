@@ -344,6 +344,7 @@ class ApiPaiementController extends ApiInterface
         //etape 1
 
         $professionnel->setPassword($request->get('password'));
+        $professionnel->setCode($request->get('code'));
         $professionnel->setEmail($request->get('email'));
         $professionnel->setUsername($request->get('nom') . " " . $this->numero());
 
@@ -359,13 +360,12 @@ class ApiPaiementController extends ApiInterface
         $professionnel->setNom($request->get('nom'));
         $professionnel->setProfessionnel($request->get('professionnel'));
         $professionnel->setPrenoms($request->get('prenoms'));
-        $professionnel->setEmail($request->get('emailAutre'));
         $professionnel->setLieuExercicePro($request->get('lieuExercicePro'));
 
         // etatpe 3
 
         $professionnel->setProfession($request->get('profession'));
-        $professionnel->setEmailAutre($request->get('EmailAutre'));
+        $professionnel->setEmailAutre($request->get('emailAutre'));
         $professionnel->setCivilite($request->get('civilite'));
         $professionnel->setEmailPro($request->get('emailPro'));
         $professionnel->setDateDiplome($request->get('dateDiplome'));

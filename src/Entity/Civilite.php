@@ -41,9 +41,16 @@ class Civilite
     #[Group(["group1", "group_pro"])]
     private ?string $codeGeneration = null;
 
+    /**
+     * @var Collection<int, CodeGenerateur>
+     */
+    #[ORM\OneToMany(targetEntity: CodeGenerateur::class, mappedBy: 'civilite')]
+    private Collection $codeGenerateurs;
+
     public function __construct()
     {
         $this->professionnels = new ArrayCollection();
+        $this->codeGenerateurs = new ArrayCollection();
     } 
 
     public function getId(): ?int
@@ -113,6 +120,36 @@ class Civilite
     public function setCodeGeneration(?string $codeGeneration): static
     {
         $this->codeGeneration = $codeGeneration;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, CodeGenerateur>
+     */
+    public function getCodeGenerateurs(): Collection
+    {
+        return $this->codeGenerateurs;
+    }
+
+    public function addCodeGenerateur(CodeGenerateur $codeGenerateur): static
+    {
+        if (!$this->codeGenerateurs->contains($codeGenerateur)) {
+            $this->codeGenerateurs->add($codeGenerateur);
+            $codeGenerateur->setCivilite($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCodeGenerateur(CodeGenerateur $codeGenerateur): static
+    {
+        if ($this->codeGenerateurs->removeElement($codeGenerateur)) {
+            // set the owning side to null (unless already changed)
+            if ($codeGenerateur->getCivilite() === $this) {
+                $codeGenerateur->setCivilite(null);
+            }
+        }
 
         return $this;
     }

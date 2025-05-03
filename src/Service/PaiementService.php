@@ -213,8 +213,15 @@ class PaiementService
 
 
 
+        if($dataTemp->getCode()){
+            $professionnel->setCode($dataTemp->getCode());
+            $professionnel->setStatus("renouvellement");
+        }else{
+            $professionnel->setStatus("attente");
+            
+        }
+
         $professionnel->setNumber($dataTemp->getNumber());
-        $professionnel->setStatus('attente');
         $professionnel->setEmailPro($dataTemp->getEmailPro());
         $professionnel->setProfession($dataTemp->getProfession());
         $professionnel->setAppartenirOrganisation($dataTemp->getAppartenirOrganisation());
@@ -293,7 +300,7 @@ class PaiementService
 
         // TO DO
         $this->sendMailService->send(
-            'test@myonmci.ci',
+            'tester@myonmci.ci',
             $dataTemp->getEmail(),
             'Informations',
             'content_mail',
@@ -409,7 +416,7 @@ class PaiementService
 
         // TO DO
         $this->sendMailService->send(
-            'test@myonmci.ci',
+            'tester@myonmci.ci',
             $dataTemp->getEmail(),
             'Informations',
             'content_mail',

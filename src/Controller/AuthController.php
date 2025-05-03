@@ -60,7 +60,7 @@ class AuthController extends AbstractController
 
         // TO DO
         $sendMailService->send(
-            'test@myonmci.ci',
+            'tester@myonmci.ci',
             "konatenhamed@gmail.com",
             'Informations',
             'content_mail',

@@ -27,6 +27,7 @@ use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 class ApiProfessionController extends ApiInterface
 {
 
+  
 
     #[Route('/get/status/paiement/{code}', methods: ['GET'])]
     /**
@@ -1866,6 +1867,7 @@ class ApiProfessionController extends ApiInterface
                     new OA\Property(property: "montantRenouvellement", type: "string"),
                     new OA\Property(property: "userUpdate", type: "string"),
                     new OA\Property(property: "code", type: "string"),
+                    new OA\Property(property: "chronoMax", type: "string"),
                     new OA\Property(property: "codeGeneration", type: "string"),
 
                 ],
@@ -1886,6 +1888,8 @@ class ApiProfessionController extends ApiInterface
 
         $profession = new Profession();
         $profession->setLibelle($data['libelle']);
+        $profession->setChronoMax($data['chronoMax']);
+        $profession->setMaxCode($data['chronoMax']);
         $profession->setCodeGeneration($data['codeGeneration']);
         $profession->setCreatedAtValue(new \DateTime());
         $profession->setUpdatedAt(new \DateTime());
@@ -1921,6 +1925,7 @@ class ApiProfessionController extends ApiInterface
                     new OA\Property(property: "montantNouvelleDemande", type: "string"),
                     new OA\Property(property: "montantRenouvellement", type: "string"),
                     new OA\Property(property: "codeGeneration", type: "string"),
+                    new OA\Property(property: "chronoMax", type: "string"),
                     new OA\Property(property: "code", type: "string"),
                 ],
                 type: "object"
@@ -1939,6 +1944,8 @@ class ApiProfessionController extends ApiInterface
             if ($profession != null) {
 
                 $profession->setLibelle($data->libelle);
+                $profession->setChronoMax($data->chronoMax);
+                $profession->setMaxCode($profession->getMaxCode() == null ? $data->chronoMax : $profession->getMaxCode());
                 $profession->setCodeGeneration($data->codeGeneration);
                 $profession->setTypeProfession($typeProfessionRepository->find($data->typeProfession));
                 $profession->setMontantNouvelleDemande($data->montantNouvelleDemande);

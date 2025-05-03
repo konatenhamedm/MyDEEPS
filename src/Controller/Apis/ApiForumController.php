@@ -76,10 +76,7 @@ class ApiForumController extends ApiInterface
         try {
 
             $forums = $forumRepository->findBy(['status'=>'Actif']);
-
-          
-
-            $response =  $this->responseData($forums, 'group_pro', ['Content-Type' => 'application/json']);
+            $response =  $this->responseData($forums, 'group1', ['Content-Type' => 'application/json']);
         } catch (\Exception $exception) {
             $this->setMessage("");
             $response = $this->response('[]');
@@ -147,7 +144,7 @@ class ApiForumController extends ApiInterface
         try {
             $forum = $forumRepository->find($id);
             if ($forum) {
-                $response =  $this->responseData($forum, 'group_pro', ['Content-Type' => 'application/json']);
+                $response =  $this->responseData($forum, 'group1', ['Content-Type' => 'application/json']);
             } else {
                 $this->setMessage('Cette ressource est inexistante');
                 $this->setStatusCode(300);

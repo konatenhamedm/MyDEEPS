@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\ProfessionRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups as Group;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
@@ -44,6 +46,25 @@ class Profession
     #[ORM\Column(length: 255, nullable: true)]
     #[Group(["group1","group2"])]
     private ?string $codeGeneration = null;
+
+    /**
+     * @var Collection<int, CodeGenerateur>
+     */
+    #[ORM\OneToMany(targetEntity: CodeGenerateur::class, mappedBy: 'profession')]
+    private Collection $codeGenerateurs;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group1","group2"])]
+    private ?string $maxCode = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group1","group2"])]
+    private ?string $chronoMax = null;
+
+    public function __construct()
+    {
+        $this->codeGenerateurs = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -118,6 +139,60 @@ class Profession
     public function setCodeGeneration(?string $codeGeneration): static
     {
         $this->codeGeneration = $codeGeneration;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, CodeGenerateur>
+     */
+    public function getCodeGenerateurs(): Collection
+    {
+        return $this->codeGenerateurs;
+    }
+
+    public function addCodeGenerateur(CodeGenerateur $codeGenerateur): static
+    {
+        if (!$this->codeGenerateurs->contains($codeGenerateur)) {
+            $this->codeGenerateurs->add($codeGenerateur);
+            $codeGenerateur->setProfession($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCodeGenerateur(CodeGenerateur $codeGenerateur): static
+    {
+        if ($this->codeGenerateurs->removeElement($codeGenerateur)) {
+            // set the owning side to null (unless already changed)
+            if ($codeGenerateur->getProfession() === $this) {
+                $codeGenerateur->setProfession(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getMaxCode(): ?string
+    {
+        return $this->maxCode;
+    }
+
+    public function setMaxCode(?string $maxCode): static
+    {
+        $this->maxCode = $maxCode;
+
+        return $this;
+    }
+
+    public function getChronoMax(): ?string
+    {
+        return $this->chronoMax;
+    }
+
+    public function setChronoMax(?string $chronoMax): static
+    {
+        $this->chronoMax = $chronoMax;
 
         return $this;
     }

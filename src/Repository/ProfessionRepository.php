@@ -41,22 +41,18 @@ class ProfessionRepository extends ServiceEntityRepository
 
         if($genre == "tout"){
             return $this->getEntityManager()->createQueryBuilder()
-            ->select('c.libelle AS civilite, g.libelle AS genre, COUNT(e.id) AS nombre')
+            ->select('c.libelle AS civilite, COUNT(e.id) AS nombre')
             ->from(Profession::class, 'c')
-            ->leftJoin(Professionnel::class, 'e', 'WITH', 'e.civilite = c.id')
-           /*  ->leftJoin('e.genre', 'g') */
-            /* ->groupBy('c.id, g.id') */
+            ->leftJoin(Professionnel::class, 'e', 'WITH', 'e.profession = c.code')
+             ->groupBy('c.id') 
             ->getQuery()
             ->getResult();
         }else{
             return $this->getEntityManager()->createQueryBuilder()
-            ->select('c.libelle AS civilite, g.libelle AS genre, COUNT(e.id) AS nombre')
+            ->select('c.libelle AS civilite, COUNT(e.id) AS nombre')
             ->from(Profession::class, 'c')
-            ->leftJoin(Professionnel::class, 'e', 'WITH', 'e.civilite = c.id')
-            ->leftJoin('e.genre', 'g')
-            ->andWhere("g.libelle = :val")
-            ->setParameter('val', $genre)
-            ->groupBy('c.id, g.id')
+            ->leftJoin(Professionnel::class, 'e', 'WITH', 'e.profession = c.code')
+            ->groupBy('c.id')
             ->getQuery()
             ->getResult();
         }

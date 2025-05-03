@@ -16,6 +16,7 @@ use App\Entity\SituationProfessionnelle;
 use App\Entity\User;
 use App\Entity\ValidationWorkflow;
 use App\Repository\CiviliteRepository;
+use App\Repository\CodeGenerateurRepository;
 use App\Repository\CommuneRepository;
 use App\Repository\DistrictRepository;
 use App\Repository\GenreRepository;
@@ -32,6 +33,7 @@ use App\Repository\UserRepository;
 use App\Repository\VilleRepository;
 use App\Service\PaiementService;
 use App\Service\SendMailService;
+use App\Service\Utils;
 use DateTime;
 use DateTimeImmutable;
 use Symfony\Component\HttpFoundation\Response;
@@ -49,6 +51,72 @@ use Symfony\Component\Workflow\WorkflowInterface;
 #[Route('/api/professionnel')]
 class ApiProfessionnelController extends ApiInterface
 {
+
+
+    #[Route('/existe/code/{code}', methods: ['GET'])]
+    /**
+     * Affiche un(e) specialite en offrant un identifiant.
+     */
+    #[OA\Response(
+        response: 200,
+        description: 'Affiche etat paiement de la specialite',
+        content: new OA\JsonContent(
+            type: 'array',
+            items: new OA\Items(ref: new Model(type: Profession::class, groups: ['full']))
+        )
+    )]
+    #[OA\Parameter(
+        name: 'code',
+        in: 'query',
+        schema: new OA\Schema(type: 'string')
+    )]
+    #[OA\Tag(name: 'profession')]
+    //#[Security(name: 'Bearer')]
+    public function getExisteCode($code, ProfessionnelRepository $professionnelRepository, CodeGenerateurRepository $codeGenerateurRepository): Response
+    {
+        try {
+            $codeGenerateur = $codeGenerateurRepository->findOneBy(['code' => $code]);
+            $profession = $professionnelRepository->findOneBy(['code' => $code]);
+
+            if ($codeGenerateur) {
+                if ($profession) {
+                    $response = $this->response([
+                        "exsiteInProfessionnel" => true,
+                        "exsiteInCodeGenerateur" => true,
+                    ]);
+                } else {
+
+                    $this->setStatusCode(200);
+                    $response = $this->response([
+                        "exsiteInProfessionnel" => false,
+                        "exsiteInCodeGenerateur" => true,
+                    ]);
+                }
+            } else {
+                if ($profession) {
+
+                    $this->setStatusCode(200);
+                    $response = $this->response([
+                        "exsiteInProfessionnel" => true,
+                        "exsiteInCodeGenerateur" => false,
+                    ]);
+                } else {
+
+                    $this->setStatusCode(200);
+                    $response = $this->response([
+                        "exsiteInProfessionnel" => false,
+                        "exsiteInCodeGenerateur" => false,
+                    ]);
+                }
+            }
+        } catch (\Exception $exception) {
+            $this->setMessage($exception->getMessage());
+            $response = $this->response('[]');
+        }
+
+
+        return $response;
+    }
 
 
     #[Route('/', methods: ['GET'])]
@@ -71,77 +139,62 @@ class ApiProfessionnelController extends ApiInterface
 
         try {
             $professionnels = $userRepository->findBy(['typeUser' => 'PROFESSIONNEL'], ['id' => 'DESC']);
-            $professionnels = $userRepository->findBy(['typeUser' => 'PROFESSIONNEL'], ['id' => 'DESC']);
+            //$professionnels = $userRepository->findBy(['typeUser' => 'PROFESSIONNEL'], ['id' => 'DESC']);
 
             $formattedProfessionnels = array_map(function ($professionnel) use ($professionRepository) {
+                $personne = $professionnel->getPersonne();
+                $profession = $personne->getProfession() ? $professionRepository->findOneByCode($personne->getProfession()) : null;
+
                 return [
                     'username' => $professionnel->getUsername(),
                     'id' => $professionnel->getId(),
                     'email' => $professionnel->getEmail(),
                     'typeUser' => $professionnel->getTypeUser(),
                     'personne' => [
-                        'profession' => $professionnel->getPersonne()->getProfession() ? [
-                            'libelle' =>  $professionRepository->findOneByCode($professionnel->getPersonne()->getProfession())->getLibelle() ??"",
-                            'id' => $professionRepository->findOneByCode($professionnel->getPersonne()->getProfession())->getId(),
-                            'montantNouvelleDemande' => $professionRepository->findOneByCode($professionnel->getPersonne()->getProfession())->getMontantNouvelleDemande(),
-                            'montantRenouvellement'=> $professionRepository->findOneByCode($professionnel->getPersonne()->getProfession())->getMontantRenouvellement()
-
+                        'profession' => $profession ? [
+                            'libelle' => $profession->getLibelle() ?? "",
+                            'id' => $profession->getId(),
+                            'code' => $profession->getCode(),
+                            'montantNouvelleDemande' => $profession->getMontantNouvelleDemande(),
+                            'montantRenouvellement' => $profession->getMontantRenouvellement(),
                         ] : null,
-                        'id' => $professionnel->getPersonne()->getId(),
-                        'nom' => $professionnel->getPersonne()->getNom(),
-                        'lieuDiplome' => $professionnel->getPersonne()->getLieuDiplome(),
-                        'code' => $professionnel->getPersonne()->getCode(),
-                        'prenoms' => $professionnel->getPersonne()->getPrenoms(),
-                        'number' => $professionnel->getPersonne()->getNumber(),
-                        'email' => $professionnel->getPersonne()->getEmail(),
+                        'id' => $personne->getId(),
+                        'organisationNom' => $personne->getOrganisationNom(),
+                        'emailPro' => $personne->getEmailPro(),
+                        'nom' => $personne->getNom(),
+                        'lieuDiplome' => $personne->getLieuDiplome(),
+                        'code' => $personne->getCode(),
+                        'prenoms' => $personne->getPrenoms(),
+                        'number' => $personne->getNumber(),
+                        'email' => $personne->getEmail(),
                         'type' => "professionnel",
-                        'status' => $professionnel->getPersonne()->getStatus(),
-
-                        'reason' => $professionnel->getPersonne()->getReason() ?? "",
-                        'professionnel' => $professionnel->getPersonne()->getProfessionnel() ?? "",
-                        'civilite' => $professionnel->getPersonne()->getCivilite() ? $professionnel->getPersonne()->getCivilite()->getLibelle() : "",
-                        'nationate' => $professionnel->getPersonne()->getNationate() ? $professionnel->getPersonne()->getNationate()->getLibelle() : "",
-                        'dateNaissance' => $professionnel->getPersonne()->getDateNaissance() ? $professionnel->getPersonne()->getDateNaissance()->format('Y-m-d') : "",
-                        'dateDiplome' => $professionnel->getPersonne()->getDateDiplome() ? $professionnel->getPersonne()->getDateDiplome()->format('Y-m-d') : "",
-                        'diplome' => $professionnel->getPersonne()->getDiplome() ?? "",
-                        'poleSanitaire' => $professionnel->getPersonne()->getPoleSanitaire() ?? "",
-                        'organisationNom' => $professionnel->getPersonne()->getOrganisationNom() ?? "",
-                        'poleSanitairePro' => $professionnel->getPersonne()->getPoleSanitairePro() ?? "",
-                        'lieuExercicePro' => $professionnel->getPersonne()->getLieuExercicePro() ?? "",
-                        'datePremierDiplome' => $professionnel->getPersonne()->getDatePremierDiplome() ? $professionnel->getPersonne()->getDatePremierDiplome()->format('Y-m-d') : "",
-                        'situationPro' => $professionnel->getPersonne()->getSituationPro() ? $professionnel->getPersonne()->getSituationPro()->getLibelle() : "",
-                        'situation' => $professionnel->getPersonne()->getSituation() ?? "",
-                        'appartenirOrganisation' => $professionnel->getPersonne()->getAppartenirOrganisation() ?? "",
-
-                        'photo' => $professionnel->getPersonne()->getPhoto() ? [
-                            'path' => $professionnel->getPersonne()->getPhoto()->getPath(),
-                            'alt' => $professionnel->getPersonne()->getPhoto()->getAlt()
-                        ] : null,
-
-                        'cv' => $professionnel->getPersonne()->getCv() ? [
-                            'path' => $professionnel->getPersonne()->getCv()->getPath(),
-                            'alt' => $professionnel->getPersonne()->getCv()->getAlt()
-                        ] : null,
-
-                        'casier' => $professionnel->getPersonne()->getCasier() ? [
-                            'path' => $professionnel->getPersonne()->getCasier()->getPath(),
-                            'alt' => $professionnel->getPersonne()->getCasier()->getAlt()
-                        ] : null,
-
-                        'certificat' => $professionnel->getPersonne()->getCertificat() ? [
-                            'path' => $professionnel->getPersonne()->getCertificat()->getPath(),
-                            'alt' => $professionnel->getPersonne()->getCertificat()->getAlt()
-                        ] : null,
-
-                        'diplomeFile' => $professionnel->getPersonne()->getDiplomeFile() ? [
-                            'path' => $professionnel->getPersonne()->getDiplomeFile()->getPath(),
-                            'alt' => $professionnel->getPersonne()->getDiplomeFile()->getAlt()
-                        ] : null,
-
-                        'cni' => $professionnel->getPersonne()->getCni() ? [
-                            'path' => $professionnel->getPersonne()->getCni()->getPath(),
-                            'alt' => $professionnel->getPersonne()->getCni()->getAlt()
-                        ] : null,
+                        'status' => $personne->getStatus(),
+                        'quartier' => $personne->getQuartier(),
+                        'reason' => $personne->getReason() ?? "",
+                        'professionnel' => $personne->getProfessionnel() ?? "",
+                        'civilite' => $this->formatEntity($personne->getCivilite()),
+                        'region' => $this->formatEntity($personne->getRegion()),
+                        'district' => $this->formatEntity($personne->getDistrict()),
+                        'commune' => $this->formatEntity($personne->getCommune()),
+                        'ville' => $this->formatEntity($personne->getVille()),
+                        'nationate' => $this->formatEntity($personne->getNationate()),
+                        'situationPro' => $this->formatEntity($personne->getSituationPro()),
+                        'dateNaissance' => $this->formatDate($personne->getDateNaissance()),
+                        'dateDiplome' => $this->formatDate($personne->getDateDiplome()),
+                        'diplome' => $personne->getDiplome() ?? "",
+                        'poleSanitaire' => $personne->getPoleSanitaire() ?? "",
+                        'organisationNom' => $personne->getOrganisationNom() ?? "",
+                        'poleSanitairePro' => $personne->getPoleSanitairePro() ?? "",
+                        'lieuExercicePro' => $personne->getLieuExercicePro() ?? "",
+                        'datePremierDiplome' => $this->formatDate($personne->getDatePremierDiplome()),
+                        'situation' => $personne->getSituation() ?? "",
+                        'appartenirOrganisation' => $personne->getAppartenirOrganisation() ?? "",
+                        'photo' => $this->formatFile($personne->getPhoto()),
+                        'cv' => $this->formatFile($personne->getCv()),
+                        'casier' => $this->formatFile($personne->getCasier()),
+                        'certificat' => $this->formatFile($personne->getCertificat()),
+                        'diplomeFile' => $this->formatFile($personne->getDiplomeFile()),
+                        'cni' => $this->formatFile($personne->getCni()),
                     ]
 
                 ];
@@ -194,20 +247,34 @@ class ApiProfessionnelController extends ApiInterface
     public function numeroGeneration($professionnel, $professionCode, $racine)
     {
 
-        // MS2025APDENT2978.0045
-        // MS1025APDENT2025.0035
-
         $civilite = $professionnel->getCivilite()->getCodeGeneration();
         $anneeInscription = $professionnel->getCreatedAt()->format('y');
         $jour = $professionnel->getDateNaissance()->format('d');
         $annee = $professionnel->getDateNaissance()->format('y');
 
+
         $query = $this->em->createQueryBuilder();
-        $query->select("count(a.id)")
+        $query->select("COUNT(a.id) as total")
             ->from(Professionnel::class, 'a');
 
-        $nb = $query->getQuery()->getSingleScalarResult();
-        return ($racine . $civilite . "0" . $anneeInscription . $professionCode . $jour . $annee . "." . str_pad($nb + 1, 4, '0', STR_PAD_LEFT));
+        $nb = intval($query->getQuery()->getSingleScalarResult());
+
+
+        $nb = ($nb + 1) % 10000;
+        if ($nb == 0) {
+            $nb = 1;
+        }
+
+        return sprintf(
+            "%s%s0%s%s%s%s.%04d",
+            $racine,
+            $civilite,
+            $anneeInscription,
+            $professionCode,
+            $jour,
+            $annee,
+            $nb
+        );
     }
 
 
@@ -243,6 +310,7 @@ class ApiProfessionnelController extends ApiInterface
         ValidatorInterface $validator,
         Registry $workflowRegistry,
         ProfessionRepository $professionRepository,
+        Utils $utils,
         RacineSequenceRepository $racineSequenceRepository,
         SendMailService $sendMailService // Injecter le Registry
     ): Response {
@@ -275,10 +343,16 @@ class ApiProfessionnelController extends ApiInterface
 
             $validationCompteWorkflow->apply($professionnel, $dto->status);
             if ($dto->status == "validation") {
-
+                $profession = $professionRepository->findOneBy(['code' => $professionnel->getProfession()]);
                 $professionCode = $professionRepository->findOneBy(['code' => $professionnel->getProfession()])->getCodeGeneration();
+                $professionChronoMax = $professionRepository->findOneBy(['code' => $professionnel->getProfession()])->getChronoMax();
+                $professionMaxCode = $professionRepository->findOneBy(['code' => $professionnel->getProfession()])->getMaxCode();
+                $code = $professionRepository->findOneBy(['code' => $professionnel->getProfession()])->getCode();
 
-                $professionnel->setCode($this->numeroGeneration($professionnel, $professionCode, $racineSequenceRepository->findOneBySomeField()->getCode()));
+                $numeroGenere = $utils->numeroGeneration($professionnel->getCivilite()->getCodeGeneration(), $professionnel->getDateNaissance() ?? new \DateTime(), $professionnel->getCreatedAt() ?? new \DateTime(), $racineSequenceRepository->findOneBySomeField()->getCode(), $professionMaxCode, "new", $professionCode, $code);
+
+                $professionnel->setCode($numeroGenere);
+                //$professionnel->setCode($this->numeroGeneration($professionnel, $professionCode, $racineSequenceRepository->findOneBySomeField()->getCode()));
             }
             $professionnel->setReason($dto->raison);
             $professionnelRepository->add($professionnel, true);
@@ -294,9 +368,19 @@ class ApiProfessionnelController extends ApiInterface
             $this->em->persist($validationWorkflow);
             $this->em->flush();
 
+            if ($dto->status == "validation") {
+                $profession->setMaxCode(substr($numeroGenere, -4));
+                $this->em->persist($profession);
+                $this->em->flush();
+            }
+
+
             $info_user = [
                 'user' => $userRepository->find($data['userUpdate'])->getUsername(),
                 'etape' => $dto->status,
+                'message' => $dto->status == "validation" ? "Votre dossier a été jugé conforme et
+est désormais en attente de validation finale. Vous recevrez une notification dès que le processus sera complété." : ($dto->status == "renouvellement" ? "Vous avez obtenu un avis favorable d'inscription au registre de la profession [insérer la profession]. Veuillez
+vous rendre à la DEPPS pour le retrait de votre autorisation d'exercice." : ""),
             ];
 
             $context = compact('info_user');
@@ -305,7 +389,7 @@ class ApiProfessionnelController extends ApiInterface
 
             if ($data['email'] != "") {
                 $sendMailService->send(
-                    'test@myonmci.ci',
+                    'tester@myonmci.ci',
                     $data['email'],
                     'Validaton du dossier',
                     'content_validation',
@@ -316,16 +400,13 @@ class ApiProfessionnelController extends ApiInterface
 
             $sendMailService->sendNotification("votre compte vient d'être valider pour l'etape " . $dto->status, $userRepository->findOneBy(['personne' => $professionnel->getId()]), $userRepository->find($data['userUpdate']));
 
-            return $this->responseData($professionnel, 'group_pro', ['Content-Type' => 'application/json']);
+            return $this->responseData($info_user, 'group_pro', ['Content-Type' => 'application/json']);
         } catch (\Exception $exception) {
             return $this->json(["message" => "Une erreur est survenue"], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 
     #[Route('/get/one/{id}', methods: ['GET'])]
-    /**
-     * Affiche un(e) professionnel en offrant un identifiant.
-     */
     #[OA\Response(
         response: 200,
         description: 'Affiche un(e) professionnel en offrant un identifiant',
@@ -340,25 +421,108 @@ class ApiProfessionnelController extends ApiInterface
         schema: new OA\Schema(type: 'string')
     )]
     #[OA\Tag(name: 'professionnel')]
-    //#[Security(name: 'Bearer')]
-    public function getOne(ProfessionnelRepository $professionnelRepository, Professionnel $professionnel)
-    {
+    public function getOne(
+        ProfessionnelRepository $professionnelRepository,
+        UserRepository $userRepository,
+        ProfessionRepository $professionRepository,
+        $id
+    ) {
         try {
+            $professionnel = $userRepository->findOneBy(['personne' => $id]);
 
-            if ($professionnel) {
-                $response = $this->responseData($professionnel, 'group_pro', ['Content-Type' => 'application/json']);
-            } else {
+            if (!$professionnel) {
                 $this->setMessage('Cette ressource est inexistante');
                 $this->setStatusCode(300);
+                return $this->response('[]');
             }
+
+            $personne = $professionnel->getPersonne();
+            $profession = $personne->getProfession() ? $professionRepository->findOneByCode($personne->getProfession()) : null;
+
+            $responseData = [
+                'username' => $professionnel->getUsername(),
+                'id' => $professionnel->getId(),
+                'email' => $professionnel->getEmail(),
+                'typeUser' => $professionnel->getTypeUser(),
+                'personne' => [
+                    'profession' => $profession ? [
+                        'libelle' => $profession->getLibelle() ?? "",
+                        'id' => $profession->getId(),
+                        'code' => $profession->getCode(),
+                        'montantNouvelleDemande' => $profession->getMontantNouvelleDemande(),
+                        'montantRenouvellement' => $profession->getMontantRenouvellement(),
+                    ] : null,
+                    'id' => $personne->getId(),
+                    'organisationNom' => $personne->getOrganisationNom(),
+                    'emailPro' => $personne->getEmailPro(),
+                    'nom' => $personne->getNom(),
+                    'lieuDiplome' => $personne->getLieuDiplome(),
+                    'code' => $personne->getCode(),
+                    'prenoms' => $personne->getPrenoms(),
+                    'number' => $personne->getNumber(),
+                    'email' => $personne->getEmail(),
+                    'type' => "professionnel",
+                    'status' => $personne->getStatus(),
+                    'quartier' => $personne->getQuartier(),
+                    'reason' => $personne->getReason() ?? "",
+                    'professionnel' => $personne->getProfessionnel() ?? "",
+                    'civilite' => $this->formatEntity($personne->getCivilite()),
+                    'region' => $this->formatEntity($personne->getRegion()),
+                    'district' => $this->formatEntity($personne->getDistrict()),
+                    'commune' => $this->formatEntity($personne->getCommune()),
+                    'ville' => $this->formatEntity($personne->getVille()),
+                    'nationate' => $this->formatEntity($personne->getNationate()),
+                    'situationPro' => $this->formatEntity($personne->getSituationPro()),
+                    'dateNaissance' => $this->formatDate($personne->getDateNaissance()),
+                    'dateDiplome' => $this->formatDate($personne->getDateDiplome()),
+                    'diplome' => $personne->getDiplome() ?? "",
+                    'poleSanitaire' => $personne->getPoleSanitaire() ?? "",
+                    'organisationNom' => $personne->getOrganisationNom() ?? "",
+                    'poleSanitairePro' => $personne->getPoleSanitairePro() ?? "",
+                    'lieuExercicePro' => $personne->getLieuExercicePro() ?? "",
+                    'datePremierDiplome' => $this->formatDate($personne->getDatePremierDiplome()),
+                    'situation' => $personne->getSituation() ?? "",
+                    'appartenirOrganisation' => $personne->getAppartenirOrganisation() ?? "",
+                    'photo' => $this->formatFile($personne->getPhoto()),
+                    'cv' => $this->formatFile($personne->getCv()),
+                    'casier' => $this->formatFile($personne->getCasier()),
+                    'certificat' => $this->formatFile($personne->getCertificat()),
+                    'diplomeFile' => $this->formatFile($personne->getDiplomeFile()),
+                    'cni' => $this->formatFile($personne->getCni()),
+                ]
+            ];
+
+            return $this->responseData($responseData, 'group_pro', ['Content-Type' => 'application/json']);
         } catch (\Exception $exception) {
             $this->setMessage($exception->getMessage());
-            $response = $this->response('[]');
+            return $this->response('[]');
         }
-
-
-        return $response;
     }
+
+
+    private function formatEntity($entity): ?array
+    {
+        return $entity ? [
+            'libelle' => $entity->getLibelle(),
+            'id' => $entity->getId(),
+        ] : null;
+    }
+
+    private function formatFile($file): ?array
+    {
+        return $file ? [
+            'path' => $file->getPath(),
+            'alt' => $file->getAlt(),
+            'url' => $file->getPath() . "/" . $file->getAlt(),
+        ] : null;
+    }
+
+
+    private function formatDate($date): ?string
+    {
+        return $date ? $date->format('Y-m-d') : "";
+    }
+
 
 
     private function numero()
@@ -401,6 +565,7 @@ class ApiProfessionnelController extends ApiInterface
                         // etatpe 2
 
 
+                        new OA\Property(property: "code", type: "string"), //pole sanitaire
                         new OA\Property(property: "poleSanitaire", type: "string"), //pole sanitaire
                         new OA\Property(property: "region", type: "string"), //pole sanitaire
                         new OA\Property(property: "district", type: "string"), //pole sanitaire
@@ -512,7 +677,12 @@ class ApiProfessionnelController extends ApiInterface
             $professionnel = new Professionnel();
 
             //ETAPE 2
-
+            if ($request->get('code')) {
+                $professionnel->setCode($request->get('code'));
+                $professionnel->setStatus("renouvellement");
+            } else {
+                $professionnel->setStatus("attente");
+            }
             $professionnel->setPoleSanitaire($request->get('poleSanitaire'));
             $professionnel->setRegion($regionRepository->find($request->get('region')));
             $professionnel->setDistrict($districtRepository->find($request->get('district')));
@@ -520,7 +690,6 @@ class ApiProfessionnelController extends ApiInterface
             $professionnel->setCommune($communeRepository->find($request->get('commune')));
             $professionnel->setQuartier($request->get('quartier'));
             $professionnel->setNom($request->get('nom'));
-            $professionnel->setStatus("attente");
             $professionnel->setProfessionnel($request->get('professionnel'));
             $professionnel->setPrenoms($request->get('prenoms'));
             $professionnel->setEmail($request->get('emailAutre'));
@@ -626,7 +795,7 @@ class ApiProfessionnelController extends ApiInterface
 
                 // TO DO
                 $sendMailService->send(
-                    'test@myonmci.ci',
+                    'tester@myonmci.ci',
                     $request->get('email'),
                     'Informations',
                     'content_mail',
@@ -636,7 +805,16 @@ class ApiProfessionnelController extends ApiInterface
         }
 
 
-        return $this->responseData($professionnel, 'group_pro', ['Content-Type' => 'application/json']);
+        return $this->responseData([
+            'id' => $professionnel->getId(),
+            'code' => $professionnel->getCode(),
+            'status' => $professionnel->getStatus(),
+            'nom' => $professionnel->getNom(),
+            'prenom' => $professionnel->getPrenoms(),
+            'email' => $professionnel->getEmail(),
+            'professionnel' => $professionnel->getProfessionnel(),
+
+        ], 'group_pro', ['Content-Type' => 'application/json']);
     }
 
 
@@ -739,38 +917,80 @@ class ApiProfessionnelController extends ApiInterface
             $names = 'document_' . '01';
             $filePrefix  = str_slug($names);
             $filePath = $this->getUploadDir(self::UPLOAD_PATH, true);
-
+               
             //return $this->responseData($professionnel, 'group_pro', ['Content-Type' => 'application/json']);
             if ($professionnel) {
                 //ETAPE 2
                 /* $professionnel->setCode($request->get('code')); */
-                $professionnel->setPoleSanitaire($request->get('poleSanitaire'));
-                $professionnel->setRegion($regionRepository->find($request->get('region')));
-                $professionnel->setDistrict($districtRepository->find($request->get('district')));
-                $professionnel->setVille($villeRepository->find($request->get('ville')));
-                $professionnel->setCommune($communeRepository->find($request->get('commune')));
-                $professionnel->setQuartier($request->get('quartier'));
-                $professionnel->setNom($request->get('nom'));
-                $professionnel->setProfessionnel($request->get('professionnel'));
-                $professionnel->setPrenoms($request->get('prenoms'));
-                $professionnel->setEmail($request->get('emailAutre'));
-                $professionnel->setLieuExercicePro($request->get('lieuExercicePro'));
-
-                //ETAPE 3
-
-                $professionnel->setProfession($request->get('profession'));
-                $professionnel->setCivilite($civiliteRepository->find($request->get('civilite')));
-                $professionnel->setEmailPro($request->get('emailPro'));
-                $professionnel->setDateDiplome(new DateTimeImmutable($request->get('dateDiplome')));
-                $professionnel->setDateNaissance(new DateTimeImmutable($request->get('dateNaissance')));
-                $professionnel->setNumber($request->get('numero'));
-                $professionnel->setLieuDiplome($request->get('lieuDiplome'));
-                $professionnel->setNationate($paysRepository->find($request->get('nationalite')));
-                $professionnel->setSituation($request->get('situation'));
-                $professionnel->setDatePremierDiplome($request->get('datePremierDiplome'));
-                $professionnel->setPoleSanitairePro($request->get('poleSanitairePro'));
-                $professionnel->setDiplome($request->get('diplome'));
-                $professionnel->setSituationPro($situationProfessionnelleRepository->find($request->get('situationPro')));
+                if (!empty($request->get('poleSanitaire'))) {
+                    $professionnel->setPoleSanitaire($request->get('poleSanitaire'));
+                }
+                if (!empty($request->get('region'))) {
+                    $professionnel->setRegion($regionRepository->find($request->get('region')));
+                }
+                if (!empty($request->get('district'))) {
+                    $professionnel->setDistrict($districtRepository->find($request->get('district')));
+                }
+                if (!empty($request->get('ville'))) {
+                    $professionnel->setVille($villeRepository->find($request->get('ville')));
+                }
+                if (!empty($request->get('commune'))) {
+                    $professionnel->setCommune($communeRepository->find($request->get('commune')));
+                }
+                if (!empty($request->get('quartier'))) {
+                    $professionnel->setQuartier($request->get('quartier'));
+                }
+                if (!empty($request->get('nom'))) {
+                    $professionnel->setNom($request->get('nom'));
+                }
+                if (!empty($request->get('professionnel'))) {
+                    $professionnel->setProfessionnel($request->get('professionnel'));
+                }
+                if (!empty($request->get('prenoms'))) {
+                    $professionnel->setPrenoms($request->get('prenoms'));
+                }
+                if (!empty($request->get('emailAutre'))) {
+                    $professionnel->setEmail($request->get('emailAutre'));
+                }
+                if (!empty($request->get('lieuExercicePro'))) {
+                    $professionnel->setLieuExercicePro($request->get('lieuExercicePro'));
+                }
+                if (!empty($request->get('civilite'))) {
+                    $professionnel->setCivilite($civiliteRepository->find($request->get('civilite')));
+                }
+                if (!empty($request->get('emailPro'))) {
+                    $professionnel->setEmailPro($request->get('emailPro'));
+                }
+                if (!empty($request->get('dateDiplome'))) {
+                    $professionnel->setDateDiplome(new DateTimeImmutable($request->get('dateDiplome')));
+                }
+                if (!empty($request->get('dateNaissance'))) {
+                    $professionnel->setDateNaissance(new DateTimeImmutable($request->get('dateNaissance')));
+                }
+                if (!empty($request->get('numero'))) {
+                    $professionnel->setNumber($request->get('numero'));
+                }
+                if (!empty($request->get('lieuDiplome'))) {
+                    $professionnel->setLieuDiplome($request->get('lieuDiplome'));
+                }
+                if (!empty($request->get('nationalite'))) {
+                    $professionnel->setNationate($paysRepository->find($request->get('nationalite')));
+                }
+                if (!empty($request->get('situation'))) {
+                    $professionnel->setSituation($request->get('situation'));
+                }
+                if (!empty($request->get('datePremierDiplome'))) {
+                    $professionnel->setDatePremierDiplome(new DateTimeImmutable($request->get('datePremierDiplome')));
+                }
+                if (!empty($request->get('poleSanitairePro'))) {
+                    $professionnel->setPoleSanitairePro($request->get('poleSanitairePro'));
+                }
+                if (!empty($request->get('diplome'))) {
+                    $professionnel->setDiplome($request->get('diplome'));
+                }
+                if (!empty($request->get('situationPro'))) {
+                    $professionnel->setSituationPro($situationProfessionnelleRepository->find($request->get('situationPro')));
+                }
 
 
 
@@ -821,8 +1041,8 @@ class ApiProfessionnelController extends ApiInterface
 
                 $professionnel->setAppartenirOrganisation($request->get('appartenirOrganisation'));
 
-                $professionnel->setCreatedBy($this->userRepository->find($request->get('userUpdate')));
-                $professionnel->setUpdatedBy($this->userRepository->find($request->get('userUpdate')));
+                /* $professionnel->setCreatedBy($this->userRepository->find($request->get('userUpdate')));
+                $professionnel->setUpdatedBy($this->userRepository->find($request->get('userUpdate'))); */
 
                 $errorResponse = $this->errorResponse($professionnel);
 
@@ -838,7 +1058,17 @@ class ApiProfessionnelController extends ApiInterface
                 } else {
                     $professionnelRepository->add($professionnel, true);
                 }
-                $response = $this->responseData($professionnel, 'group_pro', ['Content-Type' => 'application/json']);
+                $response = $this->responseData([
+                    'error' => $errorResponse,
+                    'id' => $professionnel->getId(),
+                    'code' => $professionnel->getCode(),
+                    'status' => $professionnel->getStatus(),
+                    'nom' => $professionnel->getNom(),
+                    'prenom' => $professionnel->getPrenoms(),
+                    'email' => $professionnel->getEmail(),
+                    'professionnel' => $professionnel->getProfessionnel(),
+
+                ], 'group_pro', ['Content-Type' => 'application/json']);
             }
         } catch (\Exception $exception) {
             $this->setMessage("");

@@ -18,24 +18,37 @@ class ResetPasswordService
         private MailerInterface $mailer,
         private UrlGeneratorInterface $urlGenerator,
         private  TokenGeneratorInterface $tokenGenerator,
+        private SendMailService $sendMailService,
     ) {}
 
     public function sendResetPasswordEmail($user): void
     {
+
+        $token = $this->tokenGenerator->generateToken();
         $resetRpassWOrd = new ResetPasswordToken($user);
-        $resetRpassWOrd->setToken($this->tokenGenerator->generateToken());
+        $resetRpassWOrd->setToken($token);
         $this->em->persist($resetRpassWOrd);
         $this->em->flush();
 
+      
+        $user->setResetToken($token);
+        $this->em->persist($user);
+        $this->em->flush();
+
         // URL du frontend Svelte pour la réinitialisation
-        $frontendResetUrl = "https://mon-app-svelte.com/reset-password/{$this->tokenGenerator->generateToken()}";
+        $url = "https://mydepps.pages.dev/site/connexion/nouveau_mot_de_passe/{$token}";
 
-        $email = (new Email())
-            ->from('no-reply@example.com')
-            ->to($user->getEmail())
-            ->subject('Réinitialisation de votre mot de passe')
-            ->html("<p> Cliquez sur le lien suivant pour réinitialiser votre mot de passe : <a href='$frontendResetUrl'>$frontendResetUrl</a></p>");
+        $context = compact('url', 'user');
 
-        $this->mailer->send($email);
+        $this->sendMailService->send(
+            //'konatefvaly@gmail.com',
+            'tester@myonmci.ci',
+            $user->getEmail(),
+            'reinitialisation',
+            'password_reset',
+            $context
+        );
+
+       
     }
 }

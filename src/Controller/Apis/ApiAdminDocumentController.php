@@ -43,7 +43,7 @@ class ApiAdminDocumentController extends ApiInterface
 
             $adminDocuments = $adminDocumentRepository->findAll();
 
-            $response =  $this->responseData($adminDocuments, 'group_pro', ['Content-Type' => 'application/json']);
+            $response =  $this->responseData($adminDocuments, 'group1', ['Content-Type' => 'application/json']);
         } catch (\Exception $exception) {
             $this->setMessage("");
             $response = $this->response('[]');

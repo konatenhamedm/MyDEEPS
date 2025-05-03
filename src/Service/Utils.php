@@ -4,8 +4,10 @@ namespace App\Service;
 
 use App\Attribute\Source;
 use App\Controller\FileTrait;
+use App\Entity\CodeGenerateur;
 use App\Entity\Colonne;
 use App\Entity\Fichier;
+use App\Entity\Professionnel;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use ReflectionClass;
@@ -109,5 +111,51 @@ class Utils
             mkdir($path, 0777, true);
         }
         return $path;
+    }
+
+    public function numeroGeneration($codeCilite, $dataNaissance, $dataCreate, $racine, $dernierChronoAvantReset, $type, $professionCode,$profession)
+    {
+
+        $civilite = $codeCilite;
+        $anneeInscription = $dataCreate->format('y');
+        $jour = $dataNaissance->format('d');
+        $annee = $dataNaissance->format('y');
+
+
+        $query = $this->em->createQueryBuilder();
+        $query
+            ->select("count(a.id)")
+            ->from(CodeGenerateur::class, 'a')
+            ->innerJoin('a.profession', 'r') 
+            ->andWhere('r.code = :valeur') 
+            ->setParameter('valeur', $profession)
+          ;
+
+      
+        $dernierChrono = $query->getQuery()->getSingleScalarResult(); 
+
+
+        if ($type === 'new') {
+            $maxChrono = intval($dernierChronoAvantReset);
+        } else {
+            $maxChrono = intval($dernierChrono);
+        }
+
+
+        $maxChrono = ($maxChrono + 1) % 10000;
+        if ($maxChrono == 0) {
+            $maxChrono = 1;
+        }
+
+        return sprintf(
+            "%s%s0%s%s%s%s.%04d",
+            $racine,
+            $civilite,
+            $anneeInscription,
+            $professionCode,
+            $jour,
+            $annee,
+            $maxChrono
+        );
     }
 }

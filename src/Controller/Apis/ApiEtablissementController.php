@@ -108,7 +108,7 @@ class ApiEtablissementController extends ApiInterface
 
             // TO DO
             $sendMailService->send(
-                'test@myonmci.ci',
+                'tester@myonmci.ci',
                 $data['email'],
                 'Validaton du dossier',
                 'content_validation',
@@ -234,7 +234,7 @@ class ApiEtablissementController extends ApiInterface
       
 
                     // Informations générales
-            $etablissement->setTypePersonne($typePersonneRepository->find($request->get('typePersonne'))); 
+           /*  $etablissement->setTypePersonne($typePersonneRepository->find($request->get('typePersonne'))); 
             $etablissement->setNatureEntreprise($request->get('natureEntreprise'));
             $etablissement->setTypeEntreprise($request->get('typeEntreprise'));
             $etablissement->setGpsEntreprise($request->get('gpsEntreprise'));
@@ -261,7 +261,7 @@ class ApiEtablissementController extends ApiInterface
             $etablissement->setProfessionTechnique($request->get('professionTechnique'));
             $etablissement->setContactProTechnique($request->get('contactProTechnique'));
             $etablissement->setLieuResidenceTechnique($request->get('lieuResidenceTechnique'));
-            $etablissement->setNumeroOrdreTechnique($request->get('numeroOrdreTechnique'));
+            $etablissement->setNumeroOrdreTechnique($request->get('numeroOrdreTechnique')); */
 
             // Documents
             $uploadedPhoto = $request->files->get('photo'); // 'photoRespo' correspond à 'photo'
@@ -335,7 +335,7 @@ class ApiEtablissementController extends ApiInterface
 
                 // TO DO
                 $sendMailService->send(
-                    'test@myonmci.ci',
+                    'tester@myonmci.ci',
                     $request->get('email'),
                     'Informations',
                     'content_mail',

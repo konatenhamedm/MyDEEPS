@@ -28,7 +28,7 @@ class Professionnel extends Entite
     private ?string $poleSanitaire = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Group(["group_pro", "group_user_trx"])]
+    #[Group(["group_pro", "group_user_trx","group1"])]
     private ?string $nom = null;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -36,7 +36,7 @@ class Professionnel extends Entite
     private ?string $professionnel = null; // structure 
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Group(["group_pro", "group_user_trx"])]
+    #[Group(["group_pro", "group_user_trx","group1"])]
     private ?string $prenoms = null;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -44,7 +44,7 @@ class Professionnel extends Entite
     private ?string $lieuExercicePro = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Group(["group_pro", "group_user_trx"])]
+    #[Group(["group_pro", "group_user_trx","group1"])]
     private ?string $email = null;
 
 
