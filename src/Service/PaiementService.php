@@ -159,7 +159,7 @@ class PaiementService
             "montant" => "100",
             "lib_order" => "PAIEMENT ONMCI",
             "Url_Retour" => "https://mydepps.net/site/" . $request->get('type'),
-            "Url_Callback" => "https://app.mydepps.net/api/paiement/info-paiement"
+            "Url_Callback" => "https://prodmydepps.leadagro.net/api/paiement/info-paiement"
         ];
 
         $response = $this->httpClient->request('POST', $this->paiementUrl, [
