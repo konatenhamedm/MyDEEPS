@@ -32,6 +32,7 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Workflow\Registry;
 use Symfony\Component\Workflow\WorkflowInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+
 #[Route('/api/etablissement')]
 class ApiEtablissementController extends ApiInterface
 {
@@ -63,7 +64,8 @@ class ApiEtablissementController extends ApiInterface
         EtablissementRepository $etablissementlRepository,
         UserRepository $userRepository,
         ValidatorInterface $validator,
-        Registry $workflowRegistry,SendMailService $sendMailService  // Injecter le Registry
+        Registry $workflowRegistry,
+        SendMailService $sendMailService  // Injecter le Registry
     ): Response {
         try {
 
@@ -122,7 +124,7 @@ class ApiEtablissementController extends ApiInterface
         }
     }
 
- 
+
 
     #[Route('/create',  methods: ['POST'])]
     /**
@@ -139,47 +141,47 @@ class ApiEtablissementController extends ApiInterface
                 schema: new OA\Schema(
                     properties: [
 
-                  // Informations utilisateur
-                new OA\Property(property: "password", type: "string"),
-                new OA\Property(property: "confirmPassword", type: "string"),
-                new OA\Property(property: "email", type: "string"),
+                        // Informations utilisateur
+                        new OA\Property(property: "password", type: "string"),
+                        new OA\Property(property: "confirmPassword", type: "string"),
+                        new OA\Property(property: "email", type: "string"),
 
-                // Informations sur l'entreprise
-                new OA\Property(property: "typePersonne", type: "string"),
-                new OA\Property(property: "natureEntreprise", type: "string"),
-                new OA\Property(property: "typeEntreprise", type: "string"),
-                new OA\Property(property: "gpsEntreprise", type: "string"),
-                new OA\Property(property: "niveauEntreprise", type: "string"),
-                new OA\Property(property: "contactEntreprise", type: "string"),
-                new OA\Property(property: "nomEntreprise", type: "string"),
-                new OA\Property(property: "emailEntreprise", type: "string"),
-                new OA\Property(property: "spaceEntreprise", type: "string"),
+                        // Informations sur l'entreprise
+                        new OA\Property(property: "typePersonne", type: "string"),
+                        new OA\Property(property: "natureEntreprise", type: "string"),
+                        new OA\Property(property: "typeEntreprise", type: "string"),
+                        new OA\Property(property: "gpsEntreprise", type: "string"),
+                        new OA\Property(property: "niveauEntreprise", type: "string"),
+                        new OA\Property(property: "contactEntreprise", type: "string"),
+                        new OA\Property(property: "nomEntreprise", type: "string"),
+                        new OA\Property(property: "emailEntreprise", type: "string"),
+                        new OA\Property(property: "spaceEntreprise", type: "string"),
 
-                // Informations du promoteur
-                new OA\Property(property: "genre", type: "string"),
-                new OA\Property(property: "nomCompletPromoteur", type: "string"),
-                new OA\Property(property: "emailPro", type: "string"),
-                new OA\Property(property: "profession", type: "string"),
-                new OA\Property(property: "contactsPromoteur", type: "string"),
-                new OA\Property(property: "lieuResidence", type: "string"),
-                new OA\Property(property: "numeroCni", type: "string"),
+                        // Informations du promoteur
+                        new OA\Property(property: "genre", type: "string"),
+                        new OA\Property(property: "nomCompletPromoteur", type: "string"),
+                        new OA\Property(property: "emailPro", type: "string"),
+                        new OA\Property(property: "profession", type: "string"),
+                        new OA\Property(property: "contactsPromoteur", type: "string"),
+                        new OA\Property(property: "lieuResidence", type: "string"),
+                        new OA\Property(property: "numeroCni", type: "string"),
 
-                // Informations du responsable technique
-                new OA\Property(property: "nomCompletTechnique", type: "string"),
-                new OA\Property(property: "emailProTechnique", type: "string"),
-                new OA\Property(property: "professionTechnique", type: "string"),
-                new OA\Property(property: "contactProTechnique", type: "string"),
-                new OA\Property(property: "lieuResidenceTechnique", type: "string"),
-                new OA\Property(property: "numeroOrdreTechnique", type: "string"),
-                new OA\Property(property: "reference", type: "string"),
-                // Documents (fichiers en binaire)
-                new OA\Property(property: "photo", type: "string", format: "binary"),
-                new OA\Property(property: "cni", type: "string", format: "binary"),
-                new OA\Property(property: "dfe", type: "string", format: "binary"),
-                new OA\Property(property: "diplomeFile", type: "string", format: "binary"),
-                new OA\Property(property: "ordreNational", type: "string", format: "binary"),
-                new OA\Property(property: "cv", type: "string", format: "binary"),
-  
+                        // Informations du responsable technique
+                        new OA\Property(property: "nomCompletTechnique", type: "string"),
+                        new OA\Property(property: "emailProTechnique", type: "string"),
+                        new OA\Property(property: "professionTechnique", type: "string"),
+                        new OA\Property(property: "contactProTechnique", type: "string"),
+                        new OA\Property(property: "lieuResidenceTechnique", type: "string"),
+                        new OA\Property(property: "numeroOrdreTechnique", type: "string"),
+                        new OA\Property(property: "reference", type: "string"),
+                        // Documents (fichiers en binaire)
+                        new OA\Property(property: "photo", type: "string", format: "binary"),
+                        new OA\Property(property: "cni", type: "string", format: "binary"),
+                        new OA\Property(property: "dfe", type: "string", format: "binary"),
+                        new OA\Property(property: "diplomeFile", type: "string", format: "binary"),
+                        new OA\Property(property: "ordreNational", type: "string", format: "binary"),
+                        new OA\Property(property: "cv", type: "string", format: "binary"),
+
 
                     ],
                     type: "object"
@@ -195,7 +197,7 @@ class ApiEtablissementController extends ApiInterface
     )]
     #[OA\Tag(name: 'etablissement')]
     #[Security(name: 'Bearer')]
-    public function create(UserPasswordHasherInterface $hasher,Request $request,SessionInterface $session,SendMailService $sendMailService,TransactionRepository $transactionRepository, GenreRepository $genreRepository, EtablissementRepository $etablissementRepository, TypePersonneRepository $typePersonneRepository): Response
+    public function create(UserPasswordHasherInterface $hasher, Request $request, SessionInterface $session, SendMailService $sendMailService, TransactionRepository $transactionRepository, GenreRepository $genreRepository, EtablissementRepository $etablissementRepository, TypePersonneRepository $typePersonneRepository): Response
     {
 
         $names = 'document_' . '01';
@@ -204,37 +206,37 @@ class ApiEtablissementController extends ApiInterface
 
         //dd($request->get('dateDiplome'));
 
-       $transaction = $transactionRepository->findOneBy(['reference' =>  $request->get('reference'), 'user' => null]);
+        $transaction = $transactionRepository->findOneBy(['reference' =>  $request->get('reference'), 'user' => null]);
 
-        if(!$transaction){
+        if (!$transaction) {
             return $this->response("Transaction introuvable");
-        }else{
-           
-
-        $user = new User();
-        $user->setUsername($request->get('nomEntreprise') . " " . $this->numero());
-        $user->setEmail($request->get('email'));
-        $plainPassword = $request->get('password');
- 
-
-       $user->setPassword($hasher->hashPassword($user, $plainPassword));
-       // $user->setPassword("test");
-        $user->setRoles(['ROLE_MEMBRE']);
-        $user->setTypeUser(User::TYPE['ETABLISSEMENT']);
-        $user->setPayement(User::PAYEMENT['init_payement']);
-
-
-        $errorResponse1 = $request->get('password') !== $request->get('confirmPassword') ?  $this->errorResponse($user, "Les mots de passe ne sont pas identiques") :  $this->errorResponse($user);
-        if ($errorResponse1 !== null) {
-            return $errorResponse1; // Retourne la réponse d'erreur si des erreurs sont présentes
         } else {
 
-            
-            $etablissement = new Etablissement();
-      
 
-                    // Informations générales
-           /*  $etablissement->setTypePersonne($typePersonneRepository->find($request->get('typePersonne'))); 
+            $user = new User();
+            $user->setUsername($request->get('nomEntreprise') . " " . $this->numero());
+            $user->setEmail($request->get('email'));
+            $plainPassword = $request->get('password');
+
+
+            $user->setPassword($hasher->hashPassword($user, $plainPassword));
+            // $user->setPassword("test");
+            $user->setRoles(['ROLE_MEMBRE']);
+            $user->setTypeUser(User::TYPE['ETABLISSEMENT']);
+            $user->setPayement(User::PAYEMENT['init_payement']);
+
+
+            $errorResponse1 = $request->get('password') !== $request->get('confirmPassword') ?  $this->errorResponse($user, "Les mots de passe ne sont pas identiques") :  $this->errorResponse($user);
+            if ($errorResponse1 !== null) {
+                return $errorResponse1; // Retourne la réponse d'erreur si des erreurs sont présentes
+            } else {
+
+
+                $etablissement = new Etablissement();
+
+
+                // Informations générales
+                /*  $etablissement->setTypePersonne($typePersonneRepository->find($request->get('typePersonne'))); 
             $etablissement->setNatureEntreprise($request->get('natureEntreprise'));
             $etablissement->setTypeEntreprise($request->get('typeEntreprise'));
             $etablissement->setGpsEntreprise($request->get('gpsEntreprise'));
@@ -263,17 +265,17 @@ class ApiEtablissementController extends ApiInterface
             $etablissement->setLieuResidenceTechnique($request->get('lieuResidenceTechnique'));
             $etablissement->setNumeroOrdreTechnique($request->get('numeroOrdreTechnique')); */
 
-            // Documents
-            $uploadedPhoto = $request->files->get('photo'); // 'photoRespo' correspond à 'photo'
-            $uploadedOrdreNational = $request->files->get('ordreNational');
-            $uploadedCni = $request->files->get('cni');
-            $uploadedDiplome = $request->files->get('diplomeFile');
-            $uploadedCv = $request->files->get('cv');
-            $uploadedDfe = $request->files->get('dfe');
+                // Documents
+                $uploadedPhoto = $request->files->get('photo'); // 'photoRespo' correspond à 'photo'
+                $uploadedOrdreNational = $request->files->get('ordreNational');
+                $uploadedCni = $request->files->get('cni');
+                $uploadedDiplome = $request->files->get('diplomeFile');
+                $uploadedCv = $request->files->get('cv');
+                $uploadedDfe = $request->files->get('dfe');
 
-           
 
-            if ($uploadedPhoto) {
+
+                /* if ($uploadedPhoto) {
                 $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedPhoto, self::UPLOAD_PATH);
                 if ($fichier) {
                     $etablissement->setPhoto($fichier);
@@ -308,57 +310,54 @@ class ApiEtablissementController extends ApiInterface
                 if ($fichier) {
                     $etablissement->setCv($fichier);
                 }
-            }
+            } */
 
-           // $etablissement->setUser($user);
+                // $etablissement->setUser($user);
 
 
-            $etablissement->setCreatedBy($user);
-            $etablissement->setUpdatedBy($user);
+                $etablissement->setCreatedBy($user);
+                $etablissement->setUpdatedBy($user);
 
-            $errorResponse = $this->errorResponse($etablissement);
-            if ($errorResponse !== null) {
-                return $errorResponse; // Retourne la réponse d'erreur si des erreurs sont présentes
-            } else {
-           
-                $this->userRepository->add($user, true);
-                    
-                $etablissementRepository->add($etablissement, true);
+                $errorResponse = $this->errorResponse($etablissement);
+                if ($errorResponse !== null) {
+                    return $errorResponse; // Retourne la réponse d'erreur si des erreurs sont présentes
+                } else {
 
-               
-                $info_user = [
-                    'login' => $request->get('email'),
-                    'password' => $request->get('confirmPassword')
-                ];
-
-                $context = compact('info_user');
-
-                // TO DO
-                $sendMailService->send(
-                    'tester@myonmci.ci',
-                    $request->get('email'),
-                    'Informations',
-                    'content_mail',
-                    $context
-                );
-               
-
-                if( $transaction){
-                    $transaction->setUser($user);
-                    $transaction->setCreatedBy($user);
-                    $transaction->setUpdatedBy($user);
-                    $transactionRepository->add($transaction, true);
-
-                   
-                    $user->setPayement(User::PAYEMENT['payed']);
                     $this->userRepository->add($user, true);
-                }
-                   
 
-              
+                    $etablissementRepository->add($etablissement, true);
+
+
+                    $info_user = [
+                        'login' => $request->get('email'),
+                        'password' => $request->get('confirmPassword')
+                    ];
+
+                    $context = compact('info_user');
+
+                    // TO DO
+                    $sendMailService->send(
+                        'tester@myonmci.ci',
+                        $request->get('email'),
+                        'Informations',
+                        'content_mail',
+                        $context
+                    );
+
+
+                    if ($transaction) {
+                        $transaction->setUser($user);
+                        $transaction->setCreatedBy($user);
+                        $transaction->setUpdatedBy($user);
+                        $transactionRepository->add($transaction, true);
+
+
+                        $user->setPayement(User::PAYEMENT['payed']);
+                        $this->userRepository->add($user, true);
+                    }
+                }
             }
         }
-   }
 
         return $this->responseData($etablissement, 'group_pro', ['Content-Type' => 'application/json']);
     }
@@ -379,19 +378,18 @@ class ApiEtablissementController extends ApiInterface
     )]
     #[OA\Tag(name: 'etablissement')]
     // #[Security(name: 'Bearer')]
-    public function index(EtablissementRepository $etablissementRepository,UserRepository $userRepository): Response
+    public function index(EtablissementRepository $etablissementRepository, UserRepository $userRepository): Response
     {
-       
+
         try {
             /* $etablissements = $etablissementRepository->findAll(); */
 
             $etablissements = $userRepository->findBy(['typeUser' => 'ETABLISSEMENT']);
-            
+
             $response = $this->responseData($etablissements, 'group_pro', ['Content-Type' => 'application/json']);
-         
         } catch (\Exception $exception) {
             $this->setMessage("");
-           $this->response('[]');
+            $this->response('[]');
         }
 
         // On envoie la réponse
@@ -399,7 +397,7 @@ class ApiEtablissementController extends ApiInterface
     }
 
 
-  
+
 
 
 
@@ -422,10 +420,10 @@ class ApiEtablissementController extends ApiInterface
     )]
     #[OA\Tag(name: 'etablissement')]
     //#[Security(name: 'Bearer')]
-    public function getOne(EtablissementRepository $etablissementRepository,Etablissement $etablissement)
+    public function getOne(EtablissementRepository $etablissementRepository, Etablissement $etablissement)
     {
         try {
-          
+
 
             if ($etablissement) {
                 $response = $this->responseData($etablissement, 'group_pro', ['Content-Type' => 'application/json']);
@@ -471,46 +469,46 @@ class ApiEtablissementController extends ApiInterface
                 schema: new OA\Schema(
                     properties: [
 
-                      
-
-                new OA\Property(property: "typePersonne", type: "string"),
-                new OA\Property(property: "natureEntreprise", type: "string"),
-                new OA\Property(property: "typeEntreprise", type: "string"),
-                new OA\Property(property: "gpsEntreprise", type: "string"),
-                new OA\Property(property: "niveauEntreprise", type: "string"),
-                new OA\Property(property: "contactEntreprise", type: "string"),
-                new OA\Property(property: "nomEntreprise", type: "string"),
-                new OA\Property(property: "emailEntreprise", type: "string"),
-                new OA\Property(property: "spaceEntreprise", type: "string"),
-
-                // Informations du promoteur
-                new OA\Property(property: "genre", type: "string"),
-                new OA\Property(property: "nomCompletPromoteur", type: "string"),
-                new OA\Property(property: "emailPro", type: "string"),
-                new OA\Property(property: "profession", type: "string"),
-                new OA\Property(property: "contactsPromoteur", type: "string"),
-                new OA\Property(property: "lieuResidence", type: "string"),
-                new OA\Property(property: "numeroCni", type: "string"),
-
-                // Informations du responsable technique
-                new OA\Property(property: "nomCompletTechnique", type: "string"),
-                new OA\Property(property: "emailProTechnique", type: "string"),
-                new OA\Property(property: "professionTechnique", type: "string"),
-                new OA\Property(property: "contactProTechnique", type: "string"),
-                new OA\Property(property: "lieuResidenceTechnique", type: "string"),
-                new OA\Property(property: "numeroOrdreTechnique", type: "string"),
-
-                // Documents (fichiers en binaire)
-                new OA\Property(property: "photo", type: "string", format: "binary"),
-                new OA\Property(property: "cni", type: "string", format: "binary"),
-                new OA\Property(property: "dfe", type: "string", format: "binary"),
-                new OA\Property(property: "diplomeFile", type: "string", format: "binary"),
-                new OA\Property(property: "ordreNational", type: "string", format: "binary"),
-                new OA\Property(property: "cv", type: "string", format: "binary"),
-  
 
 
-                       
+                        new OA\Property(property: "typePersonne", type: "string"),
+                        new OA\Property(property: "natureEntreprise", type: "string"),
+                        new OA\Property(property: "typeEntreprise", type: "string"),
+                        new OA\Property(property: "gpsEntreprise", type: "string"),
+                        new OA\Property(property: "niveauEntreprise", type: "string"),
+                        new OA\Property(property: "contactEntreprise", type: "string"),
+                        new OA\Property(property: "nomEntreprise", type: "string"),
+                        new OA\Property(property: "emailEntreprise", type: "string"),
+                        new OA\Property(property: "spaceEntreprise", type: "string"),
+
+                        // Informations du promoteur
+                        new OA\Property(property: "genre", type: "string"),
+                        new OA\Property(property: "nomCompletPromoteur", type: "string"),
+                        new OA\Property(property: "emailPro", type: "string"),
+                        new OA\Property(property: "profession", type: "string"),
+                        new OA\Property(property: "contactsPromoteur", type: "string"),
+                        new OA\Property(property: "lieuResidence", type: "string"),
+                        new OA\Property(property: "numeroCni", type: "string"),
+
+                        // Informations du responsable technique
+                        new OA\Property(property: "nomCompletTechnique", type: "string"),
+                        new OA\Property(property: "emailProTechnique", type: "string"),
+                        new OA\Property(property: "professionTechnique", type: "string"),
+                        new OA\Property(property: "contactProTechnique", type: "string"),
+                        new OA\Property(property: "lieuResidenceTechnique", type: "string"),
+                        new OA\Property(property: "numeroOrdreTechnique", type: "string"),
+
+                        // Documents (fichiers en binaire)
+                        new OA\Property(property: "photo", type: "string", format: "binary"),
+                        new OA\Property(property: "cni", type: "string", format: "binary"),
+                        new OA\Property(property: "dfe", type: "string", format: "binary"),
+                        new OA\Property(property: "diplomeFile", type: "string", format: "binary"),
+                        new OA\Property(property: "ordreNational", type: "string", format: "binary"),
+                        new OA\Property(property: "cv", type: "string", format: "binary"),
+
+
+
+
 
 
 
@@ -532,81 +530,81 @@ class ApiEtablissementController extends ApiInterface
             $filePrefix  = str_slug($names);
             $filePath = $this->getUploadDir(self::UPLOAD_PATH, true);
 
-         
-            if ($etablissement) {
-             
-                 $etablissement->setTypePersonne($request->get('typePersonne')); 
-            $etablissement->setNatureEntreprise($request->get('natureEntreprise'));
-            $etablissement->setTypeEntreprise($request->get('typeEntreprise'));
-            $etablissement->setGpsEntreprise($request->get('gpsEntreprise'));
-            $etablissement->setNiveauEntreprise($request->get('niveauEntreprise'));
-            $etablissement->setContactEntreprise($request->get('contactEntreprise'));
-            $etablissement->setNomEntreprise($request->get('nomEntreprise'));
-            $etablissement->setEmailEntreprise($request->get('emailEntreprise'));
-            $etablissement->setSpaceEntreprise($request->get('spaceEntreprise'));
 
-            // Promoteur
-            $etablissement->setGenre($genreRepository->find($request->get('genre')));
-            $etablissement->setNomCompletPromoteur($request->get('nomCompletPromoteur'));
-            $etablissement->setEmailPro($request->get('emailPro'));
-            $etablissement->setProfession($request->get('profession'));
-            $etablissement->setContactsPromoteur($request->get('contactsPromoteur'));
-            $etablissement->setLieuResidence($request->get('lieuResidence'));
-            $etablissement->setNumeroCni($request->get('numeroCni'));
+            /* if ($etablissement) {
 
-            // Technicien
-            $etablissement->setNomCompletTechnique($request->get('nomCompletTechnique'));
-            $etablissement->setEmailProTechnique($request->get('emailProTechnique'));
-            $etablissement->setProfessionTechnique($request->get('professionTechnique'));
-            $etablissement->setContactProTechnique($request->get('contactProTechnique'));
-            $etablissement->setLieuResidenceTechnique($request->get('lieuResidenceTechnique'));
-            $etablissement->setNumeroOrdreTechnique($request->get('numeroOrdreTechnique'));
+                $etablissement->setTypePersonne($request->get('typePersonne'));
+                $etablissement->setNatureEntreprise($request->get('natureEntreprise'));
+                $etablissement->setTypeEntreprise($request->get('typeEntreprise'));
+                $etablissement->setGpsEntreprise($request->get('gpsEntreprise'));
+                $etablissement->setNiveauEntreprise($request->get('niveauEntreprise'));
+                $etablissement->setContactEntreprise($request->get('contactEntreprise'));
+                $etablissement->setNomEntreprise($request->get('nomEntreprise'));
+                $etablissement->setEmailEntreprise($request->get('emailEntreprise'));
+                $etablissement->setSpaceEntreprise($request->get('spaceEntreprise'));
 
-            // Documents
-            $uploadedPhoto = $request->files->get('photo'); // 'photoRespo' correspond à 'photo'
-            $uploadedOrdreNational = $request->files->get('ordreNational');
-            $uploadedCni = $request->files->get('cni');
-            $uploadedDiplome = $request->files->get('diplomeFile');
-            $uploadedCv = $request->files->get('cv');
-            $uploadedDfe = $request->files->get('dfe');
+                // Promoteur
+                $etablissement->setGenre($genreRepository->find($request->get('genre')));
+                $etablissement->setNomCompletPromoteur($request->get('nomCompletPromoteur'));
+                $etablissement->setEmailPro($request->get('emailPro'));
+                $etablissement->setProfession($request->get('profession'));
+                $etablissement->setContactsPromoteur($request->get('contactsPromoteur'));
+                $etablissement->setLieuResidence($request->get('lieuResidence'));
+                $etablissement->setNumeroCni($request->get('numeroCni'));
+
+                // Technicien
+                $etablissement->setNomCompletTechnique($request->get('nomCompletTechnique'));
+                $etablissement->setEmailProTechnique($request->get('emailProTechnique'));
+                $etablissement->setProfessionTechnique($request->get('professionTechnique'));
+                $etablissement->setContactProTechnique($request->get('contactProTechnique'));
+                $etablissement->setLieuResidenceTechnique($request->get('lieuResidenceTechnique'));
+                $etablissement->setNumeroOrdreTechnique($request->get('numeroOrdreTechnique'));
+
+                // Documents
+                $uploadedPhoto = $request->files->get('photo'); // 'photoRespo' correspond à 'photo'
+                $uploadedOrdreNational = $request->files->get('ordreNational');
+                $uploadedCni = $request->files->get('cni');
+                $uploadedDiplome = $request->files->get('diplomeFile');
+                $uploadedCv = $request->files->get('cv');
+                $uploadedDfe = $request->files->get('dfe');
 
 
-                  if ($uploadedPhoto) {
-                $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedPhoto, self::UPLOAD_PATH);
-                if ($fichier) {
-                    $etablissement->setPhoto($fichier);
+                if ($uploadedPhoto) {
+                    $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedPhoto, self::UPLOAD_PATH);
+                    if ($fichier) {
+                        $etablissement->setPhoto($fichier);
+                    }
                 }
-            }
-            if ($uploadedOrdreNational) {
-                $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedOrdreNational, self::UPLOAD_PATH);
-                if ($fichier) {
-                    $etablissement->setOrdreNational($fichier);
+                if ($uploadedOrdreNational) {
+                    $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedOrdreNational, self::UPLOAD_PATH);
+                    if ($fichier) {
+                        $etablissement->setOrdreNational($fichier);
+                    }
                 }
-            }
-            if ($uploadedCni) {
-                $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedCni, self::UPLOAD_PATH);
-                if ($fichier) {
-                    $etablissement->setCni($fichier);
+                if ($uploadedCni) {
+                    $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedCni, self::UPLOAD_PATH);
+                    if ($fichier) {
+                        $etablissement->setCni($fichier);
+                    }
                 }
-            }
-            if ($uploadedDiplome) {
-                $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedDiplome, self::UPLOAD_PATH);
-                if ($fichier) {
-                    $etablissement->setDiplomeFile($fichier);
+                if ($uploadedDiplome) {
+                    $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedDiplome, self::UPLOAD_PATH);
+                    if ($fichier) {
+                        $etablissement->setDiplomeFile($fichier);
+                    }
                 }
-            }
-            if ($uploadedDfe) {
-                $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedDfe, self::UPLOAD_PATH);
-                if ($fichier) {
-                    $etablissement->setDfe($fichier);
+                if ($uploadedDfe) {
+                    $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedDfe, self::UPLOAD_PATH);
+                    if ($fichier) {
+                        $etablissement->setDfe($fichier);
+                    }
                 }
-            }
-            if ($uploadedCv) {
-                $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedCv, self::UPLOAD_PATH);
-                if ($fichier) {
-                    $etablissement->setCv($fichier);
+                if ($uploadedCv) {
+                    $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedCv, self::UPLOAD_PATH);
+                    if ($fichier) {
+                        $etablissement->setCv($fichier);
+                    }
                 }
-            }
 
                 $user = $this->userRepository->find($request->get('user'));
                 $etablissement->setUser($user);
@@ -617,7 +615,7 @@ class ApiEtablissementController extends ApiInterface
 
                 $errorResponse = $this->errorResponse($etablissement);
 
-              
+
 
 
                 if ($errorResponse !== null) {
@@ -626,7 +624,7 @@ class ApiEtablissementController extends ApiInterface
                     $etablissementlRepository->add($etablissement, true);
                 }
                 $response = $this->responseData($etablissement, 'group_pro', ['Content-Type' => 'application/json']);
-            }
+            } */
         } catch (\Exception $exception) {
             $this->setMessage("");
             $response = $this->response('[]');
@@ -670,5 +668,4 @@ class ApiEtablissementController extends ApiInterface
         }
         return $response;
     }
-
 }

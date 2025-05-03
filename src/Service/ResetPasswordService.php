@@ -36,7 +36,7 @@ class ResetPasswordService
         $this->em->flush();
 
         // URL du frontend Svelte pour la réinitialisation
-        $url = "https://mydepps.pages.dev/site/connexion/nouveau_mot_de_passe/{$token}";
+        $url = "https://mydepps.net/site/connexion/nouveau_mot_de_passe/{$token}";
 
         $context = compact('url', 'user');
 
