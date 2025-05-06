@@ -3,11 +3,10 @@
 namespace  App\Controller\Apis;
 
 use App\Controller\Apis\Config\ApiInterface;
-use App\DTO\RegionDTO;
+use App\DTO\DirectionDTO;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use App\Entity\Region;
+use App\Entity\Direction;
 use App\Repository\DirectionRepository;
-use App\Repository\RegionRepository;
 use App\Repository\UserRepository;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -17,15 +16,15 @@ use Nelmio\ApiDocBundle\Annotation\Security;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 
-#[Route('/api/region')]
-class ApiRegionController extends ApiInterface
+#[Route('/api/direction')]
+class ApiDirectionController extends ApiInterface
 {
 
 
 
     #[Route('/', methods: ['GET'])]
     /**
-     * Retourne la liste des regions.
+     * Retourne la liste des directions.
      * 
      */
     #[OA\Response(
@@ -33,18 +32,20 @@ class ApiRegionController extends ApiInterface
         description: 'Returns the rewards of an user',
         content: new OA\JsonContent(
             type: 'array',
-            items: new OA\Items(ref: new Model(type: Region::class, groups: ['full']))
+            items: new OA\Items(ref: new Model(type: Direction::class, groups: ['full']))
         )
     )]
-    #[OA\Tag(name: 'region')]
+    #[OA\Tag(name: 'direction')]
     // #[Security(name: 'Bearer')]
-    public function index(RegionRepository $regionRepository): Response
+    public function index(DirectionRepository $directionRepository): Response
     {
         try {
 
-            $regions = $regionRepository->findAll();
+            $directions = $directionRepository->findAll();
 
-            $response =  $this->responseData($regions, 'group1', ['Content-Type' => 'application/json']);
+          
+
+            $response =  $this->responseData($directions, 'group1', ['Content-Type' => 'application/json']);
         } catch (\Exception $exception) {
             $this->setMessage("");
             $response = $this->response('[]');
@@ -57,14 +58,14 @@ class ApiRegionController extends ApiInterface
 
     #[Route('/get/one/{id}', methods: ['GET'])]
     /**
-     * Affiche un(e) region en offrant un identifiant.
+     * Affiche un(e) direction en offrant un identifiant.
      */
     #[OA\Response(
         response: 200,
-        description: 'Affiche un(e) region en offrant un identifiant',
+        description: 'Affiche un(e) direction en offrant un identifiant',
         content: new OA\JsonContent(
             type: 'array',
-            items: new OA\Items(ref: new Model(type: Region::class, groups: ['full']))
+            items: new OA\Items(ref: new Model(type: Direction::class, groups: ['full']))
         )
     )]
     #[OA\Parameter(
@@ -72,17 +73,17 @@ class ApiRegionController extends ApiInterface
         in: 'query',
         schema: new OA\Schema(type: 'string')
     )]
-    #[OA\Tag(name: 'region')]
+    #[OA\Tag(name: 'direction')]
     //#[Security(name: 'Bearer')]
-    public function getOne(?Region $region)
+    public function getOne(?Direction $direction)
     {
         try {
-            if ($region) {
-                $response = $this->response($region);
+            if ($direction) {
+                $response = $this->response($direction);
             } else {
                 $this->setMessage('Cette ressource est inexistante');
                 $this->setStatusCode(300);
-                $response = $this->response($region);
+                $response = $this->response($direction);
             }
         } catch (\Exception $exception) {
             $this->setMessage($exception->getMessage());
@@ -96,7 +97,7 @@ class ApiRegionController extends ApiInterface
 
     #[Route('/create',  methods: ['POST'])]
     /**
-     * Permet de créer un(e) region.
+     * Permet de créer un(e) direction.
      */
     #[OA\Post(
         summary: "Authentification admin",
@@ -107,7 +108,7 @@ class ApiRegionController extends ApiInterface
                 properties: [
                     new OA\Property(property: "libelle", type: "string"),
                     new OA\Property(property: "code", type: "string"),
-                    new OA\Property(property: "direction", type: "string"),
+                    new OA\Property(property: "codeGeneration", type: "string"),
                     new OA\Property(property: "userUpdate", type: "string"),
 
                 ],
@@ -118,41 +119,40 @@ class ApiRegionController extends ApiInterface
             new OA\Response(response: 401, description: "Invalid credentials")
         ]
     )]
-    #[OA\Tag(name: 'region')]
+    #[OA\Tag(name: 'direction')]
     #[Security(name: 'Bearer')]
-    public function create(Request $request, RegionRepository $regionRepository,DirectionRepository $directionRepository): Response
+    public function create(Request $request, DirectionRepository $directionRepository): Response
     {
 
         $data = json_decode($request->getContent(), true);
-        $region = new Region();
-        $region->setLibelle($data['libelle']);
-        $region->setCode($data['code']);
-        $region->setDirection($directionRepository->find($data['direction']));
-        $region->setCreatedBy($this->userRepository->find($data['userUpdate']));
-        $region->setUpdatedBy($this->userRepository->find($data['userUpdate']));
-        $errorResponse = $this->errorResponse($region);
+        $direction = new Direction();
+        $direction->setLibelle($data['libelle']);
+
+        $direction->setCreatedBy($this->userRepository->find($data['userUpdate']));
+        $direction->setUpdatedBy($this->userRepository->find($data['userUpdate']));
+        $errorResponse = $this->errorResponse($direction);
         if ($errorResponse !== null) {
             return $errorResponse; // Retourne la réponse d'erreur si des erreurs sont présentes
         } else {
 
-            $regionRepository->add($region, true);
+            $directionRepository->add($direction, true);
         }
 
-        return $this->responseData($region, 'group1', ['Content-Type' => 'application/json']);
+        return $this->responseData($direction, 'group1', ['Content-Type' => 'application/json']);
     }
 
 
     #[Route('/update/{id}', methods: ['PUT', 'POST'])]
     #[OA\Post(
-        summary: "Creation de region",
-        description: "Permet de créer un region.",
+        summary: "Creation de direction",
+        description: "Permet de créer un direction.",
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
                 properties: [
                     new OA\Property(property: "libelle", type: "string"),
                     new OA\Property(property: "code", type: "string"),
-                    new OA\Property(property: "direction", type: "string"),
+                    new OA\Property(property: "codeGeneration", type: "string"),
                     new OA\Property(property: "userUpdate", type: "string"),
 
                 ],
@@ -163,31 +163,29 @@ class ApiRegionController extends ApiInterface
             new OA\Response(response: 401, description: "Invalid credentials")
         ]
     )]
-    #[OA\Tag(name: 'region')]
+    #[OA\Tag(name: 'direction')]
     #[Security(name: 'Bearer')]
-    public function update(Request $request, Region $region, RegionRepository $regionRepository,DirectionRepository $directionRepository): Response
+    public function update(Request $request, Direction $direction, DirectionRepository $directionRepository): Response
     {
         try {
             $data = json_decode($request->getContent());
-            if ($region != null) {
+            if ($direction != null) {
 
-                $region->setLibelle($data->libelle);
-                $region->setCode($data->code);
-                $region->setDirection($directionRepository->find($data->direction));
-                $region->setUpdatedBy($this->userRepository->find($data->userUpdate));
-                $region->setUpdatedAt(new \DateTime());
-                $errorResponse = $this->errorResponse($region);
+                $direction->setLibelle($data->libelle);
+                $direction->setUpdatedBy($this->userRepository->find($data->userUpdate));
+                $direction->setUpdatedAt(new \DateTime());
+                $errorResponse = $this->errorResponse($direction);
 
                 if ($errorResponse !== null) {
                     return $errorResponse; // Retourne la réponse d'erreur si des erreurs sont présentes
                 } else {
-                    $regionRepository->add($region, true);
+                    $directionRepository->add($direction, true);
                 }
 
 
 
                 // On retourne la confirmation
-                $response = $this->responseData($region, 'group1', ['Content-Type' => 'application/json']);
+                $response = $this->responseData($direction, 'group1', ['Content-Type' => 'application/json']);
             } else {
                 $this->setMessage("Cette ressource est inexsitante");
                 $this->setStatusCode(300);
@@ -204,29 +202,29 @@ class ApiRegionController extends ApiInterface
 
     #[Route('/delete/{id}',  methods: ['DELETE'])]
     /**
-     * permet de supprimer un(e) region.
+     * permet de supprimer un(e) direction.
      */
     #[OA\Response(
         response: 200,
-        description: 'permet de supprimer un(e) region',
+        description: 'permet de supprimer un(e) direction',
         content: new OA\JsonContent(
             type: 'array',
-            items: new OA\Items(ref: new Model(type: Region::class, groups: ['full']))
+            items: new OA\Items(ref: new Model(type: Direction::class, groups: ['full']))
         )
     )]
-    #[OA\Tag(name: 'region')]
+    #[OA\Tag(name: 'direction')]
     //#[Security(name: 'Bearer')]
-    public function delete(Request $request, Region $region, RegionRepository $villeRepository): Response
+    public function delete(Request $request, Direction $direction, DirectionRepository $villeRepository): Response
     {
         try {
 
-            if ($region != null) {
+            if ($direction != null) {
 
-                $villeRepository->remove($region, true);
+                $villeRepository->remove($direction, true);
 
                 // On retourne la confirmation
                 $this->setMessage("Operation effectuées avec success");
-                $response = $this->response($region);
+                $response = $this->response($direction);
             } else {
                 $this->setMessage("Cette ressource est inexistante");
                 $this->setStatusCode(300);
@@ -241,28 +239,28 @@ class ApiRegionController extends ApiInterface
 
     #[Route('/delete/all',  methods: ['DELETE'])]
     /**
-     * Permet de supprimer plusieurs region.
+     * Permet de supprimer plusieurs direction.
      */
     #[OA\Response(
         response: 200,
         description: 'Returns the rewards of an user',
         content: new OA\JsonContent(
             type: 'array',
-            items: new OA\Items(ref: new Model(type: Region::class, groups: ['full']))
+            items: new OA\Items(ref: new Model(type: Direction::class, groups: ['full']))
         )
     )]
-    #[OA\Tag(name: 'region')]
+    #[OA\Tag(name: 'direction')]
     #[Security(name: 'Bearer')]
-    public function deleteAll(Request $request, RegionRepository $villeRepository): Response
+    public function deleteAll(Request $request, DirectionRepository $villeRepository): Response
     {
         try {
             $data = json_decode($request->getContent());
 
             foreach ($data->ids as $key => $value) {
-                $region = $villeRepository->find($value['id']);
+                $direction = $villeRepository->find($value['id']);
 
-                if ($region != null) {
-                    $villeRepository->remove($region);
+                if ($direction != null) {
+                    $villeRepository->remove($direction);
                 }
             }
             $this->setMessage("Operation effectuées avec success");

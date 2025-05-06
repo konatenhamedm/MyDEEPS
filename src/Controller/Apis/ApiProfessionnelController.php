@@ -387,7 +387,7 @@ vous rendre à la DEPPS pour le retrait de votre autorisation d'exercice." : "")
 
             // TO DO
 
-            if ($data['email'] != "") {
+            /* if ($data['email']) { */
                 $sendMailService->send(
                     'tester@myonmci.ci',
                     $data['email'],
@@ -395,7 +395,7 @@ vous rendre à la DEPPS pour le retrait de votre autorisation d'exercice." : "")
                     'content_validation',
                     $context
                 );
-            }
+            /* } */
 
 
             $sendMailService->sendNotification("votre compte vient d'être valider pour l'etape " . $dto->status, $userRepository->findOneBy(['personne' => $professionnel->getId()]), $userRepository->find($data['userUpdate']));

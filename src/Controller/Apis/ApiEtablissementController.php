@@ -273,7 +273,7 @@ class ApiEtablissementController extends ApiInterface
 
            
 
-            if ($uploadedPhoto) {
+            /* if ($uploadedPhoto) {
                 $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedPhoto, self::UPLOAD_PATH);
                 if ($fichier) {
                     $etablissement->setPhoto($fichier);
@@ -308,7 +308,7 @@ class ApiEtablissementController extends ApiInterface
                 if ($fichier) {
                     $etablissement->setCv($fichier);
                 }
-            }
+            } */
 
            // $etablissement->setUser($user);
 
@@ -535,7 +535,7 @@ class ApiEtablissementController extends ApiInterface
          
             if ($etablissement) {
              
-                 $etablissement->setTypePersonne($request->get('typePersonne')); 
+                /*  $etablissement->setTypePersonne($request->get('typePersonne')); 
             $etablissement->setNatureEntreprise($request->get('natureEntreprise'));
             $etablissement->setTypeEntreprise($request->get('typeEntreprise'));
             $etablissement->setGpsEntreprise($request->get('gpsEntreprise'));
@@ -560,7 +560,7 @@ class ApiEtablissementController extends ApiInterface
             $etablissement->setProfessionTechnique($request->get('professionTechnique'));
             $etablissement->setContactProTechnique($request->get('contactProTechnique'));
             $etablissement->setLieuResidenceTechnique($request->get('lieuResidenceTechnique'));
-            $etablissement->setNumeroOrdreTechnique($request->get('numeroOrdreTechnique'));
+            $etablissement->setNumeroOrdreTechnique($request->get('numeroOrdreTechnique')); */
 
             // Documents
             $uploadedPhoto = $request->files->get('photo'); // 'photoRespo' correspond à 'photo'
@@ -571,7 +571,7 @@ class ApiEtablissementController extends ApiInterface
             $uploadedDfe = $request->files->get('dfe');
 
 
-                  if ($uploadedPhoto) {
+                /*   if ($uploadedPhoto) {
                 $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedPhoto, self::UPLOAD_PATH);
                 if ($fichier) {
                     $etablissement->setPhoto($fichier);
@@ -606,9 +606,9 @@ class ApiEtablissementController extends ApiInterface
                 if ($fichier) {
                     $etablissement->setCv($fichier);
                 }
-            }
+            } */
 
-                $user = $this->userRepository->find($request->get('user'));
+               /*  $user = $this->userRepository->find($request->get('user'));
                 $etablissement->setUser($user);
 
 
@@ -624,7 +624,7 @@ class ApiEtablissementController extends ApiInterface
                     return $errorResponse; // Retourne la réponse d'erreur si des erreurs sont présentes
                 } else {
                     $etablissementlRepository->add($etablissement, true);
-                }
+                } */
                 $response = $this->responseData($etablissement, 'group_pro', ['Content-Type' => 'application/json']);
             }
         } catch (\Exception $exception) {
