@@ -6,6 +6,7 @@ use App\Controller\Apis\Config\ApiInterface;
 use App\DTO\RegionDTO;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Entity\Region;
+use App\Repository\DirectionRepository;
 use App\Repository\RegionRepository;
 use App\Repository\UserRepository;
 use Symfony\Component\HttpFoundation\Response;
@@ -106,6 +107,7 @@ class ApiRegionController extends ApiInterface
                 properties: [
                     new OA\Property(property: "libelle", type: "string"),
                     new OA\Property(property: "code", type: "string"),
+                    new OA\Property(property: "direction", type: "string"),
                     new OA\Property(property: "userUpdate", type: "string"),
 
                 ],
@@ -118,13 +120,14 @@ class ApiRegionController extends ApiInterface
     )]
     #[OA\Tag(name: 'region')]
     #[Security(name: 'Bearer')]
-    public function create(Request $request, RegionRepository $regionRepository): Response
+    public function create(Request $request, RegionRepository $regionRepository,DirectionRepository $directionRepository): Response
     {
 
         $data = json_decode($request->getContent(), true);
         $region = new Region();
         $region->setLibelle($data['libelle']);
         $region->setCode($data['code']);
+        $region->setDirection($directionRepository->find($data['direction']));
         $region->setCreatedBy($this->userRepository->find($data['userUpdate']));
         $region->setUpdatedBy($this->userRepository->find($data['userUpdate']));
         $errorResponse = $this->errorResponse($region);
@@ -149,6 +152,7 @@ class ApiRegionController extends ApiInterface
                 properties: [
                     new OA\Property(property: "libelle", type: "string"),
                     new OA\Property(property: "code", type: "string"),
+                    new OA\Property(property: "direction", type: "string"),
                     new OA\Property(property: "userUpdate", type: "string"),
 
                 ],
@@ -161,7 +165,7 @@ class ApiRegionController extends ApiInterface
     )]
     #[OA\Tag(name: 'region')]
     #[Security(name: 'Bearer')]
-    public function update(Request $request, Region $region, RegionRepository $regionRepository): Response
+    public function update(Request $request, Region $region, RegionRepository $regionRepository,DirectionRepository $directionRepository): Response
     {
         try {
             $data = json_decode($request->getContent());
@@ -169,6 +173,7 @@ class ApiRegionController extends ApiInterface
 
                 $region->setLibelle($data->libelle);
                 $region->setCode($data->code);
+                $region->setDirection($directionRepository->find($data->direction));
                 $region->setUpdatedBy($this->userRepository->find($data->userUpdate));
                 $region->setUpdatedAt(new \DateTime());
                 $errorResponse = $this->errorResponse($region);
