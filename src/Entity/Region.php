@@ -40,6 +40,9 @@ class Region
     #[ORM\OneToMany(targetEntity: Professionnel::class, mappedBy: 'region')]
     private Collection $professionnels;
 
+    #[ORM\ManyToOne(inversedBy: 'regions')]
+    private ?Direction $direction = null;
+
     public function __construct()
     {
         $this->districts = new ArrayCollection();
@@ -131,6 +134,18 @@ class Region
                 $professionnel->setRegion(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getDirection(): ?Direction
+    {
+        return $this->direction;
+    }
+
+    public function setDirection(?Direction $direction): static
+    {
+        $this->direction = $direction;
 
         return $this;
     }
