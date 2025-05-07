@@ -15,7 +15,23 @@ class DirectionRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Direction::class);
     }
+    public function add(Direction $entity, bool $flush = false): void
+    {
+        $this->getEntityManager()->persist($entity);
 
+        if ($flush) {
+            $this->getEntityManager()->flush();
+        }
+    }
+
+    public function remove(Direction $entity, bool $flush = false): void
+    {
+        $this->getEntityManager()->remove($entity);
+
+        if ($flush) {
+            $this->getEntityManager()->flush();
+        }
+    }
     //    /**
     //     * @return Direction[] Returns an array of Direction objects
     //     */

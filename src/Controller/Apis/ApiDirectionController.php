@@ -127,7 +127,6 @@ class ApiDirectionController extends ApiInterface
         $data = json_decode($request->getContent(), true);
         $direction = new Direction();
         $direction->setLibelle($data['libelle']);
-
         $direction->setCreatedBy($this->userRepository->find($data['userUpdate']));
         $direction->setUpdatedBy($this->userRepository->find($data['userUpdate']));
         $errorResponse = $this->errorResponse($direction);

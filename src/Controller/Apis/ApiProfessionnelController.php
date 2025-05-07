@@ -376,7 +376,7 @@ class ApiProfessionnelController extends ApiInterface
 
 
             $info_user = [
-                'user' => $userRepository->find($data['userUpdate'])->getUsername(),
+                'user' => $userRepository->find($data['userUpdate'])->getUserIdentifier(),
                 'etape' => $dto->status,
                 'message' => $dto->status == "validation" ? "Votre dossier a été jugé conforme et
 est désormais en attente de validation finale. Vous recevrez une notification dès que le processus sera complété." : ($dto->status == "renouvellement" ? "Vous avez obtenu un avis favorable d'inscription au registre de la profession [insérer la profession]. Veuillez
@@ -387,7 +387,7 @@ vous rendre à la DEPPS pour le retrait de votre autorisation d'exercice." : "")
 
             // TO DO
 
-            /* if ($data['email']) { */
+           
                 $sendMailService->send(
                     'tester@myonmci.ci',
                     $data['email'],
@@ -395,13 +395,15 @@ vous rendre à la DEPPS pour le retrait de votre autorisation d'exercice." : "")
                     'content_validation',
                     $context
                 );
-            /* } */
+            
 
 
             $sendMailService->sendNotification("votre compte vient d'être valider pour l'etape " . $dto->status, $userRepository->findOneBy(['personne' => $professionnel->getId()]), $userRepository->find($data['userUpdate']));
 
             return $this->responseData($info_user, 'group_pro', ['Content-Type' => 'application/json']);
         } catch (\Exception $exception) {
+
+            dd($exception->getMessage());
             return $this->json(["message" => "Une erreur est survenue"], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }

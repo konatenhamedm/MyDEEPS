@@ -23,7 +23,6 @@ class Direction
 
     #[ORM\Column(length: 255)]
     #[Group(["group1","group_pro"])]
-
     private ?string $libelle = null;
 
     /**
