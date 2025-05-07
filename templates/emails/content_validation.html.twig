@@ -60,12 +60,13 @@
     <div class="main">
        {#if message is not empty #}
 
-        {% if info_user.message is not empty %}
+       
            
         <p>{{ info_user.message }} </p>
-        {% else %}
+      
 
-        <p>Cette etape {{ info_user.etape }} de votre dossier par {{ info_user.user }} </p>
+        {# <p>Cette etape {{ info_user.etape }} de votre dossier par {{ info_user.user }} </p> #}
+        <p>Votre dossier vient passer l'étape {{ info_user.etape }} traité par {{ info_user.user }} </p>
         {% endif %}
 
     </div>
