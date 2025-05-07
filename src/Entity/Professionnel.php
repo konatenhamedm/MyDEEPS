@@ -170,7 +170,7 @@ class Professionnel extends Entite
     private ?Commune $commune = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Group(["group_pro"])]
+    #[Group(["group_pro","group_user_trx"])]
     private ?string $quartier = null;
 
   
