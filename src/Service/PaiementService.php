@@ -218,6 +218,7 @@ class PaiementService
         $transaction->setReferenceChannel("");
         $transaction->setType("RENOUVELLEMENT");
         $transaction->setTypeUser($request->get('type'));
+        $transaction->setUser($this->em->getRepository(User::class)->find($request->get('user')));
         $transaction->setState(0);
         $transaction->setCreatedAtValue(new \DateTime());
         $transaction->setUpdatedAt(new \DateTime());
