@@ -129,6 +129,30 @@ class PaiementService
 
         return $response;
     }
+    public function methodeWebHookRenouvellement(Request $request)
+    {
+
+        $data = json_decode($request->getContent(), true);
+        $transaction = $this->transactionRepository->findOneBy(['reference' => $data['codePaiement']]);
+
+        $transaction->setReferenceChannel($data['referencePaiement']);
+        if ($data['code'] == 200) {
+            $transaction->setState(1);
+
+            $transaction->setChannel($data['moyenPaiement']);
+            $transaction->setData(json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+            $this->transactionRepository->add($transaction, true);
+    
+        } else {
+            $response = [
+                'message' => 'Echec',
+                'code' => 400
+            ];
+        }
+
+
+        return $response;
+    }
 
 
     public function traiterPaiement(Request $request): array
@@ -160,6 +184,58 @@ class PaiementService
             "lib_order" => "PAIEMENT ONMCI",
             "Url_Retour" => "https://mydepps.net/site/" . $request->get('type'),
             "Url_Callback" => "https://prodmydepps.leadagro.net/api/paiement/info-paiement"
+        ];
+
+        $response = $this->httpClient->request('POST', $this->paiementUrl, [
+            'json' => $requestData,
+            'headers' => [
+                "ApiKey" => $this->apiKey,
+                "MerchantId" => $this->merchantId,
+                "Accept" => "application/json",
+                "Content-Type" => "application/json",
+            ],
+            'verify_peer' => false,
+            'verify_host' => false
+        ]);
+
+        $dataResponse = $response->toArray();
+
+        return [
+            'code' => 200,
+            'url' => $dataResponse['url'] ?? null,
+            'reference' => $transaction->getReference(),
+            'type' => $request->get('type')
+        ];
+    }
+    public function traiterPaiementRenouvellement(Request $request): array
+    {
+        $data = json_decode($request->getContent(), true);
+
+        $transaction = new Transaction();
+        $transaction->setChannel("");
+        $transaction->setReference($this->genererNumero());
+        $transaction->setMontant("15000");
+        $transaction->setReferenceChannel("");
+        $transaction->setType("RENOUVELLEMENT");
+        $transaction->setTypeUser($request->get('type'));
+        $transaction->setState(0);
+        $transaction->setCreatedAtValue(new \DateTime());
+        $transaction->setUpdatedAt(new \DateTime());
+
+        $this->transactionRepository->add($transaction, true);
+
+        $requestData = [
+            "code_paiement" => $transaction->getReference(),
+            "nom_usager" => $request->get('nom'),
+            "prenom_usager" => $request->get('prenoms'),
+            "telephone" => $request->get('numero'),
+            "email" => $request->get('email'),
+            "libelle_article" => "DEMANDE D'ADHESION",
+            "quantite" => 1,
+            "montant" => "100",
+            "lib_order" => "PAIEMENT ONMCI",
+            "Url_Retour" => "https://mydepps.net/site/dashboard",
+            "Url_Callback" => "https://prodmydepps.leadagro.net/api/paiement/info-paiement-renouvellement"
         ];
 
         $response = $this->httpClient->request('POST', $this->paiementUrl, [

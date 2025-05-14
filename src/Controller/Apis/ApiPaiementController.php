@@ -229,6 +229,40 @@ class ApiPaiementController extends ApiInterface
         return  $this->responseData($response, 'group1', ['Content-Type' => 'application/json']);
     }
 
+    #[Route('/info-paiement-renouvellement', name: 'webhook_paiement_renouvellement',  methods: ['POST'])]
+    /**
+     * Il s'agit de la webhook pour les paiement.
+     */
+    #[OA\Post(
+        summary: "Authentification admin",
+        description: "Génère un token JWT pour les administrateurs.",
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: "codePaiement", type: "string"),
+                    new OA\Property(property: "referencePaiement", type: "string"),
+                    new OA\Property(property: "code", type: "string"),
+                    new OA\Property(property: "moyenPaiement", type: "string"),
+
+                ],
+                type: "object"
+            )
+        ),
+        responses: [
+            new OA\Response(response: 401, description: "Invalid credentials")
+        ]
+    )]
+    #[OA\Tag(name: 'paiements')]
+    #[Security(name: 'Bearer')]
+    public function webHookRenouvellement(Request $request, TransactionRepository $transactionRepository, TempProfessionnelRepository $tempProfessionnelRepository, SessionInterface $session, PaiementService $paiementService): Response
+    {
+        $response = $paiementService->methodeWebHookRenouvellement($request);
+
+
+        return  $this->responseData($response, 'group1', ['Content-Type' => 'application/json']);
+    }
+
 
 
 
@@ -330,6 +364,38 @@ class ApiPaiementController extends ApiInterface
         }
 
         return $resultat;
+    }
+
+    #[Route('/renouvellement', name: 'renouvellement', methods: ['POST'])]
+    /**
+     * Permet de faire le âiement
+     */
+    #[OA\Post(
+        summary: "",
+        description: "Génère un token JWT pour les administrateurs.",
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: "nom", type: "string"),
+                    new OA\Property(property: "prenoms", type: "string"),
+                    new OA\Property(property: "email", type: "string"),
+                    new OA\Property(property: "numero", type: "string"),
+
+                ],
+                type: "object"
+            )
+        ),
+        responses: [
+            new OA\Response(response: 401, description: "Invalid credentials")
+        ]
+    )]
+    #[OA\Tag(name: 'paiements')]
+    #[Security(name: 'Bearer')]
+    public function doRenouvellement(Request $request, PaiementService $paiementService)
+    {
+        $createTransactionData = $paiementService->traiterPaiementRenouvellement($request);
+        return $createTransactionData;
     }
 
 
