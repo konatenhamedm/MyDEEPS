@@ -217,8 +217,8 @@ class PaiementService
         $transaction->setMontant("15000");
         $transaction->setReferenceChannel("");
         $transaction->setType("RENOUVELLEMENT");
-        $transaction->setTypeUser($request->get('type'));
-        $transaction->setUser($this->em->getRepository(User::class)->find($request->get('user')));
+        $transaction->setTypeUser($data['type']);
+        $transaction->setUser($this->em->getRepository(User::class)->find($data['user']));
         $transaction->setState(0);
         $transaction->setCreatedAtValue(new \DateTime());
         $transaction->setUpdatedAt(new \DateTime());
@@ -227,11 +227,11 @@ class PaiementService
 
         $requestData = [
             "code_paiement" => $transaction->getReference(),
-            "nom_usager" => $request->get('nom'),
-            "prenom_usager" => $request->get('prenoms'),
-            "telephone" => $request->get('numero'),
-            "email" => $request->get('email'),
-            "libelle_article" => "DEMANDE D'ADHESION",
+            "nom_usager" => $data['nom'],
+            "prenom_usager" => $data['prenoms'],
+            "telephone" => $data['numero'],
+            "email" => $data['email'],
+            "libelle_article" => "RENOUVELLEMENT D'ADHESION",
             "quantite" => 1,
             "montant" => "100",
             "lib_order" => "PAIEMENT ONMCI",
