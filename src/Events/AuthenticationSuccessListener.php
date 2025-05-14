@@ -10,6 +10,7 @@ use App\Entity\UserFront;
 use App\Entity\Utilisateur;
 use App\Entity\UtilisateurSimple;
 use App\Repository\ProfessionnelRepository;
+use App\Repository\TransactionRepository;
 use App\Repository\UserFrontRepository;
 use App\Repository\UserRepository;
 use App\Repository\UtilisateurRepository;
@@ -23,10 +24,12 @@ class AuthenticationSuccessListener
 {
     private $userRepository;
     private $professionnelRepo;
-    public function __construct(UserRepository $userRepository, ProfessionnelRepository $professionnelRepo)
+    private $transactionRepo;
+    public function __construct(UserRepository $userRepository, ProfessionnelRepository $professionnelRepo,TransactionRepository $transactionRepo)
     {
         $this->userRepository = $userRepository;
         $this->professionnelRepo = $professionnelRepo;
+        $this->transactionRepo = $transactionRepo;
     }
 
     /**
@@ -36,9 +39,38 @@ class AuthenticationSuccessListener
     {
         $data = $event->getData();
         $user = $event->getUser();
+        $expire = true;
+        $finRenouvelement = "";
+
+        
 
         if ($user instanceof User) {
 
+             // 1. Récupérer la dernière transaction
+        $transaction = $this->transactionRepo->findOneBy(
+            ['user' => $user,'state' => 1],
+            ['createdAt' => 'DESC']
+        );
+
+
+        if($transaction == null){
+            $expire = true;
+            $finRenouvelement = "";
+        }else{
+           
+            $expirationDate = (clone $transaction->getCreatedAt())->modify('+1 year');
+            $now = new \DateTime();
+
+            if ($expirationDate > $now) {
+                $expire = false;
+                $finRenouvelement = $expirationDate->format('d/m/Y');
+            } else {
+                $expire = true;
+                $finRenouvelement = $expirationDate->format('d/m/Y');
+            }
+        }
+        
+       
 
             $userData = $this->userRepository->find($user->getId());
 
@@ -46,6 +78,8 @@ class AuthenticationSuccessListener
             $data['data'] =   [
                 'id' => $user->getId(),
                 'role' => $userData->getRoles(),
+                "expire" => $expire,
+                "finRenouvellement" => $finRenouvelement,
                 'username' => $userData->getUserIdentifier(),
                 'avatar' => ($userData->getTypeUser() != "ADMINISTRATEUR")
                     ? ($userData->getAvatar()
