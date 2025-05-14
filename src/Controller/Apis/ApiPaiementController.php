@@ -395,7 +395,8 @@ class ApiPaiementController extends ApiInterface
     public function doRenouvellement(Request $request, PaiementService $paiementService)
     {
         $createTransactionData = $paiementService->traiterPaiementRenouvellement($request);
-        return $this->json([
+        return $this->json(
+        [
             'message' => 'Professionnel bien enregistré',
             'data' => $createTransactionData
         ]);
