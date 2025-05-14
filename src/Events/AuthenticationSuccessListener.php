@@ -58,15 +58,16 @@ class AuthenticationSuccessListener
             $finRenouvelement = "";
         }else{
            
-            $expirationDate = (clone $transaction->getCreatedAt())->modify('+1 year');
+    
+            $createdAt = $transaction->getCreatedAt();
             $now = new \DateTime();
-
-            if ($expirationDate > $now) {
-                $expire = false;
-                $finRenouvelement = $expirationDate->format('d/m/Y');
-            } else {
+            $diff = $createdAt->diff($now);
+    
+            // Si au moins 1 an complet (diff->y >= 1), alors abonnement expiré
+            if ($diff->y >= 1) {
                 $expire = true;
-                $finRenouvelement = $expirationDate->format('d/m/Y');
+            } else {
+                $expire = false;
             }
         }
         
