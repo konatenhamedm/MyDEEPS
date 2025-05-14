@@ -108,7 +108,7 @@ class TransactionRepository extends ServiceEntityRepository
         {
             return $this->createQueryBuilder('t')
                 ->andWhere('t.user is not null')
-                ->andWhere('t.state == :state')
+                ->andWhere('t.state = :state')
                 ->setParameter('state', 1)
                 ->orderBy('t.id', 'ASC')
               
@@ -120,7 +120,7 @@ class TransactionRepository extends ServiceEntityRepository
         {
             return $this->createQueryBuilder('t')
                 ->andWhere('t.user = :user')
-                ->andWhere('t.state == :state')
+                ->andWhere('t.state = :state')
                 ->setParameter('state', 1)
                 ->setParameter('user', $user)
                 ->orderBy('t.id', 'ASC')
