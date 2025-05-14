@@ -257,7 +257,7 @@ class PaiementService
             'code' => 200,
             'url' => $dataResponse['url'] ?? null,
             'reference' => $transaction->getReference(),
-            'type' => $request->get('type')
+            'type' => $data['type']
         ];
     }
 
