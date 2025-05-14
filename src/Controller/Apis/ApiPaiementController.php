@@ -16,6 +16,7 @@ use App\Entity\TempEtablissement;
 use App\Entity\TempProfessionnel;
 use App\Entity\Transaction;
 use App\Entity\User;
+use App\Repository\ProfessionRepository;
 use App\Repository\TempProfessionnelRepository;
 use App\Repository\TransactionRepository;
 use App\Repository\UserRepository;
@@ -50,6 +51,78 @@ class ApiPaiementController extends ApiInterface
         try {
 
             $transactions = $transactionRepository->getAllTransaction();
+
+            $response = $this->responseData($transactions, 'group_user_trx', ['Content-Type' => 'application/json']);
+        } catch (\Exception $exception) {
+            $this->setMessage("");
+            $response = $this->response('[]');
+        }
+
+        // On envoie la réponse
+        return $response;
+    }
+
+    #[Route('/status/renouvellement/{userId}', methods: ['GET'])]
+    /**
+     * liste historique.
+     * 
+     */
+    #[OA\Response(
+        response: 200,
+        description: 'Returns the rewards of an user',
+        content: new OA\JsonContent(
+            type: 'array',
+            items: new OA\Items(ref: new Model(type: Transaction::class, groups: ['full']))
+        )
+    )]
+    #[OA\Tag(name: 'paiements')]
+    // #[Security(name: 'Bearer')]
+    public function status(TransactionRepository $transactionRepository,$userId,UserRepository $userRepository,ProfessionRepository $professionRepository): Response
+    {
+        try {
+            $expire = true;
+            $finRenouvelement = "";
+
+
+            $user = $userRepository->find($userId);
+
+            $profession = $professionRepository->findOneByCode($user->getPersonne()->getProfession());
+
+            if($profession->getMontantNouvelleDemande()){
+                
+                $transaction = $transactionRepository->findOneBy(
+                    ['user' => $userId,'state' => 1],
+                    ['createdAt' => 'DESC']
+                );
+        
+        
+                if($transaction == null){
+                    $expire = true;
+                    $finRenouvelement = "";
+                }else{
+                   
+                    $createdAt = $transaction->getCreatedAt();
+                    $now = new \DateTime();
+                    $diff = $createdAt->diff($now);
+            
+                    // Si au moins 1 an complet (diff->y >= 1), alors abonnement expiré
+                    if ($diff->y >= 1) {
+                        $expire = true;
+                    } else {
+                        $expire = false;
+                    }
+                }
+            }else{
+                $expire = false;
+                $finRenouvelement = "";
+            }
+
+            $transactions = [
+                'expire' => $expire,
+                'finRenouvelement' => $finRenouvelement,
+                'montant' => $profession->getMontantNouvelleDemande()
+            ];
+                
 
             $response = $this->responseData($transactions, 'group_user_trx', ['Content-Type' => 'application/json']);
         } catch (\Exception $exception) {

@@ -47,30 +47,7 @@ class AuthenticationSuccessListener
         if ($user instanceof User) {
 
              // 1. Récupérer la dernière transaction
-        $transaction = $this->transactionRepo->findOneBy(
-            ['user' => $user,'state' => 1],
-            ['createdAt' => 'DESC']
-        );
-
-
-        if($transaction == null){
-            $expire = true;
-            $finRenouvelement = "";
-        }else{
-           
-    
-            $createdAt = $transaction->getCreatedAt();
-            $now = new \DateTime();
-            $diff = $createdAt->diff($now);
-    
-            // Si au moins 1 an complet (diff->y >= 1), alors abonnement expiré
-            if ($diff->y >= 1) {
-                $expire = true;
-            } else {
-                $expire = false;
-            }
-        }
-        
+       
        
 
             $userData = $this->userRepository->find($user->getId());
