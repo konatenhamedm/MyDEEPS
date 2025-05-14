@@ -48,7 +48,7 @@ class AuthenticationSuccessListener
                 'id' => $user->getId(),
                 'role' => $userData->getRoles(),
                 'username' => $userData->getUserIdentifier(),
-                'avatar' => $userData->getAvatar() ? $userData->getAvatar()->getPath() .'/'. $userData->getAvatar()->getAlt() : null,
+                'avatar' => $userData->getAvatar() ? $userData->getAvatar()->getPath() .'/'. $userData->getAvatar()->getAlt() : $userData->getPersonne()->getPhoto()->getPath() .'/'. $userData->getPersonne()->getPhoto()->getAlt(),
                 'status' => $userData->getTypeUser() == "PROFESSIONNEL" ? $userData->getPersonne()->getStatus() : null,
                 'nom' => $userData->getTypeUser() == "PROFESSIONNEL" ? $userData->getPersonne()->getNom() ." ".$userData->getPersonne()->getPrenoms() : null,
                 'payement' => $userData->getPayement(),
