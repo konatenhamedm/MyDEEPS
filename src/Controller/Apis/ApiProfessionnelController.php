@@ -159,7 +159,9 @@ class ApiProfessionnelController extends ApiInterface
                             'montantRenouvellement' => $profession->getMontantRenouvellement(),
                         ] : null,
                         'id' => $personne->getId(),
-                        'organisationNom' => $personne->getOrganisationNom(),
+                        //'organisationNom' => $personne->getOrganisationNom(),
+                        'appartenirOrdre' => $personne->getAppartenirOrdre() ?? "",
+                        'numeroInscription' => $personne->getNumeroInscription() ?? "",
                         'emailPro' => $personne->getEmailPro(),
                         'nom' => $personne->getNom(),
                         'lieuDiplome' => $personne->getLieuDiplome(),
@@ -455,7 +457,7 @@ vous rendre à la DEPPS pour le retrait de votre autorisation d'exercice." : "")
                         'montantRenouvellement' => $profession->getMontantRenouvellement(),
                     ] : null,
                     'id' => $personne->getId(),
-                    'organisationNom' => $personne->getOrganisationNom(),
+                    /* 'organisationNom' => $personne->getOrganisationNom(), */
                     'emailPro' => $personne->getEmailPro(),
                     'nom' => $personne->getNom(),
                     'lieuDiplome' => $personne->getLieuDiplome(),
@@ -485,6 +487,8 @@ vous rendre à la DEPPS pour le retrait de votre autorisation d'exercice." : "")
                     'datePremierDiplome' => $this->formatDate($personne->getDatePremierDiplome()),
                     'situation' => $personne->getSituation() ?? "",
                     'appartenirOrganisation' => $personne->getAppartenirOrganisation() ?? "",
+                    'appartenirOrdre' => $professionnel->getAppartenirOrdre() ?? "",
+                    'numeroInscription' => $professionnel->getNumeroInscription() ?? "",
                     'photo' => $this->formatFile($personne->getPhoto()),
                     'cv' => $this->formatFile($personne->getCv()),
                     'casier' => $this->formatFile($personne->getCasier()),
@@ -713,10 +717,16 @@ vous rendre à la DEPPS pour le retrait de votre autorisation d'exercice." : "")
             $professionnel->setDiplome($request->get('diplome'));
             $professionnel->setSituationPro($situationProfessionnelleRepository->find($request->get('situationPro')));
             $professionnel->setAppartenirOrganisation($request->get('appartenirOrganisation'));
+            $professionnel->setAppartenirOrdre($request->get('appartenirOrdre'));
             if ($request->get('appartenirOrganisation') == "oui") {
 
 
                 $professionnel->setOrganisationNom($request->get('organisationNom'));
+            }
+            if ($request->get('appartenirOrdre') == "oui") {
+
+
+                $professionnel->setNumeroInscription($request->get('numeroInscription'));
             }
 
 
@@ -1042,6 +1052,7 @@ vous rendre à la DEPPS pour le retrait de votre autorisation d'exercice." : "")
                 }
 
                 $professionnel->setAppartenirOrganisation($request->get('appartenirOrganisation'));
+                $professionnel->setAppartenirOrdre($request->get('appartenirOrdre'));
 
                 /* $professionnel->setCreatedBy($this->userRepository->find($request->get('userUpdate')));
                 $professionnel->setUpdatedBy($this->userRepository->find($request->get('userUpdate'))); */
@@ -1050,6 +1061,12 @@ vous rendre à la DEPPS pour le retrait de votre autorisation d'exercice." : "")
 
                 if ($request->get('appartenirOrganisation') == "oui") {
                     $professionnel->setOrganisationNom($request->get('organisationNom'));
+                } else {
+                    $professionnel->setOrganisationNom("");
+                }
+
+                if ($request->get('appartenirOrdre') == "oui") {
+                    $professionnel->setNumeroInscription($request->get('numeroInscription'));
                 } else {
                     $professionnel->setOrganisationNom("");
                 }

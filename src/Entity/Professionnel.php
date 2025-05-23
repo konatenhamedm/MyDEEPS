@@ -173,6 +173,12 @@ class Professionnel extends Entite
     #[Group(["group_pro","group_user_trx"])]
     private ?string $quartier = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $appartenirOrdre = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $numeroInscription = null;
+
   
 
     public function __construct()
@@ -602,6 +608,30 @@ class Professionnel extends Entite
     public function setQuartier(?string $quartier): static
     {
         $this->quartier = $quartier;
+
+        return $this;
+    }
+
+    public function getAppartenirOrdre(): ?string
+    {
+        return $this->appartenirOrdre;
+    }
+
+    public function setAppartenirOrdre(?string $appartenirOrdre): static
+    {
+        $this->appartenirOrdre = $appartenirOrdre;
+
+        return $this;
+    }
+
+    public function getNumeroInscription(): ?string
+    {
+        return $this->numeroInscription;
+    }
+
+    public function setNumeroInscription(?string $numeroInscription): static
+    {
+        $this->numeroInscription = $numeroInscription;
 
         return $this;
     }

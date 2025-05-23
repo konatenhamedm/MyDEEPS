@@ -80,15 +80,22 @@ class ApiPaiementController extends ApiInterface
     public function status(TransactionRepository $transactionRepository,$userId,UserRepository $userRepository,ProfessionRepository $professionRepository): Response
     {
         try {
-            $expire = true;
+            $expire = false;
             $finRenouvelement = "";
 
 
             $user = $userRepository->find($userId);
 
-            $profession = $professionRepository->findOneByCode($user->getPersonne()->getProfession());
+            if($user->getPersonne()->getStatus() == "renouvellement"){
+                $expire = true;  
+            }else{
+                $expire = false;  
 
-            if($profession->getMontantNouvelleDemande()){
+            }
+
+           $profession = $professionRepository->findOneByCode($user->getPersonne()->getProfession());
+
+            /*  if($profession->getMontantNouvelleDemande()){
                 
                 $transaction = $transactionRepository->findOneBy(
                     ['user' => $userId,'state' => 1],
@@ -116,13 +123,13 @@ class ApiPaiementController extends ApiInterface
             }else{
                 $expire = false;
                 $finRenouvelement = "";
-            }
+            }*/
 
             $transactions = [
                 'expire' => $expire,
                 'finRenouvelement' => $finRenouvelement,
                 'montant' => $profession->getMontantNouvelleDemande()
-            ];
+            ]; 
                 
 
             $response = $this->responseData($transactions, 'group_user_trx', ['Content-Type' => 'application/json']);
@@ -523,11 +530,18 @@ class ApiPaiementController extends ApiInterface
         $professionnel->setDiplome($request->get('diplome'));
         $professionnel->setSituationPro($request->get('situationPro'));
         $professionnel->setAppartenirOrganisation($request->get('appartenirOrganisation'));
+        $professionnel->setAppartenirOrdre($request->get('appartenirOrdre'));
 
         if ($request->get('appartenirOrganisation') == "oui") {
 
 
             $professionnel->setOrganisationNom($request->get('organisationNom'));
+        }
+
+        if ($request->get('appartenirOrdre') == "oui") {
+
+
+            $professionnel->setNumeroInscription($request->get('numeroInscription'));
         }
 
 

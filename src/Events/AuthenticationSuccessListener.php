@@ -56,7 +56,7 @@ class AuthenticationSuccessListener
             $data['data'] =   [
                 'id' => $user->getId(),
                 'role' => $userData->getRoles(),
-                "expire" => $expire,
+                "expire" => $userData->getPersonne()->getStatus() == "renouvellement" ? true : false,
                 "finRenouvellement" => $finRenouvelement,
                 'username' => $userData->getUserIdentifier(),
                 'avatar' => ($userData->getTypeUser() != "ADMINISTRATEUR")

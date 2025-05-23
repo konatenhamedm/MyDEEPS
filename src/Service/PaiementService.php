@@ -25,6 +25,7 @@ use App\Repository\TempEtablissementRepository;
 use App\Repository\TempProfessionnelRepository;
 use App\Repository\TransactionRepository;
 use App\Repository\TypePersonneRepository;
+use App\Repository\UserRepository;
 use App\Repository\VilleRepository;
 use DateTime;
 use DateTimeImmutable;
@@ -69,6 +70,7 @@ class PaiementService
        private  RegionRepository $regionRepository,
         private DistrictRepository $districtRepository,
         private CommuneRepository $communeRepository,
+        private UserRepository $userRepository,
 
 
     ) {
@@ -135,6 +137,8 @@ class PaiementService
         $data = json_decode($request->getContent(), true);
         $transaction = $this->transactionRepository->findOneBy(['reference' => $data['codePaiement']]);
 
+        $professionnel = $this->userRepository->find($transaction->getUser())->getPersonne();
+
         $transaction->setReferenceChannel($data['referencePaiement']);
         if ($data['code'] == 200) {
             $transaction->setState(1);
@@ -142,7 +146,10 @@ class PaiementService
             $transaction->setChannel($data['moyenPaiement']);
             $transaction->setData(json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
             $this->transactionRepository->add($transaction, true);
-    
+
+            $professionnel->setStatus("valide");
+            $professionnel->add($professionnel,true);
+
         } else {
             $response = [
                 'message' => 'Echec',
@@ -302,6 +309,7 @@ class PaiementService
         $professionnel->setEmailPro($dataTemp->getEmailPro());
         $professionnel->setProfession($dataTemp->getProfession());
         $professionnel->setAppartenirOrganisation($dataTemp->getAppartenirOrganisation());
+        $professionnel->setAppartenirOrdre($dataTemp->getAppartenirOrdre());
         $professionnel->setLieuDiplome($dataTemp->getLieuDiplome());
         if ($dataTemp->getCivilite())
             $professionnel->setCivilite($this->civiliteRepository->find($dataTemp->getCivilite()));
@@ -323,6 +331,10 @@ class PaiementService
 
            
             $professionnel->setOrganisationNom($dataTemp->getOrganisationNom());
+           
+        }
+        if ($dataTemp->getAppartenirOrdre() == "oui") {
+            $professionnel->setNumeroInscription($dataTemp->getNumeroInscription());
            
         }
 

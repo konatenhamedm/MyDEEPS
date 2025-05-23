@@ -7,9 +7,11 @@ namespace App\Controller;
 use App\Controller\FileTrait;
 use App\Service\Menu;
 use App\Service\NotificationService;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Core\Security;
@@ -53,4 +55,51 @@ class BaseController extends AbstractController
             'facture' => 0/*$isFacture*/
         ]);
     }
+
+
+   /*  #[Route('/seconde', name: 'app_home_seconde')]
+    public function updateData(): Response
+    {
+
+        // ðŸ‘‡ recuepere le dernier jour du mois
+        $lastDayOfMonth = (new DateTime())->modify("last day of this month")->format("d");
+        $lastDate = (new DateTime())->modify("last day of this month")->format("Y-m-d");
+
+        $contrats = $this->contratRepository->findBy(['etat' => 'Actif']);
+
+        foreach ($contrats as $key => $contrat) {
+            //$verifFactureExist = $this->factureRepository->findOneBy();
+            if ($contrat->isFirstPay() == false) {
+                // dd((int)$contrat->getDateProchainVersement()->format("d"));{}
+
+                if ($contrat->getDateProchainVersement()->format("Y-m-d") == (new DateTime())->format("Y-m-d")) {
+
+                    $this->creationFacture($contrat, false);
+                    /// $this->factureRepository->add($facture, true);
+                }
+            } else {
+                if ($contrat->getJourReceptionFacture()  == null) {
+                    if ($lastDate == (new DateTime())->format("Y-m-d")) {
+                        if ($this->factureRepository->findOneBy(['contrat' => $contrat, 'mois' => $this->moisRepository->findOneByNumero((int)$lastDayOfMonth)]) == null) {
+
+                            $this->creationFacture($contrat, false);
+                        }
+                    }
+                } else {
+
+                    if ($lastDayOfMonth == $contrat->getJourReceptionFacture()) {
+                        if ($this->factureRepository->findOneBy(['contrat' => $contrat, 'mois' => $this->moisRepository->findOneByNumero((int)$contrat->getJourReceptionFacture())]) == null) {
+
+                            $this->creationFacture($contrat, true);
+                        }
+                    }
+                }
+            }
+        }
+
+
+
+
+        return $this->json("rrrr");
+    } */
 }

@@ -218,6 +218,12 @@ class TempProfessionnel
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $quartier = null;
 
+    #[ORM\Column(length: 255,nullable:true)]
+    private ?string $appartenirOrdre = null;
+
+    #[ORM\Column(length: 255,nullable:true)]
+    private ?string $numeroInscription = null;
+
 
     public function getReference(): ?string
     {
@@ -973,6 +979,30 @@ class TempProfessionnel
     public function setQuartier(?string $quartier): static
     {
         $this->quartier = $quartier;
+
+        return $this;
+    }
+
+    public function getAppartenirOrdre(): ?string
+    {
+        return $this->appartenirOrdre;
+    }
+
+    public function setAppartenirOrdre(string $appartenirOrdre): static
+    {
+        $this->appartenirOrdre = $appartenirOrdre;
+
+        return $this;
+    }
+
+    public function getNumeroInscription(): ?string
+    {
+        return $this->numeroInscription;
+    }
+
+    public function setNumeroInscription(string $numeroInscription): static
+    {
+        $this->numeroInscription = $numeroInscription;
 
         return $this;
     }
