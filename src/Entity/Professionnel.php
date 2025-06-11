@@ -179,6 +179,12 @@ class Professionnel extends Entite
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $numeroInscription = null;
 
+    #[ORM\ManyToOne(inversedBy: 'professionnels')]
+    private ?User $imputation = null;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $dateValidation = null;
+
   
 
     public function __construct()
@@ -632,6 +638,30 @@ class Professionnel extends Entite
     public function setNumeroInscription(?string $numeroInscription): static
     {
         $this->numeroInscription = $numeroInscription;
+
+        return $this;
+    }
+
+    public function getImputation(): ?User
+    {
+        return $this->imputation;
+    }
+
+    public function setImputation(?User $imputation): static
+    {
+        $this->imputation = $imputation;
+
+        return $this;
+    }
+
+    public function getDateValidation(): ?\DateTimeInterface
+    {
+        return $this->dateValidation;
+    }
+
+    public function setDateValidation(?\DateTimeInterface $dateValidation): static
+    {
+        $this->dateValidation = $dateValidation;
 
         return $this;
     }

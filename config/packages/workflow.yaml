@@ -12,6 +12,7 @@ framework:
             initial_marking: attente
             places:
                 - attente
+                - rejete
                 - accepte
                 - valide
                 - refuse
@@ -23,6 +24,9 @@ framework:
                     to: accepte
                 rejet:
                     from: attente
+                    to: rejete
+                refuse:
+                    from: accepte
                     to: refuse
                 validation:
                     from: accepte 

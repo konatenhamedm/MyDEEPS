@@ -143,6 +143,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $resetToken = null;
 
+    /**
+     * @var Collection<int, Professionnel>
+     */
+    #[ORM\OneToMany(targetEntity: Professionnel::class, mappedBy: 'imputation')]
+    private Collection $professionnels;
+
 
     public function __construct()
     {
@@ -163,6 +169,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->forums = new ArrayCollection();
         $this->avis = new ArrayCollection();
         $this->notifications = new ArrayCollection();
+        $this->professionnels = new ArrayCollection();
     }
 
 
@@ -542,6 +549,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setResetToken(string $resetToken): static
     {
         $this->resetToken = $resetToken;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Professionnel>
+     */
+    public function getProfessionnels(): Collection
+    {
+        return $this->professionnels;
+    }
+
+    public function addProfessionnel(Professionnel $professionnel): static
+    {
+        if (!$this->professionnels->contains($professionnel)) {
+            $this->professionnels->add($professionnel);
+            $professionnel->setImputation($this);
+        }
+
+        return $this;
+    }
+
+    public function removeProfessionnel(Professionnel $professionnel): static
+    {
+        if ($this->professionnels->removeElement($professionnel)) {
+            // set the owning side to null (unless already changed)
+            if ($professionnel->getImputation() === $this) {
+                $professionnel->setImputation(null);
+            }
+        }
 
         return $this;
     }

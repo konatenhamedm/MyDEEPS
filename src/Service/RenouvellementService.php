@@ -44,13 +44,13 @@ class RenouvellementService
 
         foreach ($professionnels as $pro) {
             // Étape 2 : récupérer le user lié au professionnel
-            $user = $this->userRepository->findOneBy(['personne' => $pro->getId()]);
+             $user = $this->userRepository->findOneBy(['personne' => $pro->getId()]);
 
             if (!$user) {
                 continue;
             }
 
-            // Étape 3 : récupérer la dernière transaction réussie
+            /*// Étape 3 : récupérer la dernière transaction réussie
             $lastTransaction = $this->repoTransaction->createQueryBuilder('t')
                 ->where('t.user = :user')
                 ->andWhere('t.state = :state')
@@ -59,10 +59,10 @@ class RenouvellementService
                 ->orderBy('t.createdAt', 'DESC')
                 ->setMaxResults(1)
                 ->getQuery()
-                ->getOneOrNullResult();
+                ->getOneOrNullResult(); */
 
-            if ($lastTransaction) {
-                $dateTransaction = $lastTransaction->getCreatedAt();
+           /*  if ($lastTransaction) { */
+                $dateTransaction = $pro->getDateValidation();
                 $diff = $dateTransaction->diff($now);
 
                 // Étape 4 : si la dernière transaction date de plus d'un an
@@ -87,7 +87,7 @@ class RenouvellementService
 
                     $compteur++;
                 }
-            }
+            /* } */
         }
 
         // Persiste les modifications

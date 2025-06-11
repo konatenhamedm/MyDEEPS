@@ -53,6 +53,73 @@ class ApiProfessionnelController extends ApiInterface
 {
 
 
+    #[Route('/update/imputation/{id}', methods: ['PUT', 'POST'])]
+    #[OA\Post(
+        summary: "Creation de pro",
+        description: "Permet de créer un pro.",
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: "imputation", type: "string"),
+                    new OA\Property(property: "userUpdate", type: "string"),
+
+                ],
+                type: "object"
+            )
+        ),
+        responses: [
+            new OA\Response(response: 401, description: "Invalid credentials")
+        ]
+    )]
+    #[OA\Tag(name: 'professionnel')]
+    /* #[Security(name: 'Bearer')] */
+    public function updateImputation(Request $request, Professionnel $professionnel,ProfessionnelRepository $professionnelRepository,UserRepository $userRepository): Response
+    {
+        try {
+            $data = json_decode($request->getContent());
+            if ($professionnel != null) {
+
+                $professionnel->setImputation($userRepository->find($data->imputation));
+             
+                $professionnel->setUpdatedBy($userRepository->find($data->userUpdate));
+                $professionnel->setUpdatedAt(new \DateTime());
+                $errorResponse = $this->errorResponse($professionnel);
+
+                if ($errorResponse !== null) {
+                    return $errorResponse; // Retourne la réponse d'erreur si des erreurs sont présentes
+                } else {
+                    $professionnelRepository->add($professionnel, true);
+                }
+
+
+
+                // On retourne la confirmation
+                $response = $this->responseData([
+                    'error' => $errorResponse,
+                    'id' => $professionnel->getId(),
+                    'code' => $professionnel->getCode(),
+                    'status' => $professionnel->getStatus(),
+                    'nom' => $professionnel->getNom(),
+                    'prenom' => $professionnel->getPrenoms(),
+                    'email' => $professionnel->getEmail(),
+                    'professionnel' => $professionnel->getProfessionnel(),
+
+                ], 'group_pro', ['Content-Type' => 'application/json']);
+            } else {
+                $this->setMessage("Cette ressource est inexsitante");
+                $this->setStatusCode(300);
+                $response = $this->response('[]');
+            }
+        } catch (\Exception $exception) {
+            $this->setMessage("");
+            $response = $this->response('[]');
+        }
+        return $response;
+    }
+
+
+
     #[Route('/existe/code/{code}', methods: ['GET'])]
     /**
      * Affiche un(e) specialite en offrant un identifiant.
@@ -70,7 +137,7 @@ class ApiProfessionnelController extends ApiInterface
         in: 'query',
         schema: new OA\Schema(type: 'string')
     )]
-    #[OA\Tag(name: 'profession')]
+    #[OA\Tag(name: 'professionnel')]
     //#[Security(name: 'Bearer')]
     public function getExisteCode($code, ProfessionnelRepository $professionnelRepository, CodeGenerateurRepository $codeGenerateurRepository): Response
     {
@@ -119,6 +186,109 @@ class ApiProfessionnelController extends ApiInterface
     }
 
 
+
+    #[Route('/imputation/list/{id}', name: 'app_professionnel_list_by_imputation', methods: ['GET'])]
+/**
+ * Retourne la liste des professionnels liés à une imputation.
+ */
+#[OA\Response(
+    response: 200,
+    description: 'Retourne la liste des professionnels',
+    content: new OA\JsonContent(
+        type: 'array',
+        items: new OA\Items(type: 'object') // détailler si nécessaire
+    )
+)]
+#[OA\Tag(name: 'professionnel')]
+public function indexByImputation(
+    ProfessionnelRepository $professionnelRepository,
+    int $id,
+    UserRepository $userRepository,
+    ProfessionRepository $professionRepository
+): Response {
+    try {
+        $professionnels = $userRepository->findBy(['typeUser' => 'PROFESSIONNEL'], ['id' => 'DESC']);
+
+        $formattedProfessionnels = array_filter(array_map(function ($professionnel) use ($professionRepository, $id) {
+            $personne = $professionnel->getPersonne();
+            if (!$personne || !$personne->getImputation()) return null;
+            if ($personne->getImputation()->getId() !== $id) return null;
+
+            $profession = $personne->getProfession() ? $professionRepository->findOneByCode($personne->getProfession()) : null;
+
+            return [
+                'username' => $professionnel->getUsername(),
+                'id' => $professionnel->getId(),
+                'email' => $professionnel->getEmail(),
+                'typeUser' => $professionnel->getTypeUser(),
+                'personne' => [
+                    'profession' => $profession ? [
+                        'libelle' => $profession->getLibelle() ?? "",
+                        'id' => $profession->getId(),
+                        'code' => $profession->getCode(),
+                        'montantNouvelleDemande' => $profession->getMontantNouvelleDemande(),
+                        'montantRenouvellement' => $profession->getMontantRenouvellement(),
+                    ] : null,
+                    'id' => $personne->getId(),
+                    'imputation' => $personne->getImputation() ? $personne->getImputation()->getId() : null,
+                    'imputationData' => $personne->getImputation() ? [
+                        'id'=>  $personne->getImputation()->getId(),
+                         'username'=>  $personne->getImputation()->getUsername(),
+                         'email'=>  $personne->getImputation()->getEmail(),
+                    ] : null,
+                    'appartenirOrdre' => $personne->getAppartenirOrdre() ?? "",
+                    'numeroInscription' => $personne->getNumeroInscription() ?? "",
+                    'emailPro' => $personne->getEmailPro(),
+                    'nom' => $personne->getNom(),
+                    'lieuDiplome' => $personne->getLieuDiplome(),
+                    'code' => $personne->getCode(),
+                    'prenoms' => $personne->getPrenoms(),
+                    'number' => $personne->getNumber(),
+                    'email' => $personne->getEmail(),
+                    'type' => "professionnel",
+                    'status' => $personne->getStatus(),
+                    'quartier' => $personne->getQuartier(),
+                    'reason' => $personne->getReason() ?? "",
+                    'professionnel' => $personne->getProfessionnel() ?? "",
+                    'civilite' => $this->formatEntity($personne->getCivilite()),
+                    'region' => $this->formatEntity($personne->getRegion()),
+                    'district' => $this->formatEntity($personne->getDistrict()),
+                    'commune' => $this->formatEntity($personne->getCommune()),
+                    'ville' => $this->formatEntity($personne->getVille()),
+                    'nationate' => $this->formatEntity($personne->getNationate()),
+                    'situationPro' => $this->formatEntity($personne->getSituationPro()),
+                    'dateNaissance' => $this->formatDate($personne->getDateNaissance()),
+                    'dateDiplome' => $this->formatDate($personne->getDateDiplome()),
+                    'diplome' => $personne->getDiplome() ?? "",
+                    'poleSanitaire' => $personne->getPoleSanitaire() ?? "",
+                    'organisationNom' => $personne->getOrganisationNom() ?? "",
+                    'poleSanitairePro' => $personne->getPoleSanitairePro() ?? "",
+                    'lieuExercicePro' => $personne->getLieuExercicePro() ?? "",
+                    'datePremierDiplome' => $this->formatDate($personne->getDatePremierDiplome()),
+                    'situation' => $personne->getSituation() ?? "",
+                    'appartenirOrganisation' => $personne->getAppartenirOrganisation() ?? "",
+                    'photo' => $this->formatFile($personne->getPhoto()),
+                    'cv' => $this->formatFile($personne->getCv()),
+                    'casier' => $this->formatFile($personne->getCasier()),
+                    'certificat' => $this->formatFile($personne->getCertificat()),
+                    'diplomeFile' => $this->formatFile($personne->getDiplomeFile()),
+                    'cni' => $this->formatFile($personne->getCni()),
+                ]
+
+            ];
+        }, $professionnels));
+
+        return $this->responseData(array_values($formattedProfessionnels), 'group_pro', ['Content-Type' => 'application/json']);
+    } catch (\Exception $e) {
+        return $this->json(['error' => 'Une erreur est survenue'], Response::HTTP_INTERNAL_SERVER_ERROR);
+    }
+}
+
+
+
+  
+
+
     #[Route('/', methods: ['GET'])]
     /**
      * Retourne la liste des professionnels.
@@ -159,7 +329,12 @@ class ApiProfessionnelController extends ApiInterface
                             'montantRenouvellement' => $profession->getMontantRenouvellement(),
                         ] : null,
                         'id' => $personne->getId(),
-                        //'organisationNom' => $personne->getOrganisationNom(),
+                        'imputation' => $personne->getImputation() ? $personne->getImputation()->getId() : null,
+                        'imputationData' => $personne->getImputation() ? [
+                            'id'=>  $personne->getImputation()->getId(),
+                             'username'=>  $personne->getImputation()->getUsername(),
+                             'email'=>  $personne->getImputation()->getEmail(),
+                        ] : null,
                         'appartenirOrdre' => $personne->getAppartenirOrdre() ?? "",
                         'numeroInscription' => $personne->getNumeroInscription() ?? "",
                         'emailPro' => $personne->getEmailPro(),
@@ -354,6 +529,7 @@ class ApiProfessionnelController extends ApiInterface
                 $numeroGenere = $utils->numeroGeneration($professionnel->getCivilite()->getCodeGeneration(), $professionnel->getDateNaissance() ?? new \DateTime(), $professionnel->getCreatedAt() ?? new \DateTime(), $racineSequenceRepository->findOneBySomeField()->getCode(), $professionMaxCode, "new", $professionCode, $code);
 
                 $professionnel->setCode($numeroGenere);
+                $professionnel->setDateValidation(new DateTime());
                 //$professionnel->setCode($this->numeroGeneration($professionnel, $professionCode, $racineSequenceRepository->findOneBySomeField()->getCode()));
             }
             $professionnel->setReason($dto->raison);
@@ -375,14 +551,41 @@ class ApiProfessionnelController extends ApiInterface
                 $this->em->persist($profession);
                 $this->em->flush();
             }
+            /* acceptation:
+            from: attente
+            to: accepte
+        rejet:
+            from: attente
+            to: rejete
+        refuse:
+            from: accepte
+            to: refuse
+        validation:
+            from: accepte 
+            to: valide */
 
+            $message ="";
+
+            if($dto->status == "acceptation"){
+                $message ="Votre dossier vient de passer l'etape d'acceptation et est en séance d'analyse";
+                
+            }elseif($dto->status == "rejet"){
+                $message ="Votre dossier vient de passer d'être réjeté pour la raison suivante: ".$dto->raison;
+                
+                
+            }elseif($dto->status == "refuse"){
+
+                $message ="Votre dossier vient de passer d'être réfusé pour la raison suivante: ".$dto->raison;
+
+            
+            }elseif($dto->status == "validation"){
+                $message = "Votre dossier a été jugé conforme et est désormais en attente de validation finale. Vous recevrez une notification dès que le processus sera complété.";
+            }
 
             $info_user = [
                 'user' => $userRepository->find($data['userUpdate'])->getUserIdentifier(),
                 'etape' => $dto->status,
-                'message' => $dto->status == "validation" ? "Votre dossier a été jugé conforme et
-est désormais en attente de validation finale. Vous recevrez une notification dès que le processus sera complété." : ($dto->status == "renouvellement" ? "Vous avez obtenu un avis favorable d'inscription au registre de la profession [insérer la profession]. Veuillez
-vous rendre à la DEPPS pour le retrait de votre autorisation d'exercice." : ""),
+                'message' => $message
             ];
 
             $context = compact('info_user');

@@ -59,6 +59,39 @@ class ApiUserController extends ApiInterface
         return $response;
     }
 
+    
+
+    #[Route('/liste/instructeur', methods: ['GET'])]
+    /**
+     * Retourne la liste des users.
+     * 
+     */
+    #[OA\Response(
+        response: 200,
+        description: 'Returns the rewards of an user',
+        content: new OA\JsonContent(
+            type: 'array',
+            items: new OA\Items(ref: new Model(type: User::class, groups: ['full']))
+        )
+    )]
+    #[OA\Tag(name: 'user')]
+    // #[Security(name: 'Bearer')]
+    public function indexInstructeur(UserRepository $userRepository): Response
+    {
+        try {
+
+            $users = $userRepository->findBy(['typeUser'=>'INSTRUCTEUR']);
+
+            $response = $this->responseData($users, 'group_user', ['Content-Type' => 'application/json']);
+        } catch (\Exception $exception) {
+            $this->setMessage("");
+            $response = $this->response('[]');
+        }
+
+        // On envoie la réponse
+        return $response;
+    }
+
     #[Route('/check/email/existe/{email}', methods: ['GET'])]
     /**
      * Affiche un(e) specialite en offrant un identifiant.
@@ -116,8 +149,9 @@ class ApiUserController extends ApiInterface
     public function indexAdmin(UserRepository $userRepository): Response
     {
         try {
+            
 
-            $users = $userRepository->findBy(['typeUser' => 'ADMINISTRATEUR']);
+            $users = $userRepository->getUserByRole();
 
             $response = $this->responseData($users, 'group_user', ['Content-Type' => 'application/json']);
         } catch (\Exception $exception) {
@@ -184,10 +218,14 @@ class ApiUserController extends ApiInterface
                     properties: [
 
                         new OA\Property(property: "username", type: "string"),
+                        new OA\Property(property: "nom", type: "string"),
+                        new OA\Property(property: "prenoms", type: "string"),
                         new OA\Property(property: "password", type: "string"),
+                        new OA\Property(property: "confirmPassword", type: "string"),
                         new OA\Property(property: "email", type: "string"),
-                        new OA\Property(property: "avatar", type: "string", format: "binary"),
+                        new OA\Property(property: "typeUser", type: "string"),
                         new OA\Property(property: "userUpdate", type: "string"),
+                        new OA\Property(property: "avatar", type: "string", format: "binary"),
 
                     ],
                     type: "object"
@@ -206,7 +244,7 @@ class ApiUserController extends ApiInterface
         $names = 'document_' . '01';
         $filePrefix  = str_slug($names);
         $filePath = $this->getUploadDir(self::UPLOAD_PATH, true);
-        $uploadedFile = $request->files->get('avatar');
+        ///$uploadedFile = $request->files->get('avatar');
 
         try {
             $data = json_decode($request->getContent(), true);
@@ -221,12 +259,15 @@ class ApiUserController extends ApiInterface
             $personne->setCreatedBy($this->userRepository->find($request->get('userUpdate')));
 
             $this->em->persist($personne);
+            $this->em->flush();
 
             $user = new User();
             $user->setUsername($request->get('username'));
+            $user->setRoles(["ROLE_ADMIN"]);
             $user->setEmail($request->get('email'));
+            $user->setPayement("payed");
             $user->setTypeUser($request->get('typeUser'));
-            $user->setPersonne($personne());
+            $user->setPersonne($personne);
             if ($request->get('password') != "")
                 $user->setPassword($this->hasher->hashPassword($user,  $request->get('password')));
 
@@ -235,22 +276,21 @@ class ApiUserController extends ApiInterface
             $user->setCreatedAtValue(new \DateTime());
             $user->setCreatedBy($this->userRepository->find($request->get('userUpdate')));
 
-            if ($uploadedFile) {
+        /*     if ($uploadedFile) {
                 $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedFile, self::UPLOAD_PATH);
                 if ($fichier) {
                     $user->setAvatar($fichier);
                 }
-            }
+            } */
 
-            $errorResponse = $this->errorResponse($user);
+            //$errorResponse = $this->errorResponse($user);
 
-            $errorResponse = $data['password'] !== $data['confirmPassword'] ?  $this->errorResponse($user, "Les mots de passe ne sont pas identiques") :  $this->errorResponse($user);
+         /*    $errorResponse = $request->get('password') !== $request->get('confirmPassword') ?  $this->errorResponse($user, "Les mots de passe ne sont pas identiques") :  $this->errorResponse($user);
             if ($errorResponse !== null) {
                 return $errorResponse; // Retourne la réponse d'erreur si des erreurs sont présentes
-            } else {
-                $this->em->flush();
+            } else { */
                 $userRepository->add($user, true);
-            }
+           /*  } */
 
             $response = $this->responseData($user, 'group_user', ['Content-Type' => 'application/json']);
         } catch (\Throwable $th) {
@@ -372,7 +412,7 @@ class ApiUserController extends ApiInterface
             $names = 'document_' . '01';
             $filePrefix  = str_slug($names);
             $filePath = $this->getUploadDir(self::UPLOAD_PATH, true);
-            $uploadedFile = $request->files->get('avatar');
+           // $uploadedFile = $request->files->get('avatar');
 
             if ($user != null) {
                 $personne = $administrateurRepository->find($user->getPersonne()->getId());
@@ -392,12 +432,12 @@ class ApiUserController extends ApiInterface
                 $user->setUpdatedBy($this->userRepository->find($request->get('userUpdate')));
                 $user->setUpdatedAt(new \DateTime());
 
-                if ($uploadedFile) {
+              /*   if ($uploadedFile) {
                     $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedFile, self::UPLOAD_PATH);
                     if ($fichier) {
                         $user->setAvatar($fichier);
                     }
-                }
+                } */
 
                 $errorResponse = $this->errorResponse($user);
 

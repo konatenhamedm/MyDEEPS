@@ -25,7 +25,7 @@ class AuthenticationSuccessListener
     private $userRepository;
     private $professionnelRepo;
     private $transactionRepo;
-    public function __construct(UserRepository $userRepository, ProfessionnelRepository $professionnelRepo,TransactionRepository $transactionRepo)
+    public function __construct(UserRepository $userRepository, ProfessionnelRepository $professionnelRepo, TransactionRepository $transactionRepo)
     {
         $this->userRepository = $userRepository;
         $this->professionnelRepo = $professionnelRepo;
@@ -42,13 +42,13 @@ class AuthenticationSuccessListener
         $expire = true;
         $finRenouvelement = "";
 
-        
+
 
         if ($user instanceof User) {
 
-             // 1. Récupérer la dernière transaction
-       
-       
+            // 1. Récupérer la dernière transaction
+
+
 
             $userData = $this->userRepository->find($user->getId());
 
@@ -59,12 +59,18 @@ class AuthenticationSuccessListener
                 "expire" => $userData->getPersonne()->getStatus() == "renouvellement" ? true : false,
                 "finRenouvellement" => $finRenouvelement,
                 'username' => $userData->getUserIdentifier(),
-                'avatar' => ($userData->getTypeUser() != "ADMINISTRATEUR")
+                'avatar' => ($userData->getTypeUser() == "PROFESSIONNEL") ? ($userData->getAvatar()
+                    ? $userData->getAvatar()->getPath() . '/' . $userData->getAvatar()->getAlt()
+                    : $userData->getPersonne()->getPhoto()->getPath() . '/' . $userData->getPersonne()->getPhoto()->getAlt()
+                ) : null,
+
+
+                /* 'avatar' => ($userData->getTypeUser() != "ADMINISTRATEUR") ? 
                     ? ($userData->getAvatar()
                         ? $userData->getAvatar()->getPath() . '/' . $userData->getAvatar()->getAlt()
                         : $userData->getPersonne()->getPhoto()->getPath() . '/' . $userData->getPersonne()->getPhoto()->getAlt()
                     )
-                    : null,
+                    : null, */
                 'status' => $userData->getTypeUser() == "PROFESSIONNEL" ? $userData->getPersonne()->getStatus() : null,
                 'nom' => $userData->getTypeUser() == "PROFESSIONNEL" ? $userData->getPersonne()->getNom() . " " . $userData->getPersonne()->getPrenoms() : null,
                 'payement' => $userData->getPayement(),

@@ -35,7 +35,7 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         if ($flush) {
             $this->getEntityManager()->flush();
         }
-    } 
+    }
     /**
      * Used to upgrade (rehash) the user's password automatically over time.
      */
@@ -65,13 +65,32 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     //        ;
     //    }
 
-    //    public function findOneBySomeField($value): ?User
-    //    {
-    //        return $this->createQueryBuilder('u')
-    //            ->andWhere('u.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+
+
+    public function getUserByRole()
+    {
+
+        return $this->createQueryBuilder('u')
+            ->andWhere('u.roles LIKE :role')
+            /* ->andWhere('u.typeUser = :typeUser') */
+            ->setParameter('role', '%"ROLE_ADMIN"%')
+           /*  ->setParameter('typeUser', 'ADMINISTRATEUR') */
+            ->getQuery()
+            ->getResult();
+    }
+    public function getAllProfessionnelImputation($imputation)
+    {
+
+        //$professionnels = $userRepository->findBy(['typeUser' => 'PROFESSIONNEL','imputation'=> $id], ['id' => 'DESC']);
+        
+        return $this->createQueryBuilder('u')
+            ->innerJoin('u.personne','p')
+            ->andWhere('u.typeUser = :typeUser')
+            ->andWhere('p.imputation = :imputation')
+            ->setParameter('imputation', $imputation)
+            ->setParameter('typeUser', 'PROFESSIONNEL')
+            ->orderBy('u.id ','DESC')
+            ->getQuery()
+            ->getResult();
+    }
 }
