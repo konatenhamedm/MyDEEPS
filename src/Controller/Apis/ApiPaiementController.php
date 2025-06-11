@@ -171,6 +171,36 @@ class ApiPaiementController extends ApiInterface
         // On envoie la réponse
         return $response;
     }
+    #[Route('/find/one/transaction/{id}', methods: ['GET'])]
+    /**
+     * liste historique.
+     * 
+     */
+    #[OA\Response(
+        response: 200,
+        description: 'Returns the rewards of an user',
+        content: new OA\JsonContent(
+            type: 'array',
+            items: new OA\Items(ref: new Model(type: Transaction::class, groups: ['full']))
+        )
+    )]
+    #[OA\Tag(name: 'paiements')]
+    // #[Security(name: 'Bearer')]
+    public function indexFindOneTransaction(TransactionRepository $transactionRepository, $id): Response
+    {
+        try {
+
+            $transactions = $transactionRepository->find($id);
+
+            $response = $this->responseData($transactions, 'group_user_trx', ['Content-Type' => 'application/json']);
+        } catch (\Exception $exception) {
+            $this->setMessage("");
+            $response = $this->response('[]');
+        }
+
+        // On envoie la réponse
+        return $response;
+    }
     #[Route('/info/transaction/last/transaction/{userId}', methods: ['GET'])]
     /**
      * liste historique.

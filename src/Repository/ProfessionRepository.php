@@ -61,7 +61,25 @@ class ProfessionRepository extends ServiceEntityRepository
     }
 
 
+    public function findUniqueMontants(): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+    
+        $sql = "
+            SELECT DISTINCT montant FROM (
+                SELECT montant_nouvelle_demande AS montant FROM profession WHERE montant_nouvelle_demande IS NOT NULL
+                UNION
+                SELECT montant_renouvellement AS montant FROM profession WHERE montant_renouvellement IS NOT NULL
+            ) AS montants
+            ORDER BY montant ASC
+        ";
+    
+        $stmt = $conn->executeQuery($sql);
+    
+        return array_column($stmt->fetchAllAssociative(), 'montant');
+    }
 
+    
     //    /**
     //     * @return Profession[] Returns an array of Profession objects
     //     */
