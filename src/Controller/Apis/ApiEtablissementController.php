@@ -110,7 +110,7 @@ class ApiEtablissementController extends ApiInterface
 
             // TO DO
             $sendMailService->send(
-                'tester@myonmci.ci',
+                'depps@myonmci.ci',
                 $data['email'],
                 'Validaton du dossier',
                 'content_validation',
@@ -337,7 +337,7 @@ class ApiEtablissementController extends ApiInterface
 
                     // TO DO
                     $sendMailService->send(
-                        'tester@myonmci.ci',
+                        'depps@myonmci.ci',
                         $request->get('email'),
                         'Informations',
                         'content_mail',

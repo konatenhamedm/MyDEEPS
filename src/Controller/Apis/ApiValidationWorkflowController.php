@@ -78,7 +78,7 @@ class ApiValidationWorkflowController extends ApiInterface
 
           
 
-            $response =  $this->responseData($validationWorkflow, 'group_pro', ['Content-Type' => 'application/json']);
+            $response =  $this->responseData($validationWorkflow, 'group_pro_validate_', ['Content-Type' => 'application/json']);
         } catch (\Exception $exception) {
             $this->setMessage("");
             $response = $this->response('[]');

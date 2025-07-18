@@ -185,6 +185,18 @@ class Professionnel extends Entite
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $dateValidation = null;
 
+    #[ORM\ManyToOne(inversedBy: 'professionnels')]
+    #[Group(["group_pro"])]
+    private ?TypeDiplome $typeDiplome = null;
+
+    #[ORM\ManyToOne(inversedBy: 'professionnels')]
+    #[Group(["group_pro"])]
+    private ?StatusPro $statusPro = null;
+
+    #[ORM\ManyToOne(inversedBy: 'professionnels')]
+    #[Group(["fichier", "group_pro"])]
+    private ?LieuDiplome $lieuObtentionDiplome = null;
+
   
 
     public function __construct()
@@ -662,6 +674,42 @@ class Professionnel extends Entite
     public function setDateValidation(?\DateTimeInterface $dateValidation): static
     {
         $this->dateValidation = $dateValidation;
+
+        return $this;
+    }
+
+    public function getTypeDiplome(): ?TypeDiplome
+    {
+        return $this->typeDiplome;
+    }
+
+    public function setTypeDiplome(?TypeDiplome $typeDiplome): static
+    {
+        $this->typeDiplome = $typeDiplome;
+
+        return $this;
+    }
+
+    public function getStatusPro(): ?StatusPro
+    {
+        return $this->statusPro;
+    }
+
+    public function setStatusPro(?StatusPro $statusPro): static
+    {
+        $this->statusPro = $statusPro;
+
+        return $this;
+    }
+
+    public function getLieuObtentionDiplome(): ?LieuDiplome
+    {
+        return $this->lieuObtentionDiplome;
+    }
+
+    public function setLieuObtentionDiplome(?LieuDiplome $lieuObtentionDiplome): static
+    {
+        $this->lieuObtentionDiplome = $lieuObtentionDiplome;
 
         return $this;
     }

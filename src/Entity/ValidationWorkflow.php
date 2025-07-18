@@ -16,19 +16,19 @@ class ValidationWorkflow
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Group(["group1","group_pro"])]
+    #[Group(["group1","group_pro_validate",'group_pro_validate_'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Group(["group1","group_pro"])]
+    #[Group(["group1","group_pro_validate",'group_pro_validate_'])]
     private ?string $etape = null;
 
     #[ORM\ManyToOne(inversedBy: 'validationWorkflows')]
-    #[Group(["group1","group_pro"])]
+    #[Group(["group1","group_pro_validate",'group_pro_validate_'])]
     private ?Entite $personne = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
-    #[Group(["group1","group_pro"])]
+    #[Group(["group1","group_pro_validate",'group_pro_validate_'])]
     private ?string $raison = null;
 
     public function getId(): ?int

@@ -78,7 +78,7 @@ class RenouvellementService
                     $context = compact('user_message');
 
                     $this->sendMailService->send(
-                        'tester@myonmci.ci',
+                        'depps@myonmci.ci',
                         $user->getEmail(),
                         'Informations - Renouvellement Abonnement',
                         'renew_mail',

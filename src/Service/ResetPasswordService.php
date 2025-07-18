@@ -42,7 +42,37 @@ class ResetPasswordService
 
         $this->sendMailService->send(
             //'konatefvaly@gmail.com',
-            'tester@myonmci.ci',
+            'depps@myonmci.ci',
+            $user->getEmail(),
+            'reinitialisation',
+            'password_reset',
+            $context
+        );
+
+       
+    }
+    public function sendResetPasswordEmailAdmin($user): void
+    {
+
+        $token = $this->tokenGenerator->generateToken();
+        $resetRpassWOrd = new ResetPasswordToken($user);
+        $resetRpassWOrd->setToken($token);
+        $this->em->persist($resetRpassWOrd);
+        $this->em->flush();
+
+      
+        $user->setResetToken($token);
+        $this->em->persist($user);
+        $this->em->flush();
+
+        // URL du frontend Svelte pour la réinitialisation
+        $url = "https://mydepps.net/login/nouveau_mot_de_passe/{$token}";
+
+        $context = compact('url', 'user');
+
+        $this->sendMailService->send(
+            //'konatefvaly@gmail.com',
+            'depps@myonmci.ci',
             $user->getEmail(),
             'reinitialisation',
             'password_reset',

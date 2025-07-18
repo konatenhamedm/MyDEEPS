@@ -58,7 +58,7 @@ class AuthenticationSuccessListener
                 'role' => $userData->getRoles(),
                 "expire" => $userData->getPersonne()->getStatus() == "renouvellement" ? true : false,
                 "finRenouvellement" => $finRenouvelement,
-                'username' => $userData->getUserIdentifier(),
+                'username' => $userData->getTypeUser() == "ADMINISTRATEUR" ? $userData->getUsername() : $userData->getUserIdentifier(),
                 'avatar' => ($userData->getTypeUser() == "PROFESSIONNEL") ? ($userData->getAvatar()
                     ? $userData->getAvatar()->getPath() . '/' . $userData->getAvatar()->getAlt()
                     : $userData->getPersonne()->getPhoto()->getPath() . '/' . $userData->getPersonne()->getPhoto()->getAlt()

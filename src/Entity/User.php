@@ -57,7 +57,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(type: 'string', unique: true, nullable: true)]
     #[Assert\Email]
-    #[Group(["group1", "group_user", 'group_pro',"group_user_trx"])]
+    #[Group(["group1", "group_user", 'group_pro',"group_user_trx","group_user_instructeur"])]
     private ?string $email = null;
 
     #[ORM\Column]
@@ -119,7 +119,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private Collection $transactions;
 
     #[ORM\ManyToOne(inversedBy: 'users')]
-    #[Group(["group1", "group_user", 'group_pro',"group_user_trx"])]
+    #[Group(["group1", "group_user", 'group_pro',"group_user_trx","group_user_instructeur"])]
     private ?Entite $personne = null;
 
     /**

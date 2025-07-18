@@ -61,6 +61,46 @@ class ApiResetPasswordController extends ApiInterface
 
         return $this->responseData([], 'group1', ['Content-Type' => 'application/json']);
     }
+    #[Route('/reset/email/admin', methods: ['POST'])]
+    /**
+     * Affiche un(e) civilite en offrant un identifiant.
+     */
+    #[OA\Response(
+        response: 200,
+        description: 'Affiche un(e) civilite en offrant un identifiant',
+        content: new OA\JsonContent(
+            type: 'array',
+            items: new OA\Items(ref: new Model(type: Civilite::class, groups: ['full']))
+        )
+    )]
+    #[OA\Parameter(
+        name: 'code',
+        in: 'query',
+        schema: new OA\Schema(type: 'string')
+    )]
+    #[OA\Tag(name: 'resetpassword')]
+    //#[Security(name: 'Bearer')]
+    public function resetEmailAdmin(Request $request, UserRepository $userRepository, ResetPasswordService $resetPasswordServicee): Response
+    {
+
+        $data = json_decode($request->getContent(), true);
+
+
+        $email = $data['email'];
+        $user = $userRepository->findOneBy(['email' => $email]);
+
+        if (!$user) {
+
+            $this->setMessage("Cette ressource est inexsitante");
+            $this->setStatusCode(300);
+            return $this->responseData([], 'group1', ['Content-Type' => 'application/json']);
+        }
+
+        // Generate a reset token and send the email
+        $resetPasswordServicee->sendResetPasswordEmailAdmin($user);
+
+        return $this->responseData([], 'group1', ['Content-Type' => 'application/json']);
+    }
 
    
 

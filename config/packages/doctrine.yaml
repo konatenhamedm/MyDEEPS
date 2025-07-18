@@ -20,6 +20,7 @@ doctrine:
                 date_diff: DoctrineExtensions\Query\Mysql\DateDiff
                 date_format: DoctrineExtensions\Query\Mysql\DateFormat
                 last_day:  DoctrineExtensions\Query\Mysql\LastDay
+                timestampdiff: DoctrineExtensions\Query\Mysql\TimestampDiff
             string_functions:
                 char_length: DoctrineExtensions\Query\Mysql\CharLength
                 group_concat: DoctrineExtensions\Query\Mysql\GroupConcat
@@ -27,7 +28,7 @@ doctrine:
                 cast: DoctrineExtensions\Query\Mysql\Cast
                 nullif: DoctrineExtensions\Query\Mysql\NullIf
                 replace: DoctrineExtensions\Query\Mysql\Replace
-                YEAR: DoctrineExtensions\Query\Mysql\Year
+               
                 
         mappings:
             App:

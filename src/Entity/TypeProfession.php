@@ -32,7 +32,13 @@ class TypeProfession
     /**
      * @var Collection<int, Profession>
      */
-    #[ORM\OneToMany(targetEntity: Profession::class, mappedBy: 'typeProfession')]
+    //#[ORM\OneToMany(targetEntity: Profession::class, mappedBy: 'typeProfession')]
+    #[ORM\OneToMany(
+        targetEntity: Profession::class,
+        mappedBy: 'typeProfession',
+        cascade: ['remove'],
+        orphanRemoval: true
+    )]
     #[Group(["group2"])]
     private Collection $professions;
 

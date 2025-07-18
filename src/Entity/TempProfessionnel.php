@@ -224,6 +224,15 @@ class TempProfessionnel
     #[ORM\Column(length: 255,nullable:true)]
     private ?string $numeroInscription = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $typeDiplome = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $statusPro = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $lieuObtentionDiplome = null;
+
 
     public function getReference(): ?string
     {
@@ -1003,6 +1012,42 @@ class TempProfessionnel
     public function setNumeroInscription(string $numeroInscription): static
     {
         $this->numeroInscription = $numeroInscription;
+
+        return $this;
+    }
+
+    public function getTypeDiplome(): ?string
+    {
+        return $this->typeDiplome;
+    }
+
+    public function setTypeDiplome(?string $typeDiplome): static
+    {
+        $this->typeDiplome = $typeDiplome;
+
+        return $this;
+    }
+
+    public function getStatusPro(): ?string
+    {
+        return $this->statusPro;
+    }
+
+    public function setStatusPro(?string $statusPro): static
+    {
+        $this->statusPro = $statusPro;
+
+        return $this;
+    }
+
+    public function getLieuObtentionDiplome(): ?string
+    {
+        return $this->lieuObtentionDiplome;
+    }
+
+    public function setLieuObtentionDiplome(?string $lieuObtentionDiplome): static
+    {
+        $this->lieuObtentionDiplome = $lieuObtentionDiplome;
 
         return $this;
     }

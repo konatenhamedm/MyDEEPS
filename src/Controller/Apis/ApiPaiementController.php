@@ -46,13 +46,82 @@ class ApiPaiementController extends ApiInterface
     )]
     #[OA\Tag(name: 'paiements')]
     // #[Security(name: 'Bearer')]
-    public function index(TransactionRepository $transactionRepository): Response
+    public function index(TransactionRepository $transactionRepository, ProfessionRepository $professionRepository): Response
     {
         try {
 
+            /* {
+                "user": {
+                    "id": 112,
+                    "username": "Doudou DEPPS25059008",
+                    "email": "adoudanidani@live.fr",
+                    "typeUser": "PROFESSIONNEL",
+                    "personne": {
+                        "code": "MS10250299.0001",
+                        "poleSanitaire": "",
+                        "nom": "Doudou",
+                        "prenoms": "DANI",
+                        "lieuExercicePro": "Adzopé",
+                        "email": "adoudanidani@gmail.com",
+                        "profession": "rd_kinesithérapie",
+                        "number": "0707937156",
+                        "quartier": "KOKO",
+                        "id": 76,
+                        "createdAt": "2025-05-09T13:10:32+02:00"
+                    },
+                    "createdAt": "2025-05-09T13:10:33+02:00"
+                },
+                "montant": "15000",
+                "reference": "DEPPS250509130852007",
+                "reference_channel": "LJV250509P1109412191",
+                "channel": "Wave",
+                "type": "NOUVELLE DEMANDE",
+                "state": 1,
+                "typeUser": "professionnel",
+                "createdAt": "2025-05-09T13:08:52+02:00"
+            }, */
+
             $transactions = $transactionRepository->getAllTransaction();
 
-            $response = $this->responseData($transactions, 'group_user_trx', ['Content-Type' => 'application/json']);
+
+            $formattedTransactions = array_map(function (Transaction $transaction) use ($professionRepository) {
+                $personne = $transaction->getUser()->getPersonne();
+                $profession = $personne->getProfession() ? $professionRepository->findOneByCode($personne->getProfession()) : null;
+
+                return [
+                    "montant" => $transaction->getMontant(),
+                    "reference" => $transaction->getReference(),
+                    "reference_channel" => $transaction->getReferenceChannel(),
+                    "channel" => $transaction->getChannel(),
+                    "type" => $transaction->getType(),
+                    "state" => $transaction->getState(),
+                    "typeUser" => $transaction->getUser()->getTypeUser(),
+                    "createdAt" => $transaction->getCreatedAt()->format('Y-m-d H:i:s'),
+                    "email" => $transaction->getUser()->getEmail(),
+                    'personne' => [
+                        'profession' => $profession ? [
+                            'libelle' => $profession->getLibelle() ?? "",
+                            'id' => $profession->getId(),
+                            'code' => $profession->getCode(),
+                            'montantNouvelleDemande' => $profession->getMontantNouvelleDemande(),
+                            'montantRenouvellement' => $profession->getMontantRenouvellement(),
+                        ] : null,
+                        "code" => $personne->getCode(),
+                        "poleSanitaire" => $personne->getPoleSanitaire(),
+                        "nom" => $personne->getNom(),
+                        "prenoms" => $personne->getPrenoms(),
+                        "lieuExercicePro" => $personne->getLieuExercicePro(),
+                        "email" => $personne->getEmail(),
+                        "number" => $personne->getNumber(),
+                        "quartier" => $personne->getQuartier(),
+                        "id" => $personne->getId(),
+                        "createdAt" => $personne->getCreatedAt()->format('Y-m-d H:i:s')
+                    ] ?? null,
+
+                ];
+            }, $transactions);
+
+            $response = $this->responseData($formattedTransactions, 'group_user_trx', ['Content-Type' => 'application/json']);
         } catch (\Exception $exception) {
             $this->setMessage("");
             $response = $this->response('[]');
@@ -77,60 +146,55 @@ class ApiPaiementController extends ApiInterface
     )]
     #[OA\Tag(name: 'paiements')]
     // #[Security(name: 'Bearer')]
-    public function status(TransactionRepository $transactionRepository,$userId,UserRepository $userRepository,ProfessionRepository $professionRepository): Response
+    public function status(TransactionRepository $transactionRepository, $userId, UserRepository $userRepository, ProfessionRepository $professionRepository): Response
     {
         try {
             $expire = false;
+            $etatPro = false;
             $finRenouvelement = "";
-
-
             $user = $userRepository->find($userId);
 
-            if($user->getPersonne()->getStatus() == "renouvellement"){
-                $expire = true;  
-            }else{
-                $expire = false;  
+            $profession = $professionRepository->findOneByCode($user->getPersonne()->getProfession());
 
-            }
+            $dernierAbonnement = $transactionRepository->findOneBy(
+                ['user' => $userId, 'state' => 1],
+                ['createdAt' => 'DESC']
+            );
 
-           $profession = $professionRepository->findOneByCode($user->getPersonne()->getProfession());
 
-            /*  if($profession->getMontantNouvelleDemande()){
-                
-                $transaction = $transactionRepository->findOneBy(
-                    ['user' => $userId,'state' => 1],
-                    ['createdAt' => 'DESC']
-                );
-        
-        
-                if($transaction == null){
-                    $expire = true;
-                    $finRenouvelement = "";
-                }else{
-                    
-                    $createdAt = $transaction->getCreatedAt();
-                    $now = new \DateTime();
-                    $diff = $createdAt->diff($now);
-                    
-                    // Si au moins 1 an complet (diff->y >= 1), alors abonnement expiré
-                    if ($diff->y >= 1) {
-                        $expire = true;
-                        $finRenouvelement = $diff->format('%y an(s), %m mois et %d jours');
-                    } else {
-                        $expire = false;
-                    }
-                }
-            }else{
+            if ($profession->getMontantNouvelleDemande() == null) {
                 $expire = false;
-                $finRenouvelement = "";
-            }*/
+                $joursRestants = 0;
+                $expiration = new \DateTime();
+                $etatPro = false;
+            } else {
+                if ($user->getPersonne()->getDateValidation() != null) {
+
+                    $expiration = (clone $user->getPersonne()->getDateValidation());
+                    $today = new \DateTime();
+                    $joursRestants = max(0, $today->diff($expiration)->days);
+                    $expire = $expiration >= $today ? false : true;
+
+                    //dd($expiration, $today, $joursRestants, $expire,$today->diff($user->getPersonne()->getDateValidation())->days);
+                } else {
+
+                    $expiration = (clone $dernierAbonnement->getCreatedAt());
+                    $today = new \DateTime();
+                    $joursRestants = max(0, $today->diff($expiration)->days);
+                    $expire = $expiration >= $today ? false : true;
+                }
+
+                $etatPro = true;
+            }
 
             $transactions = [
                 'expire' => $expire,
-                'finRenouvelement' => $finRenouvelement,
-                'montant' => $profession->getMontantNouvelleDemande()
-            ]; 
-                
+                'etatPro' => $etatPro,
+                'montant' => $profession->getMontantNouvelleDemande(),
+                'date_expiration' => $expiration->format('Y-m-d'),
+                'jours_restants' => $joursRestants,
+            ];
+
 
             $response = $this->responseData($transactions, 'group_user_trx', ['Content-Type' => 'application/json']);
         } catch (\Exception $exception) {
@@ -223,6 +287,78 @@ class ApiPaiementController extends ApiInterface
             $transactions = $transactionRepository->findLastTransactionByUser($userId);
 
             $response = $this->responseData($transactions, 'group_user_trx', ['Content-Type' => 'application/json']);
+        } catch (\Exception $exception) {
+            $this->setMessage("yuyuyu");
+            $response = $this->response('[]');
+        }
+
+        // On envoie la réponse
+        return $response;
+    }
+    #[Route('/info/transaction/last/transaction/formatter/{userId}', methods: ['GET'])]
+    /**
+     * liste historique.
+     * 
+     */
+    #[OA\Response(
+        response: 200,
+        description: 'Returns the rewards of an user',
+        content: new OA\JsonContent(
+            type: 'array',
+            items: new OA\Items(ref: new Model(type: Transaction::class, groups: ['full']))
+        )
+    )]
+    #[OA\Tag(name: 'paiements')]
+    // #[Security(name: 'Bearer')]
+    public function indexInfoTransactionLastTransactionFormatter(TransactionRepository $transactionRepository, ProfessionRepository $professionRepository, $userId): Response
+    {
+        try {
+
+
+            $transactions = $transactionRepository->findLastTransactionByUser($userId);
+
+            $personne = $transactions->getUser()->getPersonne();
+            $profession = $personne->getProfession() ? $professionRepository->findOneByCode($personne->getProfession()) : null;
+
+            $data = [
+                'user' => [
+                    "id" => $transactions->getUser()->getId(),
+                    "username" => $transactions->getUser()->getUsername(),
+                    "email" => $transactions->getUser()->getUserIdentifier(),
+                    "typeUser" => $transactions->getUser()->getTypeUser(),
+                    'personne' => [
+                        'profession' => $profession ? [
+                            'libelle' => $profession->getLibelle() ?? "",
+                            'id' => $profession->getId(),
+                            'code' => $profession->getCode(),
+                            'montantNouvelleDemande' => $profession->getMontantNouvelleDemande(),
+                            'montantRenouvellement' => $profession->getMontantRenouvellement(),
+                        ] : null,
+                        "code" => $personne->getCode(),
+                        "poleSanitaire" => $personne->getPoleSanitaire(),
+                        "nom" => $personne->getNom(),
+                        "prenoms" => $personne->getPrenoms(),
+                        "lieuExercicePro" => $personne->getLieuExercicePro(),
+                        "email" => $personne->getEmail(),
+                        "number" => $personne->getNumber(),
+                        "quartier" => $personne->getQuartier(),
+                        "id" => $personne->getId(),
+                        "createdAt" => $personne->getCreatedAt()->format('Y-m-d H:i:s')
+                    ] ?? null,
+                ],
+                "montant" => $transactions->getMontant(),
+                "reference" => $transactions->getReference(),
+                "reference_channel" => $transactions->getReferenceChannel(),
+                "channel" => $transactions->getChannel(),
+                "type" => $transactions->getType(),
+                "state" => $transactions->getState(),
+                "typeUser" => $transactions->getUser()->getTypeUser(),
+                "createdAt" => $transactions->getCreatedAt()->format('Y-m-d H:i:s'),
+                "email" => $transactions->getUser()->getEmail(),
+            ];
+
+
+            $response = $this->responseData($data, 'group_user_trx', ['Content-Type' => 'application/json']);
         } catch (\Exception $exception) {
             $this->setMessage("yuyuyu");
             $response = $this->response('[]');
@@ -507,10 +643,11 @@ class ApiPaiementController extends ApiInterface
     {
         $createTransactionData = $paiementService->traiterPaiementRenouvellement($request);
         return $this->json(
-        [
-          'message' => 'Professionnel bien enregistré',
-            'data' => $createTransactionData
-        ]);
+            [
+                'message' => 'Professionnel bien enregistré',
+                'data' => $createTransactionData
+            ]
+        );
     }
 
 
@@ -544,6 +681,8 @@ class ApiPaiementController extends ApiInterface
         $professionnel->setLieuExercicePro($request->get('lieuExercicePro'));
 
         // etatpe 3
+        $professionnel->setStatusPro($request->get('statusPro'));
+        $professionnel->setTypeDiplome($request->get('typeDiplome'));
 
         $professionnel->setProfession($request->get('profession'));
         $professionnel->setEmailAutre($request->get('emailAutre'));
@@ -553,6 +692,7 @@ class ApiPaiementController extends ApiInterface
         $professionnel->setDateNaissance($request->get('dateNaissance'));
         $professionnel->setNumber($request->get('numero'));
         $professionnel->setLieuDiplome($request->get('lieuDiplome'));
+        $professionnel->setLieuObtentionDiplome($request->get('lieuObtentionDiplome'));
         $professionnel->setNationate($request->get('nationalite'));
         $professionnel->setSituation($request->get('situation'));
         $professionnel->setDatePremierDiplome(new DateTimeImmutable($request->get('datePremierDiplome')));

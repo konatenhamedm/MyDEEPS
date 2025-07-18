@@ -3,7 +3,9 @@
 namespace App\Repository;
 
 use App\Entity\Civilite;
+use App\Entity\Pays;
 use App\Entity\Professionnel;
+use App\Entity\Region;
 use App\Entity\Ville;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -36,11 +38,41 @@ class ProfessionnelRepository extends ServiceEntityRepository
         }
     }
 
+
+    private function getDateRangeFromPeriode(?int $annee, ?string $periode): array
+    {
+        $annee = $annee ?? (int) date('Y');
+        $mois = (int) date('m');
+
+        switch ($periode) {
+            case 'mois':
+                $start = new \DateTime("$annee-$mois-01");
+                $end = new \DateTime("$annee-$mois-31");
+                break;
+            case 'trimestre':
+                $start = new \DateTime("$annee-01-01");
+                $end = new \DateTime("$annee-03-31");
+                break;
+            case 'semestre':
+                $start = new \DateTime("$annee-01-01");
+                $end = new \DateTime("$annee-06-30");
+                break;
+            case 'annee':
+            default:
+                $start = new \DateTime("$annee-01-01");
+                $end = new \DateTime("$annee-12-31");
+                break;
+        }
+
+        return [$start, $end];
+    }
+
+
     public function getProfessionnelByetat($status)
     {
 
         return $this->createQueryBuilder('p')
-            
+
             ->andWhere('p.status = :val')
             ->setParameter('val', $status)
             ->getQuery()
@@ -50,7 +82,7 @@ class ProfessionnelRepository extends ServiceEntityRepository
     {
 
         return $this->createQueryBuilder('p')
-        
+
             ->andWhere('p.status = :val')
             ->setParameter('val', 'ACCEPT')
             ->getQuery()
@@ -60,26 +92,210 @@ class ProfessionnelRepository extends ServiceEntityRepository
     {
 
         return $this->getEntityManager()->createQueryBuilder()
-        ->select('c.libelle AS civilite, COUNT(e.id) AS nombre')
-        ->from(Civilite::class, 'c')
-        ->leftJoin(Professionnel::class, 'e', 'WITH', 'e.civilite = c.id')
-        ->groupBy('c.id')
-        ->getQuery()
-        ->getResult();
-
+            ->select('c.libelle AS civilite, COUNT(e.id) AS nombre')
+            ->from(Civilite::class, 'c')
+            ->leftJoin(Professionnel::class, 'e', 'WITH', 'e.civilite = c.id')
+            ->groupBy('c.id')
+            ->getQuery()
+            ->getResult();
     }
-    public function countProByVille()
+    public function countProByCiviliteGeneral(?int $annee = null, ?string $periode = null)
     {
+        $qb = $this->getEntityManager()->createQueryBuilder()
+            ->select('c.libelle AS civilite, COUNT(e.id) AS nombre')
+            ->from(Civilite::class, 'c')
+            ->leftJoin(Professionnel::class, 'e', 'WITH', 'e.civilite = c.id')
+            ->groupBy('c.id');
 
-        return $this->getEntityManager()->createQueryBuilder()
-        ->select('c.libelle AS civilite, COUNT(e.id) AS nombre')
-        ->from(Ville::class, 'c')
-        ->leftJoin(Professionnel::class, 'e', 'WITH', 'e.ville = c.id')
-        ->groupBy('c.id')
-        ->getQuery()
-        ->getResult();
+        if ($annee != "null" && $periode != "null") {
+            [$start, $end] = $this->getDateRangeFromPeriode($annee, $periode);
+            $qb->andWhere("DATE_FORMAT(e.createdAt, '%Y-%m-%d') BETWEEN :start AND :end")
+                ->setParameter('start', $start)
+                ->setParameter('end', $end);
+        }
 
+        return $qb->getQuery()->getResult();
     }
+    public function countProByProfession(?int $annee = null, ?string $periode = null)
+    {
+        $qb = $this->createQueryBuilder('p')
+            ->select('p.profession AS libelle, COUNT(p.id) AS nombre')
+            ->groupBy('libelle');
+
+        if ($annee != "null" && $periode != "null") {
+            [$start, $end] = $this->getDateRangeFromPeriode($annee, $periode);
+            $qb->where("DATE_FORMAT(p.createdAt, '%Y-%m-%d') BETWEEN :start AND :end")
+                ->setParameter('start', $start->format('Y-m-d'))
+                ->setParameter('end', $end->format('Y-m-d'));
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+    public function countProByAnnee()
+    {
+        return $this->getEntityManager()->createQueryBuilder()
+            ->select('year(c.createdAt) AS libelle, COUNT(c.id) AS nombre')
+            ->from(Professionnel::class, 'c')
+            ->groupBy('libelle')
+            ->orderBy('libelle', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function countProByVille(?int $annee = null, ?string $periode = null)
+    {
+        $qb = $this->getEntityManager()->createQueryBuilder()
+            ->select('c.libelle AS libelle, COUNT(e.id) AS nombre')
+            ->from(Ville::class, 'c')
+            ->leftJoin(Professionnel::class, 'e', 'WITH', 'e.ville = c.id')
+            ->groupBy('c.id');
+
+        if ($annee != "null" && $periode != "null") {
+            [$start, $end] = $this->getDateRangeFromPeriode($annee, $periode);
+            $qb->andWhere("DATE_FORMAT(e.createdAt, '%Y-%m-%d') BETWEEN :start AND :end")
+                ->setParameter('start', $start)
+                ->setParameter('end', $end);
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+
+    public function countProByRegion(?int $annee = null, ?string $periode = null)
+    {
+        $qb = $this->getEntityManager()->createQueryBuilder()
+            ->select('c.libelle AS libelle, COUNT(e.id) AS nombre')
+            ->from(Region::class, 'c')
+            ->leftJoin(Professionnel::class, 'e', 'WITH', 'e.region = c.id')
+            ->groupBy('c.id');
+
+        if ($annee != "null" && $periode != "null") {
+            [$start, $end] = $this->getDateRangeFromPeriode($annee, $periode);
+            $qb->andWhere("DATE_FORMAT(e.createdAt, '%Y-%m-%d') BETWEEN :start AND :end")
+                ->setParameter('start', $start)
+                ->setParameter('end', $end);
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+
+    public function countProByPays(?int $annee = null, ?string $periode = null)
+    {
+        $qb = $this->getEntityManager()->createQueryBuilder()
+            ->select('c.libelle AS libelle, COUNT(e.id) AS nombre')
+            ->from(Pays::class, 'c')
+            ->leftJoin(Professionnel::class, 'e', 'WITH', 'e.nationate = c.id')
+            ->groupBy('c.id');
+
+        if ($annee != "null" && $periode != "null") {
+            [$start, $end] = $this->getDateRangeFromPeriode($annee, $periode);
+            $qb->andWhere("DATE_FORMAT(e.createdAt, '%Y-%m-%d') BETWEEN :start AND :end")
+                ->setParameter('start', $start)
+                ->setParameter('end', $end);
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+
+
+    public function countProByTrancheAge(?int $annee = null, ?string $periode = null): array
+    {
+        $qb = $this->createQueryBuilder('p')
+            ->select(
+                "CASE 
+                    WHEN TIMESTAMPDIFF(YEAR, p.dateNaissance, CURRENT_DATE()) < 25 THEN '< 25 ans'
+                    WHEN TIMESTAMPDIFF(YEAR, p.dateNaissance, CURRENT_DATE()) BETWEEN 25 AND 34 THEN '25–34 ans'
+                    WHEN TIMESTAMPDIFF(YEAR, p.dateNaissance, CURRENT_DATE()) BETWEEN 35 AND 44 THEN '35–44 ans'
+                    WHEN TIMESTAMPDIFF(YEAR, p.dateNaissance, CURRENT_DATE()) BETWEEN 45 AND 54 THEN '45–54 ans'
+                    ELSE '55 ans et plus'
+                 END AS tranche",
+                'COUNT(p.id) as nombre'
+            )
+            ->groupBy('tranche');
+
+        if ($annee != "null" && $periode != "null") {
+            [$start, $end] = $this->getDateRangeFromPeriode($annee, $periode);
+            $qb->andWhere("DATE_FORMAT(p.createdAt, '%Y-%m-%d') BETWEEN :start AND :end")
+                ->setParameter('start', $start)
+                ->setParameter('end', $end);
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+
+
+    public function findDiplomeStats(\DateTimeInterface $startDate, \DateTimeInterface $endDate): array
+    {
+        $qb = $this->createQueryBuilder('p')
+            ->select([
+                'IDENTITY(p.lieuObtentionDiplome) as lieu_id',
+                'l.libelle as lieu_nom',
+                'IDENTITY(p.civilite) as civilite_id',
+                'c.libelle as civilite_libelle',
+                'CASE 
+                    WHEN TIMESTAMPDIFF(YEAR, p.dateNaissance, CURRENT_DATE()) < 25 THEN \'< 25 ans\'
+                    WHEN TIMESTAMPDIFF(YEAR, p.dateNaissance, CURRENT_DATE()) BETWEEN 25 AND 34 THEN \'25-34 ans\'
+                    WHEN TIMESTAMPDIFF(YEAR, p.dateNaissance, CURRENT_DATE()) BETWEEN 35 AND 44 THEN \'35-44 ans\'
+                    WHEN TIMESTAMPDIFF(YEAR, p.dateNaissance, CURRENT_DATE()) BETWEEN 45 AND 54 THEN \'45-54 ans\'
+                    ELSE \'55 ans et plus\'
+                 END as tranche_age',
+                'COUNT(p.id) as count'
+            ])
+            ->leftJoin('p.lieuObtentionDiplome', 'l')
+            ->leftJoin('p.civilite', 'c')
+            ->where('p.dateNaissance BETWEEN :start AND :end')
+            ->setParameter('start', $startDate)
+            ->setParameter('end', $endDate)
+            ->groupBy('lieu_id, civilite_id, tranche_age');
+    
+        $results = $qb->getQuery()->getArrayResult();
+    
+        return $this->formatStats($results);
+    }
+    
+    private function formatStats(array $results): array
+    {
+        $formatted = [
+            'tableau_croise' => [],
+            'total' => 0,
+            'par_lieu' => [],
+            'par_tranche_age' => [],
+            'par_civilite' => []
+        ];
+    
+        foreach ($results as $row) {
+            $formatted['tableau_croise'][] = [
+                'lieu' => [
+                    'id' => $row['lieu_id'],
+                    'nom' => $row['lieu_nom']
+                ],
+                'civilite' => [
+                    'id' => $row['civilite_id'],
+                    'libelle' => $row['civilite_libelle']
+                ],
+                'tranche_age' => $row['tranche_age'],
+                'count' => $row['count']
+            ];
+    
+            // Aggrégations
+            $formatted['par_lieu'][$row['lieu_id']] = [
+                'nom' => $row['lieu_nom'],
+                'count' => ($formatted['par_lieu'][$row['lieu_id']]['count'] ?? 0) + $row['count']
+            ];
+    
+            $formatted['par_civilite'][$row['civilite_id']] = [
+                'libelle' => $row['civilite_libelle'],
+                'count' => ($formatted['par_civilite'][$row['civilite_id']]['count'] ?? 0) + $row['count']
+            ];
+    
+            $formatted['par_tranche_age'][$row['tranche_age']] = 
+                ($formatted['par_tranche_age'][$row['tranche_age']] ?? 0) + $row['count'];
+    
+            $formatted['total'] += $row['count'];
+        }
+    
+        return $formatted;
+    }
+    
     //    /**
     //     * @return Professionnel[] Returns an array of Professionnel objects
     //     */

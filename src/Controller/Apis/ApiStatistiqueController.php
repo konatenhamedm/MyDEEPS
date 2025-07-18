@@ -46,8 +46,8 @@ class ApiStatistiqueController extends ApiInterface
 
             $tab = [
                 'countEtablissement' => count($etablissementRepository->findAll()),
-                 'countProfessionnel' =>count($professionnelRepository->findAll()), 
-                'professionnelAjour' => count($professionnelRepository->allProfAjour()) 
+                'countProfessionnel' => count($professionnelRepository->findAll()),
+                'professionnelAjour' => count($professionnelRepository->allProfAjour())
             ];
 
             $response = $this->responseData($tab, 'group_user', ['Content-Type' => 'application/json']);
@@ -59,6 +59,8 @@ class ApiStatistiqueController extends ApiInterface
         // On envoie la réponse
         return $response;
     }
+    
+
     #[Route('/info-dashboard/by/typeuser/{type}/{idUser}', methods: ['GET'])]
     /**
      * Retourne les stats du dashboard.
@@ -74,60 +76,60 @@ class ApiStatistiqueController extends ApiInterface
     )]
     #[OA\Tag(name: 'statistiques')]
     // #[Security(name: 'Bearer')]
-    public function indexByTypeUser(EtablissementRepository $etablissementRepository,TransactionRepository $transactionRepository, ProfessionnelRepository $professionnelRepository,$type,$idUser): Response
+    public function indexByTypeUser(EtablissementRepository $etablissementRepository, TransactionRepository $transactionRepository, ProfessionnelRepository $professionnelRepository, $type, $idUser): Response
     {
         try {
 
 
-     /*        • Combien de dossier sont en attente de traitement et imprimable
+            /*        • Combien de dossier sont en attente de traitement et imprimable
 • Combien de dossier sont acceptés ou rejetés et imprimable
 • Combien de dossiers sont traités et validés et imprimable
 • Combien de dossiers sont traités et refusés et imprimable
 • Faire un état des personnes inscrite par profession */
-            if($type == "INSTRUCTEUR"){
-                $dataAccepte = $professionnelRepository->findBy(['status'=>'accepte','imputation'=> $idUser]);
-                $dataAttente = $professionnelRepository->findBy(['status'=>'attente','imputation'=> $idUser]);
-                $dataRejet = $professionnelRepository->findBy(['status'=>'rejete','imputation'=> $idUser]);
-                $dataRefuse = $professionnelRepository->findBy(['status'=>'refuse','imputation'=> $idUser]);
-                $dataValide = $professionnelRepository->findBy(['status'=>'valide','imputation'=> $idUser]);
-                
-                $tab = [
-                    'atttente' => $dataAttente?  count($dataAttente) : 0,
-                     'accepte' =>$dataAccepte?  count($dataAccepte) : 0, 
-                     'rejete' =>$dataRejet?  count($dataRejet) : 0,
-                     'valide' =>$dataValide?  count($dataValide) : 0,
-                     'refuse' =>$dataRefuse?  count($dataRefuse) : 0, 
-                ];
-            }elseif($type == "SOUS-DIRECTEUR"){
-                $tab = [
-                    'atttente' => count($professionnelRepository->findBy(['status'=>'attente'])),
-                     'accepte' =>count($professionnelRepository->findBy(['status'=>'accepte'])), 
-                     'rejete' =>count($professionnelRepository->findBy(['status'=>'rejete'])), 
-                     'valide' =>count($professionnelRepository->findBy(['status'=>'valide'])), 
-                    'refuse' => count($professionnelRepository->findBy(['status'=>'refuse'])) 
-                ];
-            }elseif($type == "COMPTABLE"){
+            if ($type == "INSTRUCTEUR") {
+                $dataAccepte = $professionnelRepository->findBy(['status' => 'accepte', 'imputation' => $idUser]);
+                $dataAttente = $professionnelRepository->findBy(['status' => 'attente', 'imputation' => $idUser]);
+                $dataRejet = $professionnelRepository->findBy(['status' => 'rejete', 'imputation' => $idUser]);
+                $dataRefuse = $professionnelRepository->findBy(['status' => 'refuse', 'imputation' => $idUser]);
+                $dataValide = $professionnelRepository->findBy(['status' => 'valide', 'imputation' => $idUser]);
 
-                dd($transactionRepository->montantTotal());
+                $tab = [
+                    'atttente' => $dataAttente ?  count($dataAttente) : 0,
+                    'accepte' => $dataAccepte ?  count($dataAccepte) : 0,
+                    'rejete' => $dataRejet ?  count($dataRejet) : 0,
+                    'valide' => $dataValide ?  count($dataValide) : 0,
+                    'refuse' => $dataRefuse ?  count($dataRefuse) : 0,
+                ];
+            } elseif ($type == "SOUS-DIRECTEUR") {
+                $tab = [
+                    'atttente' => count($professionnelRepository->findBy(['status' => 'attente'])),
+                    'accepte' => count($professionnelRepository->findBy(['status' => 'accepte'])),
+                    'rejete' => count($professionnelRepository->findBy(['status' => 'rejete'])),
+                    'valide' => count($professionnelRepository->findBy(['status' => 'valide'])),
+                    'refuse' => count($professionnelRepository->findBy(['status' => 'refuse']))
+                ];
+            } elseif ($type == "COMPTABLE") {
+
+                //dd($transactionRepository->montantTotal());
                 $tab = [
                     'montantTotal' => $transactionRepository->montantTotal(),
-                    'nombreSuccess' =>count($transactionRepository->findBy(['state'=> 1])), 
-                    'nombreFail' => count($transactionRepository->findBy(['state'=> 0])),
+                    'nombreSuccess' => count($transactionRepository->findBy(['state' => 1])),
+                    'nombreFail' => count($transactionRepository->findBy(['state' => 0])),
                     'toDayTransactionFail' => count($transactionRepository->transactionsEchoueesDuJour(0)),
                     'toDayTransactionSuccess' => count($transactionRepository->transactionsEchoueesDuJour(1)),
 
                 ];
-            }else{
-                 $tab = [
-                'countEtablissement' => count($etablissementRepository->findAll()),
-                 'countProfessionnel' =>count($professionnelRepository->findAll()), 
-                'professionnelAjour' => count($professionnelRepository->allProfAjour()) 
-            ];
+            } else {
+                $tab = [
+                    'countEtablissement' => count($etablissementRepository->findAll()),
+                    'countProfessionnel' => count($professionnelRepository->findAll()),
+                    'professionnelAjour' => count($professionnelRepository->allProfAjour())
+                ];
             }
 
 
 
-           
+
 
             $response = $this->responseData($tab, 'group_user', ['Content-Type' => 'application/json']);
         } catch (\Exception $exception) {
@@ -163,12 +165,16 @@ class ApiStatistiqueController extends ApiInterface
             $isFirst = true; // Pour le premier élément sélectionné dans le Pie Chart
 
             foreach ($stats as $index => $stat) {
-                $formattedStats[] = [
-                    'name' => $stat['civilite'],
-                    'y' => (int) $stat['nombre'],
-                    'sliced' => $isFirst,
-                    'selected' => $isFirst
-                ];
+                $nombre = $stat['nombre'];
+                if ($nombre > 0) {
+                    $formattedStats[] = [
+                        'name' => $stat['libelle'],
+                        'y' => (int) $stat['nombre'],
+                        'sliced' => $isFirst,
+                        'selected' => $isFirst
+                    ];
+                }
+
                 $isFirst = false; // Désactiver la sélection après le premier élément
             }
 
@@ -189,6 +195,174 @@ class ApiStatistiqueController extends ApiInterface
         // On envoie la réponse
         return $response;
     }
+    #[Route('/generale', methods: ['GET'])]
+    public function indexGeneral(
+        EtablissementRepository $etablissementRepository,
+        ProfessionRepository $professionRepository,
+        ProfessionnelRepository $professionnelRepository,
+        CiviliteRepository $civiliteRepository,
+        Request $request
+    ): Response {
+
+        try {
+            $periode = $request->query->get('periode');
+            $annee = $request->query->get('annee');
+            // Calcul de la plage de dates
+            [$startDate, $endDate] = $this->getDateRangeFromPeriode($annee, $periode);
+
+            // Requête optimisée sans filtres supplémentaires
+            $stats = $professionnelRepository->findDiplomeStats($startDate, $endDate);
+
+         
+
+
+            //dd($periode, $annee);
+            $stats = $professionnelRepository->countProByProfession((int)$annee, $periode);
+            $dataTrancheAge = $professionnelRepository->countProByTrancheAge((int)$annee, $periode);
+            $dataGenre = $professionnelRepository->countProByCiviliteGeneral((int)$annee, $periode);
+            $dataAnnee = $professionnelRepository->countProByAnnee();
+
+            //dd($dataAnnee);
+
+            $dataVille = $professionnelRepository->countProByVille((int)$annee, $periode);
+            $dataRegion = $professionnelRepository->countProByRegion((int)$annee, $periode);
+            $dataPays = $professionnelRepository->countProByPays((int)$annee, $periode);
+            $isFirst = true; // Pour le premier élément sélectionné dans le Pie Chart
+
+
+            // Préchargement des professions
+            $codes = array_column($stats, 'libelle');
+            $professions = $professionRepository->findBy(['code' => $codes]);
+            $professionMap = [];
+            foreach ($professions as $profession) {
+                $professionMap[$profession->getCode()] = $profession->getLibelle();
+            }
+
+            $statsProfession = [];
+            $statsYear = [];
+            foreach ($stats as $stat) {
+                if ($stat['nombre'] > 0) {
+                    $statsProfession[] = [
+                        'name' => $professionMap[$stat['libelle']] ?? 'Inconnu',
+                        'y' => (int) $stat['nombre'],
+                        'sliced' => $isFirst,
+                        'selected' => $isFirst
+                    ];
+                }
+                $isFirst = false; // Désactiver la sélection après le premier élément
+
+            }
+
+            foreach ($dataAnnee as $key => $value) {
+               
+                $statsYear[] = [
+                    'libelle' => $value['libelle'],
+                    'id' => (int) $value['libelle'],
+                    
+                ];
+            }
+
+            // Formattage générique
+            $statsVille = $this->formatStats($dataVille, 'libelle', true);
+            $statsPays = $this->formatStats($dataPays, 'libelle', true);
+            $statsRegions = $this->formatStats($dataRegion, 'libelle', true);
+            $statsGenre = $this->formatStats($dataGenre, 'civilite', true);
+            $statsAnnee = $this->formatStats($dataAnnee, 'libelle', true);
+            $statsTrancheAge = $this->formatStats($dataTrancheAge, 'tranche', true);
+
+
+            $result = [
+                'professions' => array_reverse($statsProfession),
+                'villes' => array_reverse($statsVille),
+                'annees' => array_reverse($statsAnnee),
+                'pays' => array_reverse($statsPays),
+                'regions' => array_reverse($statsRegions),
+                'genres' => array_reverse($statsGenre),
+                'tranches_age' => $statsTrancheAge,
+                'all_annees'=>$statsYear,
+                'dates' => [
+                    'debut' => $startDate->format('Y-m-d'),
+                    'fin' => $endDate->format('Y-m-d')
+                ],
+                'statistiques' => $stats
+            ];
+
+            return $this->responseData($result, 'group_user', ['Content-Type' => 'application/json']);
+        } catch (\Exception $exception) {
+            return $this->response('[]');
+        }
+    }
+
+
+    private function getDateRangeFromPeriode($annee, ?string $periode): array
+    {
+        $annee = (int)$annee ?? (int) date('Y');
+        $mois = (int) date('m');
+
+        switch ($periode) {
+            case 'mois':
+                $start = new \DateTime("$annee-$mois-01");
+                $end = new \DateTime("$annee-$mois-31");
+                break;
+            case 'trimestre':
+                $start = new \DateTime("$annee-01-01");
+                $end = new \DateTime("$annee-03-31");
+                break;
+            case 'semestre':
+                $start = new \DateTime("$annee-01-01");
+                $end = new \DateTime("$annee-06-30");
+                break;
+            case 'annee':
+            default:
+                $start = new \DateTime("$annee-01-01");
+                $end = new \DateTime("$annee-12-31");
+                break;
+        }
+
+        return [$start, $end];
+    }
+
+    private function formatStats(array $data, string $labelKey = 'libelle', bool $markFirst = false): array
+    {
+        $result = [];
+        $isFirst = true;
+
+        foreach ($data as $item) {
+            if ($item['nombre'] > 0) {
+                $entry = [
+                    'name' => $item[$labelKey] ?? 'Inconnu',
+                    'y' => (int) $item['nombre'],
+                ];
+
+                if ($markFirst && $isFirst) {
+                    $entry['sliced'] = true;
+                    $entry['selected'] = true;
+                    $isFirst = false;
+                } else {
+                    $entry['sliced'] = false;
+                    $entry['selected'] = false;
+                }
+
+                $result[] = $entry;
+            }
+        }
+
+        return $result;
+    }
+
+    /* private function formatStats(array $data, string $labelKey = 'libelle'): array
+    {
+        return array_values(array_filter(array_map(function ($item) use ($labelKey) {
+            if ($item['nombre'] > 0) {
+                return [
+                    'name' => $item[$labelKey] ?? 'Inconnu',
+                    'y' => (int) $item['nombre'],
+                ];
+            }
+            return null;
+        }, $data)));
+    } */
+
     #[Route('/ville', methods: ['GET'])]
     /**
      * Retourne les stats du dashboard.
@@ -212,25 +386,34 @@ class ApiStatistiqueController extends ApiInterface
             $formattedStats = [];
             $isFirst = true; // Pour le premier élément sélectionné dans le Pie Chart
 
+
             foreach ($stats as $index => $stat) {
-                $formattedStats[] = [
-                    'name' => $stat['civilite'],
-                    'y' => (int) $stat['nombre'],
-                    'sliced' => $isFirst,
-                    'selected' => $isFirst
-                ];
+
+                $nombre = $stat['nombre'];
+                if ($nombre > 0) {
+
+                    $formattedStats[] = [
+                        'name' => $stat['libelle'],
+                        'y' => (int)$stat['nombre'],
+                        'sliced' => $isFirst,
+                        'selected' => $isFirst
+                    ];
+                }
+
+
                 $isFirst = false; // Désactiver la sélection après le premier élément
             }
 
             $formattedStats = array_reverse($formattedStats);
 
+
             $result = [
                 'nombre' => $stats,
                 'pieChart' => $formattedStats
             ];
-            
-            
-                        $response = $this->responseData($result, 'group_user', ['Content-Type' => 'application/json']);
+
+
+            $response = $this->responseData($result, 'group_user', ['Content-Type' => 'application/json']);
         } catch (\Exception $exception) {
             $this->setMessage("");
             $response = $this->response('[]');
@@ -279,9 +462,9 @@ class ApiStatistiqueController extends ApiInterface
                 'nombre' => $stats,
                 'pieChart' => $formattedStats
             ];
-            
-            
-                        $response = $this->responseData($result, 'group_user', ['Content-Type' => 'application/json']);
+
+
+            $response = $this->responseData($result, 'group_user', ['Content-Type' => 'application/json']);
         } catch (\Exception $exception) {
             $this->setMessage("");
             $response = $this->response('[]');

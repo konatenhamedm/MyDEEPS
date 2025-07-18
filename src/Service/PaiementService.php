@@ -17,14 +17,17 @@ use App\Repository\CiviliteRepository;
 use App\Repository\CommuneRepository;
 use App\Repository\DistrictRepository;
 use App\Repository\GenreRepository;
+use App\Repository\LieuDiplomeRepository;
 use App\Repository\PaysRepository;
 use App\Repository\ProfessionRepository;
 use App\Repository\RegionRepository;
 use App\Repository\SituationProfessionnelleRepository;
 use App\Repository\SpecialiteRepository;
+use App\Repository\StatusProRepository;
 use App\Repository\TempEtablissementRepository;
 use App\Repository\TempProfessionnelRepository;
 use App\Repository\TransactionRepository;
+use App\Repository\TypeDiplomeRepository;
 use App\Repository\TypePersonneRepository;
 use App\Repository\UserRepository;
 use App\Repository\VilleRepository;
@@ -68,11 +71,14 @@ class PaiementService
         private SendMailService $sendMailService,
         private PaysRepository $paysRepository,
         private UserPasswordHasherInterface $hasher,
-       private  RegionRepository $regionRepository,
+        private  RegionRepository $regionRepository,
         private DistrictRepository $districtRepository,
         private CommuneRepository $communeRepository,
         private UserRepository $userRepository,
-        private ProfessionRepository $professionRepository
+        private ProfessionRepository $professionRepository,
+        private StatusProRepository $statusProRepository,
+        private TypeDiplomeRepository $typeDiplomeRepository,
+        private LieuDiplomeRepository $lieuDiplomeRepository
 
 
     ) {
@@ -113,8 +119,6 @@ class PaiementService
             $this->transactionRepository->add($transaction, true);
             $response = $transaction->getTypeUser() == "professionnel" ?  $this->updateProfessionnel($data['codePaiement']) :  $this->updateEtablissement($data['codePaiement']);
             if ($response) {
-
-
                 if ($transaction->getTypeUser() == "professionnel") {
                     $temp =  $this->tempProfessionnelRepository->findOneBy(['reference' => $data['codePaiement']]);
                     $this->tempProfessionnelRepository->remove($temp, true);
@@ -142,6 +146,28 @@ class PaiementService
         $professionnel = $this->userRepository->find($transaction->getUser())->getPersonne();
 
         $transaction->setReferenceChannel($data['referencePaiement']);
+
+        $dernierAbonnement = $this->transactionRepository->findOneBy(
+            ['user' => $transaction->getUser(), 'state' => 1],
+            ['createdAt' => 'DESC']
+        );
+
+        $now = new \DateTime();
+        if (!$dernierAbonnement) {
+            // Aucun abonnement encore
+            $dateRenouvellement = $now;
+        } else {
+            $expiration = (clone $dernierAbonnement->getCreatedAt())->modify('+1 year');
+
+            if ($expiration < $now) {
+                // L'ancien est expiré
+                $dateRenouvellement = $now;
+            } else {
+                // Encore actif, on prolonge à partir de la date d’expiration actuelle
+                $dateRenouvellement = $expiration;
+            }
+        }
+
         if ($data['code'] == 200) {
             $transaction->setState(1);
 
@@ -150,9 +176,8 @@ class PaiementService
             $this->transactionRepository->add($transaction, true);
 
             $professionnel->setStatus("a_jour");
-            $professionnel->setDateValidation(new DateTime());
-            $professionnel->add($professionnel,true);
-
+            $professionnel->setDateValidation($dateRenouvellement);
+            $professionnel->add($professionnel, true);
         } else {
             $response = [
                 'message' => 'Echec',
@@ -292,11 +317,16 @@ class PaiementService
 
 
         $professionnel->setPoleSanitaire($dataTemp->getPoleSanitaire());
+        $professionnel->setLieuObtentionDiplome($this->lieuDiplomeRepository->find($dataTemp->getLieuDiplome()));
+        $professionnel->setDateValidation(new DateTime());
         $professionnel->setRegion($this->regionRepository->find($dataTemp->getRegion()));
         $professionnel->setDistrict($this->districtRepository->find($dataTemp->getDistrict()));
         $professionnel->setVille($this->villeRepository->find($dataTemp->getVille()));
         $professionnel->setCommune($this->communeRepository->find($dataTemp->getCommune()));
         $professionnel->setQuartier($dataTemp->getQuartier());
+
+        $professionnel->setStatusPro($this->statusProRepository->find($dataTemp->getStatusPro()));
+        $professionnel->setTypeDiplome($this->typeDiplomeRepository->find($dataTemp->getTypeDiplome()));
 
         $professionnel->setNom($dataTemp->getNom());
         $professionnel->setPrenoms($dataTemp->getPrenoms());
@@ -306,12 +336,11 @@ class PaiementService
 
 
 
-        if($dataTemp->getCode()){
+        if ($dataTemp->getCode()) {
             $professionnel->setCode($dataTemp->getCode());
             $professionnel->setStatus("renouvellement");
-        }else{
+        } else {
             $professionnel->setStatus("attente");
-            
         }
 
         $professionnel->setNumber($dataTemp->getNumber());
@@ -326,7 +355,7 @@ class PaiementService
         $professionnel->setDateDiplome(new DateTimeImmutable(($dataTemp->getDateDiplome())));
         if ($dataTemp->getNationate())
             $professionnel->setNationate($this->paysRepository->find($dataTemp->getNationate()));
-       /*  $professionnel->setSituationPro($dataTemp->getSituationPro()); */
+        /*  $professionnel->setSituationPro($dataTemp->getSituationPro()); */
         $professionnel->setDiplome($dataTemp->getDiplome());
         $professionnel->setSituation($dataTemp->getSituation());
         $professionnel->setDateNaissance(new DateTimeImmutable(($dataTemp->getDateNaissance())));
@@ -338,13 +367,11 @@ class PaiementService
 
         if ($dataTemp->getAppartenirOrganisation() == "oui") {
 
-           
+
             $professionnel->setOrganisationNom($dataTemp->getOrganisationNom());
-           
         }
         if ($dataTemp->getAppartenirOrdre() == "oui") {
             $professionnel->setNumeroInscription($dataTemp->getNumeroInscription());
-           
         }
 
 
@@ -398,7 +425,7 @@ class PaiementService
 
         // TO DO
         $this->sendMailService->send(
-            'tester@myonmci.ci',
+            'depps@myonmci.ci',
             $dataTemp->getEmail(),
             'Informations',
             'content_mail',
@@ -514,7 +541,7 @@ class PaiementService
 
         // TO DO
         $this->sendMailService->send(
-            'tester@myonmci.ci',
+            'depps@myonmci.ci',
             $dataTemp->getEmail(),
             'Informations',
             'content_mail',

@@ -59,7 +59,7 @@ class ApiUserController extends ApiInterface
         return $response;
     }
 
-    
+
 
     #[Route('/liste/instructeur', methods: ['GET'])]
     /**
@@ -80,7 +80,7 @@ class ApiUserController extends ApiInterface
     {
         try {
 
-            $users = $userRepository->findBy(['typeUser'=>'INSTRUCTEUR']);
+            $users = $userRepository->findBy(['typeUser' => 'INSTRUCTEUR']);
 
             $response = $this->responseData($users, 'group_user', ['Content-Type' => 'application/json']);
         } catch (\Exception $exception) {
@@ -111,7 +111,7 @@ class ApiUserController extends ApiInterface
     )]
     #[OA\Tag(name: 'specialite')]
     //#[Security(name: 'Bearer')]
-    public function getPaiementStatus($email,UserRepository $userRepository)
+    public function getPaiementStatus($email, UserRepository $userRepository)
     {
         try {
 
@@ -119,7 +119,7 @@ class ApiUserController extends ApiInterface
             if ($user != null) {
                 $response = $this->response(true);
             } else {
-                
+
                 $response = $this->response(false);
             }
         } catch (\Exception $exception) {
@@ -149,7 +149,7 @@ class ApiUserController extends ApiInterface
     public function indexAdmin(UserRepository $userRepository): Response
     {
         try {
-            
+
 
             $users = $userRepository->getUserByRole();
 
@@ -276,7 +276,7 @@ class ApiUserController extends ApiInterface
             $user->setCreatedAtValue(new \DateTime());
             $user->setCreatedBy($this->userRepository->find($request->get('userUpdate')));
 
-        /*     if ($uploadedFile) {
+            /*     if ($uploadedFile) {
                 $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedFile, self::UPLOAD_PATH);
                 if ($fichier) {
                     $user->setAvatar($fichier);
@@ -285,12 +285,12 @@ class ApiUserController extends ApiInterface
 
             //$errorResponse = $this->errorResponse($user);
 
-         /*    $errorResponse = $request->get('password') !== $request->get('confirmPassword') ?  $this->errorResponse($user, "Les mots de passe ne sont pas identiques") :  $this->errorResponse($user);
+            /*    $errorResponse = $request->get('password') !== $request->get('confirmPassword') ?  $this->errorResponse($user, "Les mots de passe ne sont pas identiques") :  $this->errorResponse($user);
             if ($errorResponse !== null) {
                 return $errorResponse; // Retourne la réponse d'erreur si des erreurs sont présentes
             } else { */
-                $userRepository->add($user, true);
-           /*  } */
+            $userRepository->add($user, true);
+            /*  } */
 
             $response = $this->responseData($user, 'group_user', ['Content-Type' => 'application/json']);
         } catch (\Throwable $th) {
@@ -357,6 +357,71 @@ class ApiUserController extends ApiInterface
 
         return $response;
     }
+    #[Route('/modifier/passeword', methods: ['POST'])]
+    #[OA\Post(
+        summary: "modification mot de passe",
+        description: "modification mot de passe",
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: "ancien_mot_de_passe", type: "string"),
+                    new OA\Property(property: "nouveau_mot_de_passe", type: "string"),
+                    new OA\Property(property: "confirmer_mot_de_passe", type: "string"),
+                    new OA\Property(property: "username", type: "string"),
+                ],
+                type: "object"
+            )
+        ),
+        responses: [
+            new OA\Response(response: 401, description: "Invalid credentials")
+        ]
+    )]
+    #[OA\Tag(name: 'user')]
+    #[Security(name: 'Bearer')]
+    public function ModificationMotPasse(
+        Request $request,
+        UserRepository $userRepository,
+        UserPasswordHasherInterface $passwordHasher
+    ): Response {
+        try {
+            $data = json_decode($request->getContent(), true);
+
+            if (
+                empty($data['username']) ||
+                empty($data['ancien_mot_de_passe']) ||
+                empty($data['nouveau_mot_de_passe']) ||
+                empty($data['confirmer_mot_de_passe'])
+            ) {
+                return $this->errorResponse(null, "Champs manquants");
+            }
+
+            $user = $userRepository->findOneBy(['username' => $data['username']]);
+
+            if (!$user) {
+                return $this->errorResponse(null, "Utilisateur non trouvé");
+            }
+
+            // Vérifier l'ancien mot de passe
+            if (!$passwordHasher->isPasswordValid($user, $data['ancien_mot_de_passe'])) {
+                return $this->errorResponse($user, "L'ancien mot de passe est incorrect");
+            }
+
+            if ($data['nouveau_mot_de_passe'] !== $data['confirmer_mot_de_passe']) {
+                return $this->errorResponse($user, "Les mots de passe ne sont pas identiques");
+            }
+
+            // Mise à jour du mot de passe
+            //$hashedPassword = $passwordHasher->hashPassword($user, $data['nouveau_mot_de_passe']);
+            $user->setPassword($this->hasher->hashPassword($user,  $data['nouveau_mot_de_passe']));
+
+            $userRepository->add($user, true);
+
+            return $this->responseData($user, 'group_user', ['Content-Type' => 'application/json']);
+        } catch (\Throwable $th) {
+            return $this->response('[]');
+        }
+    }
 
 
     private function numero()
@@ -412,7 +477,7 @@ class ApiUserController extends ApiInterface
             $names = 'document_' . '01';
             $filePrefix  = str_slug($names);
             $filePath = $this->getUploadDir(self::UPLOAD_PATH, true);
-           // $uploadedFile = $request->files->get('avatar');
+            // $uploadedFile = $request->files->get('avatar');
 
             if ($user != null) {
                 $personne = $administrateurRepository->find($user->getPersonne()->getId());
@@ -432,7 +497,7 @@ class ApiUserController extends ApiInterface
                 $user->setUpdatedBy($this->userRepository->find($request->get('userUpdate')));
                 $user->setUpdatedAt(new \DateTime());
 
-              /*   if ($uploadedFile) {
+                /*   if ($uploadedFile) {
                     $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedFile, self::UPLOAD_PATH);
                     if ($fichier) {
                         $user->setAvatar($fichier);
