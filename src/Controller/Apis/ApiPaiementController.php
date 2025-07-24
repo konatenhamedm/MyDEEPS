@@ -168,17 +168,16 @@ class ApiPaiementController extends ApiInterface
                 $expiration = new \DateTime();
                 $etatPro = false;
             } else {
-                if ($user->getPersonne()->getDateValidation() != null) {
-
-                    $expiration = (clone $user->getPersonne()->getDateValidation());
+                if ($user->getPersonne()->getDateValidation() !== null) {
+                   
+                    $expiration = (clone $user->getPersonne()->getDateValidation())->modify('+1 year');
                     $today = new \DateTime();
                     $joursRestants = max(0, $today->diff($expiration)->days);
-                    $expire = $expiration >= $today ? false : true;
-
-                    //dd($expiration, $today, $joursRestants, $expire,$today->diff($user->getPersonne()->getDateValidation())->days);
+                    $expire = $expiration < $today;
+                
                 } else {
 
-                    $expiration = (clone $dernierAbonnement->getCreatedAt());
+                    $expiration = (clone $dernierAbonnement->getCreatedAt())->modify('+1 year');
                     $today = new \DateTime();
                     $joursRestants = max(0, $today->diff($expiration)->days);
                     $expire = $expiration >= $today ? false : true;

@@ -44,7 +44,7 @@ class RenouvellementService
 
         foreach ($professionnels as $pro) {
             // Étape 2 : récupérer le user lié au professionnel
-             $user = $this->userRepository->findOneBy(['personne' => $pro->getId()]);
+            $user = $this->userRepository->findOneBy(['personne' => $pro->getId()]);
 
             if (!$user) {
                 continue;
@@ -61,10 +61,11 @@ class RenouvellementService
                 ->getQuery()
                 ->getOneOrNullResult(); */
 
-           /*  if ($lastTransaction) { */
-                $dateTransaction = $pro->getDateValidation();
-                $diff = $dateTransaction->diff($now);
+            /*  if ($lastTransaction) { */
+            $dateTransaction = $pro->getDateValidation();
+            $diff = $dateTransaction->diff($now);
 
+            if ($pro->getDateValidation() != null) {
                 // Étape 4 : si la dernière transaction date de plus d'un an
                 if ($diff->y >= 1) {
                     $pro->setStatus('renouvellement');
@@ -87,6 +88,8 @@ class RenouvellementService
 
                     $compteur++;
                 }
+            }
+
             /* } */
         }
 

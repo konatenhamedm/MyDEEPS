@@ -207,26 +207,30 @@ class ApiStatistiqueController extends ApiInterface
         try {
             $periode = $request->query->get('periode');
             $annee = $request->query->get('annee');
+            $mois = $request->query->get('mois');
+            $tranche = $request->query->get('tranche');
+            dd($mois,$periode,$annee,$tranche);
             // Calcul de la plage de dates
-            [$startDate, $endDate] = $this->getDateRangeFromPeriode($annee, $periode);
+            [$startDate, $endDate] = $this->getDateRangeFromPeriode((int)$annee, $periode,(int)$mois,(int)$tranche);
+            
+          
 
             // Requête optimisée sans filtres supplémentaires
-            $stats = $professionnelRepository->findDiplomeStats($startDate, $endDate);
-
-         
-
-
+            $stats2 = $professionnelRepository->findDiplomeStats($startDate, $endDate);
+           //dd($startDate,$endDate,$annee);
+             
+        
             //dd($periode, $annee);
-            $stats = $professionnelRepository->countProByProfession((int)$annee, $periode);
-            $dataTrancheAge = $professionnelRepository->countProByTrancheAge((int)$annee, $periode);
-            $dataGenre = $professionnelRepository->countProByCiviliteGeneral((int)$annee, $periode);
+            $stats = $professionnelRepository->countProByProfession((int)$annee, $periode,(int)$mois,(int)$tranche);
+            $dataTrancheAge = $professionnelRepository->countProByTrancheAge((int)$annee, $periode,(int)$mois,(int)$tranche);
+            $dataGenre = $professionnelRepository->countProByCiviliteGeneral((int)$annee, $periode,(int)$mois,(int)$tranche);
             $dataAnnee = $professionnelRepository->countProByAnnee();
 
             //dd($dataAnnee);
 
-            $dataVille = $professionnelRepository->countProByVille((int)$annee, $periode);
-            $dataRegion = $professionnelRepository->countProByRegion((int)$annee, $periode);
-            $dataPays = $professionnelRepository->countProByPays((int)$annee, $periode);
+            $dataVille = $professionnelRepository->countProByVille((int)$annee, $periode,(int)$mois,(int)$tranche);
+            $dataRegion = $professionnelRepository->countProByRegion((int)$annee, $periode,(int)$mois,(int)$tranche);
+            $dataPays = $professionnelRepository->countProByPays((int)$annee, $periode,(int)$mois,(int)$tranche);
             $isFirst = true; // Pour le premier élément sélectionné dans le Pie Chart
 
 
@@ -284,7 +288,7 @@ class ApiStatistiqueController extends ApiInterface
                     'debut' => $startDate->format('Y-m-d'),
                     'fin' => $endDate->format('Y-m-d')
                 ],
-                'statistiques' => $stats
+                'statistiques' => $stats2
             ];
 
             return $this->responseData($result, 'group_user', ['Content-Type' => 'application/json']);
@@ -294,24 +298,45 @@ class ApiStatistiqueController extends ApiInterface
     }
 
 
-    private function getDateRangeFromPeriode($annee, ?string $periode): array
+    private function getDateRangeFromPeriode(?int $annee, ?string $periode, ?int $mois, ?int $tranche): array
     {
-        $annee = (int)$annee ?? (int) date('Y');
-        $mois = (int) date('m');
+        // Valeurs par défaut
+        $annee = $annee ?: (int) date('Y');
+        $mois = $mois ?: (int) date('m');
+        $tranche = (int) $tranche;
 
         switch ($periode) {
             case 'mois':
                 $start = new \DateTime("$annee-$mois-01");
-                $end = new \DateTime("$annee-$mois-31");
+                $end = (clone $start)->modify('last day of this month');
                 break;
+
             case 'trimestre':
-                $start = new \DateTime("$annee-01-01");
-                $end = new \DateTime("$annee-03-31");
+                // Définition des trimestres
+                $trimestres = [
+                    1 => ['start' => '01-01', 'end' => '03-31'],
+                    2 => ['start' => '04-01', 'end' => '06-30'],
+                    3 => ['start' => '07-01', 'end' => '09-30'],
+                    4 => ['start' => '10-01', 'end' => '12-31'],
+                ];
+                // Trimestre par défaut = 1
+                $t = $trimestres[$tranche] ?? $trimestres[1];
+                $start = new \DateTime("$annee-{$t['start']}");
+                $end = new \DateTime("$annee-{$t['end']}");
                 break;
+
             case 'semestre':
-                $start = new \DateTime("$annee-01-01");
-                $end = new \DateTime("$annee-06-30");
+                // Définition des semestres
+                $semestres = [
+                    1 => ['start' => '01-01', 'end' => '06-30'],
+                    2 => ['start' => '07-01', 'end' => '12-31'],
+                ];
+                // Semestre par défaut = 1
+                $s = $semestres[$tranche] ?? $semestres[1];
+                $start = new \DateTime("$annee-{$s['start']}");
+                $end = new \DateTime("$annee-{$s['end']}");
                 break;
+
             case 'annee':
             default:
                 $start = new \DateTime("$annee-01-01");

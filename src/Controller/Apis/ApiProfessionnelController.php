@@ -142,7 +142,30 @@ class ApiProfessionnelController extends ApiInterface
     )]
     #[OA\Tag(name: 'professionnel')]
     //#[Security(name: 'Bearer')]
-    public function getExisteCode($code, ProfessionnelRepository $professionnelRepository, CodeGenerateurRepository $codeGenerateurRepository): Response
+    public function getExisteCode(
+        string $code,
+        ProfessionnelRepository $professionnelRepository,
+        CodeGenerateurRepository $codeGenerateurRepository
+    ): Response {
+        try {
+            // Utilisation de deux appels booléens pour alléger la logique
+            $existsInCodeGenerateur = $codeGenerateurRepository->findOneBy(['code' => $code]) !== null;
+            $existsInProfessionnel = $professionnelRepository->findOneBy(['code' => $code]) !== null;
+    
+            $this->setStatusCode(200);
+    
+            return $this->response([
+                'verif'=> $code != '' ? true : false,
+                'exsiteInProfessionnel' => $existsInProfessionnel,
+                'exsiteInCodeGenerateur' => $existsInCodeGenerateur,
+            ]);
+        } catch (\Exception $exception) {
+            $this->setMessage($exception->getMessage());
+            return $this->response([]);
+        }
+    }
+    
+    /* public function getExisteCode($code, ProfessionnelRepository $professionnelRepository, CodeGenerateurRepository $codeGenerateurRepository): Response
     {
         try {
             $codeGenerateur = $codeGenerateurRepository->findOneBy(['code' => $code]);
@@ -186,7 +209,7 @@ class ApiProfessionnelController extends ApiInterface
 
 
         return $response;
-    }
+    } */
 
 
 
@@ -670,8 +693,8 @@ class ApiProfessionnelController extends ApiInterface
                     'civilite' => $this->formatEntity($personne->getCivilite()),
                     'region' => $this->formatEntity($personne->getRegion()),
                     'district' => $this->formatEntity($personne->getDistrict()),
-                    'lieuObtentionDiplome' => $this->formatEntity($personne->getLieuObtentionDiplome()),
-                    'commune' => $this->formatEntity($personne->getCommune()),
+                    'lieuObtentionDiplome' => $personne->getLieuObtentionDiplome()?  $this->formatEntity($personne->getLieuObtentionDiplome()) :null,
+                    'commune' => $personne->getCommune() ?  $this->formatEntity($personne->getCommune()) : null,
                     'ville' => $this->formatEntity($personne->getVille()),
                     'nationate' => $this->formatEntity($personne->getNationate()),
                     'situationPro' => $this->formatEntity($personne->getSituationPro()),
@@ -687,12 +710,12 @@ class ApiProfessionnelController extends ApiInterface
                     'appartenirOrganisation' => $personne->getAppartenirOrganisation() ?? "",
                     'appartenirOrdre' => $personne->getAppartenirOrdre() ?? "",
                     'numeroInscription' => $personne->getNumeroInscription() ?? "",
-                    'photo' => $this->formatFile($personne->getPhoto()),
-                    'cv' => $this->formatFile($personne->getCv()),
-                    'casier' => $this->formatFile($personne->getCasier()),
-                    'certificat' => $this->formatFile($personne->getCertificat()),
-                    'diplomeFile' => $this->formatFile($personne->getDiplomeFile()),
-                    'cni' => $this->formatFile($personne->getCni()),
+                    'photo' => $personne->getPhoto() ? $this->formatFile($personne->getPhoto()) : null,
+                    'cv' => $personne->getCv() ? $this->formatFile($personne->getCv()) : null,
+                    'casier' => $personne->getCasier() ? $this->formatFile($personne->getCasier()) : null,
+                    'certificat' => $personne->getCertificat() ? $this->formatFile($personne->getCertificat()) : null,
+                    'diplomeFile' => $personne->getDiplomeFile() ? $this->formatFile($personne->getDiplomeFile()) : null,
+                    'cni' => $personne->getCni() ? $this->formatFile($personne->getCni()) : null,
                 ]
             ];
 
@@ -853,7 +876,8 @@ class ApiProfessionnelController extends ApiInterface
         CommuneRepository $communeRepository,
         TypeDiplomeRepository $typeDiplomeRepository,
         StatusProRepository $statusProRepository,
-        LieuDiplomeRepository $lieuDiplomeRepository
+        LieuDiplomeRepository $lieuDiplomeRepository,
+        CodeGenerateurRepository $codeGenerateurRepository
     ): Response {
 
 
@@ -884,7 +908,7 @@ class ApiProfessionnelController extends ApiInterface
             $professionnel = new Professionnel();
 
             //ETAPE 2
-            if ($request->get('code')) {
+            if ($request->get('code') && $codeGenerateurRepository->findOneBy(['code'=> $request->get('code')])) {
                 $professionnel->setCode($request->get('code'));
                 $professionnel->setStatus("renouvellement");
             } else {
