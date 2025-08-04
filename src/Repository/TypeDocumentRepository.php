@@ -35,6 +35,19 @@ class TypeDocumentRepository extends ServiceEntityRepository
             $this->getEntityManager()->flush();
         }
     }
+
+         public function findAllByLibelleGroupe(): array
+        {
+            return $this->createQueryBuilder('t')
+               ->innerJoin('t.libelleGroupe', 'lg')
+               ->groupBy('lg.libelle')
+               ->orderBy('t.id', 'ASC')
+               ->getQuery()
+                ->getResult()
+            ;
+       }
+
+
     //    /**
     //     * @return TypeDocument[] Returns an array of TypeDocument objects
     //     */

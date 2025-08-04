@@ -22,6 +22,9 @@ class Document
     #[ORM\Column(length: 255)]
     private ?string $libelle = null;
 
+    #[ORM\ManyToOne(inversedBy: 'documents')]
+    private ?LibelleGroupe $libelleGroupe = null;
+
   
 
     public function getId(): ?int
@@ -61,6 +64,18 @@ class Document
     public function setLibelle(string $libelle): static
     {
         $this->libelle = $libelle;
+
+        return $this;
+    }
+
+    public function getLibelleGroupe(): ?LibelleGroupe
+    {
+        return $this->libelleGroupe;
+    }
+
+    public function setLibelleGroupe(?LibelleGroupe $libelleGroupe): static
+    {
+        $this->libelleGroupe = $libelleGroupe;
 
         return $this;
     }

@@ -7,6 +7,7 @@ use App\DTO\TypeDocumentDTO;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Entity\TypeDocument;
 use App\Entity\TypePersonne;
+use App\Repository\LibelleGroupeRepository;
 use App\Repository\TypeDocumentRepository;
 use App\Repository\TypePersonneRepository;
 use App\Repository\UserRepository;
@@ -47,6 +48,37 @@ class ApiTypeDocumentController extends ApiInterface
 
 
 
+            $response =  $this->responseData($typeDocuments, 'group1', ['Content-Type' => 'application/json']);
+        } catch (\Exception $exception) {
+            $this->setMessage("");
+            $response = $this->response('[]');
+        }
+
+        // On envoie la réponse
+        return $response;
+    }
+
+    #[Route('/all', methods: ['GET'])]
+    /**
+     * Retourne la liste des typeDocuments.
+     * 
+     */
+    #[OA\Response(
+        response: 200,
+        description: 'Returns the rewards of an user',
+        content: new OA\JsonContent(
+            type: 'array',
+            items: new OA\Items(ref: new Model(type: TypeDocument::class, groups: ['full']))
+        )
+    )]
+    #[OA\Tag(name: 'typeDocument')]
+    // #[Security(name: 'Bearer')]
+    public function indexByLibelle(TypeDocumentRepository $typeDocumentRepository): Response
+    {
+        try {
+
+            $typeDocuments = $typeDocumentRepository->findAllByLibelleGroupe();
+            
             $response =  $this->responseData($typeDocuments, 'group1', ['Content-Type' => 'application/json']);
         } catch (\Exception $exception) {
             $this->setMessage("");
@@ -153,6 +185,7 @@ class ApiTypeDocumentController extends ApiInterface
                     new OA\Property(property: "typePersonne", type: "string"),
                     new OA\Property(property: "nombre", type: "string"),
                     new OA\Property(property: "libelle", type: "string"),
+                    new OA\Property(property: "libelleGroupe", type: "string"),
                     new OA\Property(property: "userUpdate", type: "string"),
 
                 ],
@@ -165,7 +198,7 @@ class ApiTypeDocumentController extends ApiInterface
     )]
     #[OA\Tag(name: 'typeDocument')]
     #[Security(name: 'Bearer')]
-    public function create(Request $request, TypeDocumentRepository $typeDocumentRepository, TypePersonneRepository $typePersonneRepository): Response
+    public function create(Request $request, LibelleGroupeRepository $libelleGroupeRepository, TypeDocumentRepository $typeDocumentRepository, TypePersonneRepository $typePersonneRepository): Response
     {
 
         $data = json_decode($request->getContent(), true);
@@ -176,6 +209,7 @@ class ApiTypeDocumentController extends ApiInterface
         $typeDocument = new TypeDocument();
 
         $typeDocument->setLibelle($data['libelle']);
+        $typeDocument->setLibelleGroupe($libelleGroupeRepository->find($data['libelleGroupe']));
         $typeDocument->setNombre($data['nombre']);
         $typeDocument->setTypePersonne($typePersonneRepository->find($data['typePersonne']));
         $typeDocument->setCreatedAtValue(new \DateTime());
@@ -212,6 +246,7 @@ class ApiTypeDocumentController extends ApiInterface
 
                     new OA\Property(property: "libelle", type: "string"),
                     new OA\Property(property: "nombre", type: "string"),
+                    new OA\Property(property: "libelleGroupe", type: "string"),
                     new OA\Property(property: "typePersonne", type: "string"),
                     new OA\Property(property: "userUpdate", type: "string"),
 
@@ -225,7 +260,7 @@ class ApiTypeDocumentController extends ApiInterface
     )]
     #[OA\Tag(name: 'typeDocument')]
     #[Security(name: 'Bearer')]
-    public function update(Request $request, TypeDocument $typeDocument, TypeDocumentRepository $typeDocumentRepository, TypePersonneRepository $typePersonneRepository): Response
+    public function update(Request $request, TypeDocument $typeDocument, LibelleGroupeRepository $libelleGroupeRepository, TypeDocumentRepository $typeDocumentRepository, TypePersonneRepository $typePersonneRepository): Response
     {
         try {
             $data = json_decode($request->getContent());
@@ -235,6 +270,7 @@ class ApiTypeDocumentController extends ApiInterface
 
                 $typeDocument->setLibelle($data->libelle);
                 $typeDocument->setNombre($data->nombre);
+                $typeDocument->setLibelleGroupe($libelleGroupeRepository->find($data['libelleGroupe']));
                 $typeDocument->setTypePersonne($typePersonneRepository->find($data->typePersonne));
                 $typeDocument->setUpdatedAt(new \DateTime());
                 $typeDocument->setUpdatedBy($this->userRepository->find($data->userUpdate));
@@ -283,7 +319,7 @@ class ApiTypeDocumentController extends ApiInterface
     )]
     #[OA\Tag(name: 'typeDocument')]
     #[Security(name: 'Bearer')]
-    public function updateMultiple(Request $request, TypePersonne $typePersonne, TypeDocumentRepository $typeDocumentRepository, TypePersonneRepository $typePersonneRepository): Response
+    public function updateMultiple(Request $request, TypePersonne $typePersonne, LibelleGroupeRepository $libelleGroupeRepository, TypeDocumentRepository $typeDocumentRepository, TypePersonneRepository $typePersonneRepository): Response
     {
         try {
             $data = json_decode($request->getContent());
@@ -298,8 +334,8 @@ class ApiTypeDocumentController extends ApiInterface
                     if ($document['id'] != null) {
 
                         $typeDocument =  $typeDocumentRepository->find($document['id']);
-
                         $typeDocument->setLibelle($document['libelle']);
+                        $typeDocument->setLibelleGroupe($libelleGroupeRepository->find($data['libelleGroupe']));
                         $typeDocument->setNombre($document['nombre']);
                         $typeDocument->setUpdatedAt(new \DateTime());
                         $typeDocument->setUpdatedBy($this->userRepository->find($data['userUpdate']));
@@ -314,6 +350,7 @@ class ApiTypeDocumentController extends ApiInterface
 
                         $typeDocument = new TypeDocument();
                         $typeDocument->setLibelle($document['libelle']);
+                        $typeDocument->setLibelleGroupe($libelleGroupeRepository->find($data['libelleGroupe']));
                         $typeDocument->setNombre($document['nombre']);
                         $typeDocument->setTypePersonne($typePersonne);
                         $typeDocument->setCreatedAtValue(new \DateTime());

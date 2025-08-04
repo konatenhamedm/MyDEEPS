@@ -22,6 +22,9 @@ class DocumentTemporaire
     #[ORM\Column(length: 255)]
     private ?string $libelle = null;
 
+    #[ORM\ManyToOne(inversedBy: 'documentTemporaires')]
+    private ?LibelleGroupe $libelleGroupe = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -59,6 +62,18 @@ class DocumentTemporaire
     public function setLibelle(string $libelle): static
     {
         $this->libelle = $libelle;
+
+        return $this;
+    }
+
+    public function getLibelleGroupe(): ?LibelleGroupe
+    {
+        return $this->libelleGroupe;
+    }
+
+    public function setLibelleGroupe(?LibelleGroupe $libelleGroupe): static
+    {
+        $this->libelleGroupe = $libelleGroupe;
 
         return $this;
     }

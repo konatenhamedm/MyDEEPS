@@ -33,6 +33,10 @@ class TypeDocument
     #[Group(["group1"])]
     private ?int $nombre = null;
 
+    #[ORM\ManyToOne(inversedBy: 'typeDocuments')]
+    #[Group(["group1"])]
+    private ?LibelleGroupe $libelleGroupe = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -72,6 +76,18 @@ class TypeDocument
     public function setNombre(int $nombre): static
     {
         $this->nombre = $nombre;
+
+        return $this;
+    }
+
+    public function getLibelleGroupe(): ?LibelleGroupe
+    {
+        return $this->libelleGroupe;
+    }
+
+    public function setLibelleGroupe(?LibelleGroupe $libelleGroupe): static
+    {
+        $this->libelleGroupe = $libelleGroupe;
 
         return $this;
     }
