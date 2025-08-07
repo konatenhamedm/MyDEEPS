@@ -16,6 +16,19 @@ class LibelleGroupeRepository extends ServiceEntityRepository
         parent::__construct($registry, LibelleGroupe::class);
     }
 
+     public function findAllByLibelleGroupe($id): array
+        {
+            return $this->createQueryBuilder('l')
+             ->innerJoin('l.typeDocuments', 't')
+             ->innerJoin('t.typePersonne', 'p')
+               ->andWhere('p.id = :val')
+              ->setParameter('val', $id)
+               ->orderBy('l.id', 'ASC')
+               ->getQuery()
+                ->getResult()
+            ;
+       }
+
     //    /**
     //     * @return LibelleGroupe[] Returns an array of LibelleGroupe objects
     //     */

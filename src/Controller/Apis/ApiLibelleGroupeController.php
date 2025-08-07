@@ -6,6 +6,7 @@ use App\Controller\Apis\Config\ApiInterface;
 use App\DTO\LibelleGroupeDTO;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Entity\LibelleGroupe;
+use App\Entity\TypePersonne;
 use App\Repository\LibelleGroupeRepository;
 use App\Repository\UserRepository;
 use Symfony\Component\HttpFoundation\Response;
@@ -47,6 +48,37 @@ class ApiLibelleGroupeController extends ApiInterface
             $json = $this->serializer->serialize($libelleGroupes, 'json', $context);
 
             return new JsonResponse(['code' => 200, 'data' => json_decode($json)]);
+        } catch (\Exception $exception) {
+            $this->setMessage("");
+            $response = $this->response('[]');
+        }
+
+        // On envoie la réponse
+        return $response;
+    }
+
+      #[Route('/all/{id}', methods: ['GET'])]
+    /**
+     * Retourne la liste des typeDocuments.
+     * 
+     */
+    #[OA\Response(
+        response: 200,
+        description: 'Returns the rewards of an user',
+        content: new OA\JsonContent(
+            type: 'array',
+            items: new OA\Items(ref: new Model(type: LibelleGroupe::class, groups: ['full']))
+        )
+    )]
+    #[OA\Tag(name: 'libelleGroupe')]
+    // #[Security(name: 'Bearer')]
+    public function indexByLibelle(LibelleGroupeRepository $libelleGroupeRepository,TypePersonne $typePersonne): Response
+    {
+        try {
+
+            $libelleGroupe = $libelleGroupeRepository->findAllByLibelleGroupe($typePersonne->getId());
+            
+            $response =  $this->responseData($libelleGroupe, 'group1', ['Content-Type' => 'application/json']);
         } catch (\Exception $exception) {
             $this->setMessage("");
             $response = $this->response('[]');
