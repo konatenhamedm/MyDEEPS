@@ -78,7 +78,7 @@ class ApiLibelleGroupeController extends ApiInterface
 
             $libelleGroupe = $libelleGroupeRepository->findAllByLibelleGroupe($typePersonne->getId());
             
-            $response =  $this->responseData($libelleGroupe, 'group1', ['Content-Type' => 'application/json']);
+            $response =  $this->responseData($libelleGroupe, 'group_libelle', ['Content-Type' => 'application/json']);
         } catch (\Exception $exception) {
             $this->setMessage("");
             $response = $this->response('[]');

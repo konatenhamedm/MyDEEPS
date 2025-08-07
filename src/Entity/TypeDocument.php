@@ -16,7 +16,7 @@ class TypeDocument
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Group(["group1"])]
+    #[Group(["group1", "group_libelle"])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
@@ -26,7 +26,7 @@ class TypeDocument
   
 
     #[ORM\ManyToOne(inversedBy: 'typeDocuments')]
-    #[Group(["group1"])]
+    #[Group(["group1",' group_libelle'])]
     private ?TypePersonne $typePersonne = null;
 
     #[ORM\Column]

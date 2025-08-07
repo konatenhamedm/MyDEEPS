@@ -18,17 +18,18 @@ class LibelleGroupe
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Group(["group1","group_pro"])]
+    #[Group(["group1","group_pro","group_libelle"])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Group(["group1","group_pro"])]
+    #[Group(["group1","group_pro","group_libelle"])]
     private ?string $libelle = null;
 
     /**
      * @var Collection<int, TypeDocument>
      */
     #[ORM\OneToMany(targetEntity: TypeDocument::class, mappedBy: 'libelleGroupe')]
+    #[Group(["group_libelle"])]
     private Collection $typeDocuments;
 
     /**
