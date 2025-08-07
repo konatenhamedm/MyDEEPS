@@ -236,7 +236,7 @@ class ApiLibelleGroupeController extends ApiInterface
 
     #[Route('/delete/all',  methods: ['DELETE'])]
     /**
-     * Permet de supprimer plusieurs libelleGroupe.
+     * Permet de supprimer plusieurs libelleGroupe.dd
      */
     #[OA\Response(
         response: 200,
