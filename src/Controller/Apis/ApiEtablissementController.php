@@ -27,6 +27,7 @@ use App\Service\SendMailService;
 use App\Service\Utils;
 use DateTimeImmutable;
 
+
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use OpenApi\Attributes as OA;
@@ -132,104 +133,56 @@ class ApiEtablissementController extends ApiInterface
     }
 
 
-
-    #[Route('/create',  methods: ['POST'])]
-    /**
-     * Permet de créer un(e) etablissement.
-     */
-    #[OA\Post(
-        summary: "Creation de etablissement",
-        description: "Permet de crtéer d'un etablissement.",
-
-        requestBody: new OA\RequestBody(
-            required: true,
-            content: new OA\MediaType(
-                mediaType: "multipart/form-data",
-                schema: new OA\Schema(
-                    properties: [
-
-                        // Informations utilisateur
-                        new OA\Property(property: "password", type: "string"),
-                        new OA\Property(property: "confirmPassword", type: "string"),
-                        new OA\Property(property: "email", type: "string"),
-
-                        // Informations sur l'entreprise
-                        new OA\Property(property: "typePersonne", type: "string"),
-
-
-
-                    ],
-                    type: "object"
-                )
-            )
-
-        ),
-
-
-        responses: [
-            new OA\Response(response: 401, description: "Invalid credentials")
-        ]
-    )]
-
-    #[Route('/create',  methods: ['POST'])]
-    /**
-     * Permet de créer un(e) panneau.
-     */
-    #[OA\Post(
-        summary: "Authentification admin",
-        description: "Génère un token JWT pour les administrateurs.",
-        requestBody: new OA\RequestBody(
-            required: true,
-            content: new OA\MediaType(
-                mediaType: "multipart/form-data",
-                schema: new OA\Schema(
-                    properties: [
-                        // Informations utilisateur
-                        new OA\Property(property: "password", type: "string"),
-                        new OA\Property(property: "confirmPassword", type: "string"),
-                        new OA\Property(property: "email", type: "string"),
-
-                        new OA\Property(property: "nom", type: "string"),
-                        new OA\Property(property: "prenoms", type: "string"),
-                        new OA\Property(property: "prenoms", type: "string"),
-                        new OA\Property(property: "telephone", type: "string"),
-                        new OA\Property(property: "typePersonne", type: "string"),
-                        new OA\Property(property: "bp", type: "string"),
-                        new OA\Property(property: "emailAutre", type: "string"),
-                        new OA\Property(property: "adresse", type: "string"),
-                        new OA\Property(property: "nomRepresentant", type: "string"),
-                        new OA\Property(property: "denomination", type: "string"),
-
-                        // Informations sur l'entreprise
-                        new OA\Property(property: "typePersonne", type: "string"),
-
-                        new OA\Property(property: "reference", type: "string"), // reference de la transaction
-                        new OA\Property(property: "type", type: "string"), // etablissement
-
-
-                        new OA\Property(
-                            property: "documents",
-                            type: "array",
-                            items: new OA\Items(
-                                type: "object",
-                                properties: [
-                                    new OA\Property(property: "libelle", type: "string", format: "binary"),
-                                    new OA\Property(property: "path", type: "string", format: "binary"),
-                                    new OA\Property(property: "libelleGroupe", type: "string", format: "binary"),
-                                ]
-                            ),
+#[Route('/create', methods: ['POST'])]
+/**
+ * Crée un nouvel établissement avec ses documents associés.
+ */
+#[OA\Post(
+    summary: "Création d'un établissement",
+    description: "Permet de créer un nouvel établissement avec toutes les informations requises et documents joints.",
+    requestBody: new OA\RequestBody(
+        required: true,
+        content: new OA\MediaType(
+            mediaType: "multipart/form-data",
+            schema: new OA\Schema(
+                properties: [
+                    new OA\Property(property: "password", type: "string"),
+                    new OA\Property(property: "confirmPassword", type: "string"),
+                    new OA\Property(property: "email", type: "string"),
+                    new OA\Property(property: "nom", type: "string"),
+                    new OA\Property(property: "prenoms", type: "string"),
+                    new OA\Property(property: "telephone", type: "string"),
+                    new OA\Property(property: "typePersonne", type: "string"),
+                    new OA\Property(property: "bp", type: "string"),
+                    new OA\Property(property: "emailAutre", type: "string"),
+                    new OA\Property(property: "adresse", type: "string"),
+                    new OA\Property(property: "nomRepresentant", type: "string"),
+                    new OA\Property(property: "denomination", type: "string"),
+                    new OA\Property(property: "reference", type: "string"),
+                    new OA\Property(
+                        property: "documents",
+                        type: "array",
+                        items: new OA\Items(
+                            type: "object",
+                            properties: [
+                                new OA\Property(property: "libelle", type: "string"),
+                                new OA\Property(property: "path", type: "string", format: "binary"),
+                                new OA\Property(property: "libelleGroupe", type: "string")
+                            ]
                         ),
-                    ],
-                    type: "object"
-                )
+                    ),
+                ],
+                type: "object"
             )
-        ),
-        responses: [
-            new OA\Response(response: 401, description: "Invalid credentials")
-        ]
-    )]
-    #[OA\Tag(name: 'etablissement')]
-    #[Security(name: 'Bearer')]
+        )
+    ),
+    responses: [
+        new OA\Response(response: 201, description: "Établissement créé avec succès"),
+        new OA\Response(response: 400, description: "Données invalides"),
+        new OA\Response(response: 404, description: "Transaction introuvable")
+    ]
+)]
+#[OA\Tag(name: 'etablissement')]
     public function create(UserPasswordHasherInterface $hasher, Utils $utils, LibelleGroupeRepository $libelleGroupeRepository, Request $request, SessionInterface $session, SendMailService $sendMailService, TransactionRepository $transactionRepository, GenreRepository $genreRepository, EtablissementRepository $etablissementRepository, TypePersonneRepository $typePersonneRepository): Response
     {
 
