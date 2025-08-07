@@ -209,7 +209,7 @@ class ApiStatistiqueController extends ApiInterface
             $annee = $request->query->get('annee');
             $mois = $request->query->get('mois');
             $tranche = $request->query->get('tranche');
-            dd($mois,$periode,$annee,$tranche);
+           // dd($mois,$periode,$annee,$tranche);
             // Calcul de la plage de dates
             [$startDate, $endDate] = $this->getDateRangeFromPeriode((int)$annee, $periode,(int)$mois,(int)$tranche);
             
