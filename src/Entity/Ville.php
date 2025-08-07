@@ -12,7 +12,7 @@ use Symfony\Component\Serializer\Annotation\Groups as Group;
 #[ORM\Entity(repositoryClass: VilleRepository::class)]
 class Ville
 {
-    use TraitEntity; 
+    use TraitEntity; //je suis en mode test
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
