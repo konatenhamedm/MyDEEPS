@@ -4,9 +4,11 @@
 /.env.local.php
 /.env.*.local
 /.env
+/.htaccess
 /config/secrets/prod/prod.decrypt.private.php
 /public/bundles/
 /public/uploads/
+/public/.htaccess
 /var/
 /vendor/
 ###< symfony/framework-bundle ###
