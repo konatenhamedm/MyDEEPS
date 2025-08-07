@@ -30,8 +30,7 @@ class TempEtablissement
     #[ORM\Column]
     private ?string $password = null;
 
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $nomEntite = null;
+
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $reference = null;
@@ -42,15 +41,7 @@ class TempEtablissement
         return $this->id;
     }
 
-    #[ORM\Column( nullable: true)]
-    #[Group(['group_pro'])]
-    private ?string $appartenirOrganisation = null;
-
-   
-
-    #[ORM\Column(type: Types::TEXT, nullable: true)]
-    #[Group(["group_pro"])]
-    private ?string $reason = null;
+  
 
     #[ORM\Column(length: 255, nullable: true)]
     #[Group(["group_pro"])]
@@ -69,6 +60,33 @@ class TempEtablissement
 
     #[ORM\Column(length: 255)]
     private ?string $typeUser = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $nom = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $prenoms = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $telephone = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $emailAutre = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $typeSociete = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $bp = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $denomination = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $adresse = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $nomRepresentant = null;
 
     public function __construct()
     {
@@ -97,25 +115,7 @@ class TempEtablissement
         return $this;
     }
 
-    /**
-     * Get the value of reason
-     */ 
-    public function getReason()
-    {
-        return $this->reason;
-    }
-
-    /**
-     * Set the value of reason
-     *
-     * @return  self
-     */ 
-    public function setReason($reason)
-    {
-        $this->reason = $reason;
-
-        return $this;
-    }
+   
 
     /**
      * Get the value of status
@@ -157,47 +157,6 @@ class TempEtablissement
         return $this;
     }
 
-    /**
-     * Get the value of appartenirOrganisation
-     */ 
-    public function getAppartenirOrganisation()
-    {
-        return $this->appartenirOrganisation;
-    }
-
-    /**
-     * Set the value of appartenirOrganisation
-     *
-     * @return  self
-     */ 
-    public function setAppartenirOrganisation($appartenirOrganisation)
-    {
-        $this->appartenirOrganisation = $appartenirOrganisation;
-
-        return $this;
-    }
-
-    
-
-    /**
-     * Get the value of nomEntite
-     */ 
-    public function getNomEntite()
-    {
-        return $this->nomEntite;
-    }
-
-    /**
-     * Set the value of nomEntite
-     *
-     * @return  self
-     */ 
-    public function setNomEntite($nomEntite)
-    {
-        $this->nomEntite = $nomEntite;
-
-        return $this;
-    }
 
     /**
      * Get the value of email
@@ -297,6 +256,114 @@ class TempEtablissement
     public function setTypeUser(string $typeUser): static
     {
         $this->typeUser = $typeUser;
+
+        return $this;
+    }
+
+    public function getNom(): ?string
+    {
+        return $this->nom;
+    }
+
+    public function setNom(?string $nom): static
+    {
+        $this->nom = $nom;
+
+        return $this;
+    }
+
+    public function getPrenoms(): ?string
+    {
+        return $this->prenoms;
+    }
+
+    public function setPrenoms(?string $prenoms): static
+    {
+        $this->prenoms = $prenoms;
+
+        return $this;
+    }
+
+    public function getTelephone(): ?string
+    {
+        return $this->telephone;
+    }
+
+    public function setTelephone(?string $telephone): static
+    {
+        $this->telephone = $telephone;
+
+        return $this;
+    }
+
+    public function getEmailAutre(): ?string
+    {
+        return $this->emailAutre;
+    }
+
+    public function setEmailAutre(?string $emailAutre): static
+    {
+        $this->emailAutre = $emailAutre;
+
+        return $this;
+    }
+
+    public function getTypeSociete(): ?string
+    {
+        return $this->typeSociete;
+    }
+
+    public function setTypeSociete(?string $typeSociete): static
+    {
+        $this->typeSociete = $typeSociete;
+
+        return $this;
+    }
+
+    public function getBp(): ?string
+    {
+        return $this->bp;
+    }
+
+    public function setBp(?string $bp): static
+    {
+        $this->bp = $bp;
+
+        return $this;
+    }
+
+    public function getDenomination(): ?string
+    {
+        return $this->denomination;
+    }
+
+    public function setDenomination(?string $denomination): static
+    {
+        $this->denomination = $denomination;
+
+        return $this;
+    }
+
+    public function getAdresse(): ?string
+    {
+        return $this->adresse;
+    }
+
+    public function setAdresse(?string $adresse): static
+    {
+        $this->adresse = $adresse;
+
+        return $this;
+    }
+
+    public function getNomRepresentant(): ?string
+    {
+        return $this->nomRepresentant;
+    }
+
+    public function setNomRepresentant(?string $nomRepresentant): static
+    {
+        $this->nomRepresentant = $nomRepresentant;
 
         return $this;
     }

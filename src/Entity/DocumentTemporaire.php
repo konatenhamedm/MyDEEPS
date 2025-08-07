@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\DocumentTemporaireRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: DocumentTemporaireRepository::class)]
 class DocumentTemporaire
@@ -16,7 +17,9 @@ class DocumentTemporaire
     #[ORM\ManyToOne(inversedBy: 'documentTemporaires')]
     private ?TempEtablissement $tempEtablissement = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\ManyToOne(cascade: ["persist"], fetch: "EAGER")]
+    #[ORM\JoinColumn(nullable: true)]
+    #[Groups(["fichier", "group_pro"])]
     private ?Fichier $path = null;
 
     #[ORM\Column(length: 255)]

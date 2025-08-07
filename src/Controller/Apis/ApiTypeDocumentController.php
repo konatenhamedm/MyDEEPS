@@ -23,8 +23,6 @@ use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 class ApiTypeDocumentController extends ApiInterface
 {
 
-
-
     #[Route('/', methods: ['GET'])]
     /**
      * Retourne la liste des typeDocuments.
@@ -43,11 +41,7 @@ class ApiTypeDocumentController extends ApiInterface
     public function index(TypeDocumentRepository $typeDocumentRepository): Response
     {
         try {
-
             $typeDocuments = $typeDocumentRepository->findAll();
-
-
-
             $response =  $this->responseData($typeDocuments, 'group1', ['Content-Type' => 'application/json']);
         } catch (\Exception $exception) {
             $this->setMessage("");

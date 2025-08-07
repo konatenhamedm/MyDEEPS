@@ -194,7 +194,7 @@ class PaiementService
     {
         $data = json_decode($request->getContent(), true);
 
-        $montant = $this->professionRepository->findOneByCode($request->get('profession'))->getMontantNouvelleDemande();
+        $montant = $request->get('type') == "professionnel" ? $this->professionRepository->findOneByCode($request->get('profession'))->getMontantNouvelleDemande() : 100;
 
         $transaction = new Transaction();
         $transaction->setChannel("");
@@ -457,44 +457,20 @@ class PaiementService
                 $libelle = $doc->getLibelle() ?: 'Document sans libellé';
                 $document->setPath($libelle);
                 $document->setLibelle($libelle);
+                $document->setLibelleGroupe($doc->getLibelleGroupe());
                 $etablissement->addDocument($document);
             }
         }
-        /*   $etablissement->setNatureEntreprise($dataTemp->getNatureEntreprise());
-        $etablissement->setTypeEntreprise($dataTemp->getTypeEntreprise());
-        $etablissement->setGpsEntreprise($dataTemp->getGpsEntreprise());
-        $etablissement->setNiveauEntreprise($dataTemp->getNiveauEntreprise());
-        $etablissement->setContactEntreprise($dataTemp->getContactEntreprise());
-        $etablissement->setNomEntreprise($dataTemp->getNomEntreprise());
-        $etablissement->setEmailEntreprise($dataTemp->getEmailEntreprise());
-        $etablissement->setSpaceEntreprise($dataTemp->getSpaceEntreprise());
-        $etablissement->setAppartenirOrganisation('non');
-        $etablissement->setStatus('attente'); */
-
-        // Promoteur
-        /* if ($dataTemp->getGenre())
-            $etablissement->setGenre($this->genreRepository->find($dataTemp->getGenre())); */
-        /*   $etablissement->setNomCompletPromoteur($dataTemp->getNomCompletPromoteur());
-        $etablissement->setEmailPro($dataTemp->getEmailPro());
-        $etablissement->setProfession($dataTemp->getProfession());
-        $etablissement->setContactsPromoteur($dataTemp->getContactsPromoteur());
-        $etablissement->setLieuResidence($dataTemp->getLieuResidence());
-        $etablissement->setNumeroCni($dataTemp->getNumeroCni()); */
-
-        // Technicien
-        /*  $etablissement->setNomCompletTechnique($dataTemp->getNomCompletTechnique());
-        $etablissement->setEmailProTechnique($dataTemp->getEmailProTechnique());
-        $etablissement->setProfessionTechnique($dataTemp->getProfessionTechnique());
-        $etablissement->setContactProTechnique($dataTemp->getContactProTechnique());
-        $etablissement->setLieuResidenceTechnique($dataTemp->getLieuResidenceTechnique());
-        $etablissement->setNumeroOrdreTechnique($dataTemp->getNumeroOrdreTechnique());
-
-        $etablissement->setCv($dataTemp->getCv());
-        $etablissement->setDiplomeFile($dataTemp->getDiplomeFile());
-        $etablissement->setPhoto($dataTemp->getPhoto());
-        $etablissement->setOrdreNational($dataTemp->getOrdreNational());
-        $etablissement->setCni($dataTemp->getCni());
-        $etablissement->setDfe($dataTemp->getDfe()); */
+       
+        $etablissement->setDenomination($dataTemp->getDenomination());
+        $etablissement->setNom($dataTemp->getNom());
+        $etablissement->setPrenoms($dataTemp->getPrenoms());
+        $etablissement->setBp($dataTemp->getBp());
+        $etablissement->setEmailAutre($dataTemp->getEmailAutre());
+        $etablissement->setTelephone($dataTemp->getTelephone());
+        $etablissement->setTypeSociete($dataTemp->getTypeSociete());
+        $etablissement->setAdresse($dataTemp->getAdresse());
+        $etablissement->setNomRepresentant($dataTemp->getNomRepresentant());
 
 
         $this->em->persist($etablissement);
@@ -503,7 +479,7 @@ class PaiementService
 
 
         $user = new User();
-        $user->setUsername($dataTemp->getUsername());
+        $user->setUsername($dataTemp->getEmail());
         $user->setEmail($dataTemp->getEmail());
         $user->setPassword($this->hasher->hashPassword($user, $dataTemp->getPassword()));
         $user->setRoles(['ROLE_MEMBRE']);
@@ -527,18 +503,12 @@ class PaiementService
         $transaction->setUpdatedBy($user);
         $this->transactionRepository->add($transaction, true);
 
-
-
-
-
-
         $info_user = [
             'login' => $dataTemp->getEmail(),
 
         ];
 
         $context = compact('info_user');
-
         // TO DO
         $this->sendMailService->send(
             'depps@myonmci.ci',

@@ -4,25 +4,35 @@ namespace App\Entity;
 
 use App\Repository\DocumentRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: DocumentRepository::class)]
 class Document
 {
+
+    use TraitEntity; 
+
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
+
+          #[ORM\ManyToOne(cascade: ["persist"], fetch: "EAGER")]
+    #[ORM\JoinColumn(nullable: true)]
+    #[Groups(["fichier", "group_pro"])]
     private ?Fichier $path = null;
 
     #[ORM\ManyToOne(inversedBy: 'documents')]
     private ?Etablissement $etablissement = null;
 
     #[ORM\Column(length: 255)]
+     #[Groups(["group_pro"])]
     private ?string $libelle = null;
 
     #[ORM\ManyToOne(inversedBy: 'documents')]
+        #[Groups(["group_pro"])]
     private ?LibelleGroupe $libelleGroupe = null;
 
   

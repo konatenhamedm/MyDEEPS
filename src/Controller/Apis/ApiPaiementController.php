@@ -12,6 +12,7 @@ use Symfony\Component\HttpFoundation\Request;
 use App\Controller\Apis\Config\ApiInterface;
 use App\Entity\Document;
 use App\Entity\DocumentTemporaire;
+use App\Entity\LibelleGroupe;
 use App\Entity\TempEtablissement;
 use App\Entity\TempProfessionnel;
 use App\Entity\Transaction;
@@ -312,7 +313,6 @@ class ApiPaiementController extends ApiInterface
     public function indexInfoTransactionLastTransactionFormatter(TransactionRepository $transactionRepository, ProfessionRepository $professionRepository, $userId): Response
     {
         try {
-
 
             $transactions = $transactionRepository->findLastTransactionByUser($userId);
 
@@ -795,58 +795,25 @@ class ApiPaiementController extends ApiInterface
         $etablissement = new TempEtablissement();
 
 
-
-
-
-        //etape 1
-
         $etablissement->setPassword($request->get('password'));
         $etablissement->setEmail($request->get('email'));
         $etablissement->setUsername($request->get('nomEntreprise') . " " . $this->numero());
 
         $etablissement->setTypePersonne($request->get('typePersonne'));
-        /*  $etablissement->setNatureEntreprise($request->get('natureEntreprise'));
-        $etablissement->setTypeEntreprise($request->get('typeEntreprise'));
-        $etablissement->setGpsEntreprise($request->get('gpsEntreprise'));
-        $etablissement->setNatureEntreprise($request->get('niveauEntreprise'));
-        $etablissement->setContactEntreprise($request->get('contactEntreprise'));
-        $etablissement->setNomEntreprise($request->get('nomEntreprise'));
-        $etablissement->setEmailEntreprise($request->get('emailEntreprise'));
-        $etablissement->setSpaceEntreprise($request->get('spaceEntreprise'));
- */
-        /*  $etablissement->setGenre($request->get('genre'));
-        $etablissement->setNomCompletPromoteur($request->get('nomCompletPromoteur'));
-        $etablissement->setEmailPro($request->get('emailPro'));
-        $etablissement->setProfession($request->get('profession'));
-        $etablissement->setContactsPromoteur($request->get('contactsPromoteur'));
-        $etablissement->setLieuResidence($request->get('lieuResidence'));
-        $etablissement->setNumeroCni($request->get('numeroCni')); */
-
-
-        /*  $etablissement->setNomCompletTechnique($request->get('nomCompletTechnique'));
-        $etablissement->setEmailProTechnique($request->get('emailProTechnique'));
-        $etablissement->setProfessionTechnique($request->get('professionTechnique'));
-        $etablissement->setContactProTechnique($request->get('contactProTechnique'));
-        $etablissement->setLieuResidenceTechnique($request->get('lieuResidenceTechnique'));
-        $etablissement->setNumeroOrdreTechnique($request->get('numeroOrdreTechnique')); */
+        
         $etablissement->setReference($data['reference']);
         $etablissement->setTypeUser(User::TYPE['ETABLISSEMENT']);
+        $etablissement->setNom($request->get('nom'));
+        $etablissement->setPrenoms($request->get('prenoms'));
+        $etablissement->setDenomination($request->get('denomination'));
+        $etablissement->setEmailAutre($request->get('emailAutre'));
+        $etablissement->setBp($request->get('bp'));
+        $etablissement->setAdresse($request->get('adresse'));
+        $etablissement->setNomRepresentant($request->get('nomRepresentant'));
+        $etablissement->setTelephone($request->get('telephone'));
+        $etablissement->setTypeSociete($request->get('typeSociete'));
+     
 
-        /*      $uploadedCni = $request->files->get('cni');
-        $uploadedCv = $request->files->get('cv');
-        $uploadedDiplome = $request->files->get('diplomeFile');
-        $uploadeOrdinal = $request->files->get('ordreNational');
-        $uploadedDfe = $request->files->get('dfe'); */
-
-        /*      $uploadedPhoto = $request->files->get('photo');
-
-        if ($uploadedPhoto) {
-            $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedPhoto, self::UPLOAD_PATH);
-            if ($fichier) {
-                $etablissement->setPhoto($fichier);
-            }
-        }
-         */
 
         $uploadedDocuments = $request->files->get('documents'); // Récupère les fichiers
         $libelles = $request->request->get('documents'); // Récupère les libellés
@@ -855,6 +822,7 @@ class ApiPaiementController extends ApiInterface
             foreach ($uploadedDocuments as $key => $uploadedDocument) {
                 $uploadedPhoto = $uploadedDocument['path'] ?? null;
                 $libelle = $libelles[$key]['libelle'] ?? null;
+                $libelleGroupe = $libelles[$key]['libelleGroupe'] ?? null;
 
                 if ($uploadedPhoto) {
                     $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedPhoto, self::UPLOAD_PATH);
@@ -863,7 +831,8 @@ class ApiPaiementController extends ApiInterface
                         $document = new DocumentTemporaire();
                         $document->setPath($fichier);
                         $document->setLibelle($libelle);
-                        $etablissement->addDocumentTemporaire($document); // Si vous avez une relation OneToMany
+                        $document->setLibelleGroupe($this->em->getRepository(LibelleGroupe::class)->find($libelleGroupe));
+                        $etablissement->addDocumentTemporaire($document);
                     }
                 }
             }
@@ -878,7 +847,6 @@ class ApiPaiementController extends ApiInterface
             $this->em->persist($etablissement);
             $this->em->flush();
         }
-
 
         return  $this->json([
             'message' => 'Professionnel bien enregistré',

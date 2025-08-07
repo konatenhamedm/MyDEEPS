@@ -41,10 +41,10 @@ framework:
         validation_etablissement:
             type: 'state_machine'
             audit_trail:
-              enabled: true
+                enabled: true
             marking_store:
-              type: 'method'
-              property: 'status'
+                type: 'method'
+                property: 'status'
             supports:
                 - App\Entity\Etablissement
             initial_marking: attente
@@ -59,15 +59,20 @@ framework:
                 acceptation:
                     from: attente
                     to: accepte
+                    guard: "is_granted('ROLE_ADMIN')"
                 rejet:
                     from: attente
                     to: refuse
+                    guard: "is_granted('ROLE_ADMIN')"
                 validation:
-                    from: accepte 
+                    from: accepte
                     to: valide
+                    guard: "is_granted('ROLE_VALIDATEUR')"
                 renouvellement:
                     from: valide
                     to: renouvellement
+                    guard: "is_granted('ROLE_ETABLISSEMENT')"
                 mis_a_jour:
-                    from: renouvellement 
+                    from: renouvellement
                     to: a_jour
+                    guard: "is_granted('ROLE_ADMIN') or is_granted('ROLE_VALIDATEUR')"
