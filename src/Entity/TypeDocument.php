@@ -20,7 +20,7 @@ class TypeDocument
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Group(["group1"])]
+    #[Group(["group1", "group_libelle"])]
     private ?string $libelle = null;
 
   
