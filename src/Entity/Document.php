@@ -10,7 +10,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
 class Document
 {
 
-    use TraitEntity; 
+    use TraitEntity;
 
 
     #[ORM\Id]
@@ -19,7 +19,7 @@ class Document
     private ?int $id = null;
 
 
-          #[ORM\ManyToOne(cascade: ["persist"], fetch: "EAGER")]
+    #[ORM\ManyToOne(cascade: ["persist"], fetch: "EAGER")]
     #[ORM\JoinColumn(nullable: true)]
     #[Groups(["fichier", "group_pro"])]
     private ?Fichier $path = null;
@@ -28,14 +28,14 @@ class Document
     private ?Etablissement $etablissement = null;
 
     #[ORM\Column(length: 255)]
-     #[Groups(["group_pro"])]
+    #[Groups(["group_pro"])]
     private ?string $libelle = null;
 
     #[ORM\ManyToOne(inversedBy: 'documents')]
-        #[Groups(["group_pro"])]
+    #[Groups(["group_pro"])]
     private ?LibelleGroupe $libelleGroupe = null;
 
-  
+
 
     public function getId(): ?int
     {
@@ -89,6 +89,4 @@ class Document
 
         return $this;
     }
-
-
 }
