@@ -258,7 +258,7 @@ class ApiTypeDocumentController extends ApiInterface
     {
         try {
             $data = json_decode($request->getContent());
-
+dd($typeDocument, $data);
 
             if ($typeDocument != null) {
 
@@ -270,7 +270,7 @@ class ApiTypeDocumentController extends ApiInterface
                 $typeDocument->setUpdatedBy($this->userRepository->find($data->userUpdate));
                 $errorResponse = $this->errorResponse($typeDocument);
 
-                dd($errorResponse, $data);
+                
                 if ($errorResponse !== null) {
                     return $errorResponse; // Retourne la réponse d'erreur si des erreurs sont présentes
                 } else {
