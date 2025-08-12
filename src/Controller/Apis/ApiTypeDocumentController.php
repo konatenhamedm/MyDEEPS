@@ -254,11 +254,13 @@ class ApiTypeDocumentController extends ApiInterface
     )]
     #[OA\Tag(name: 'typeDocument')]
     #[Security(name: 'Bearer')]
-    public function update(Request $request, TypeDocument $typeDocument, LibelleGroupeRepository $libelleGroupeRepository, TypeDocumentRepository $typeDocumentRepository, TypePersonneRepository $typePersonneRepository): Response
+    public function update(Request $request,$id, LibelleGroupeRepository $libelleGroupeRepository, TypeDocumentRepository $typeDocumentRepository, TypePersonneRepository $typePersonneRepository): Response
     {
         try {
             $data = json_decode($request->getContent());
-dd($typeDocument, $data);
+            //return $data;
+
+            $typeDocument = $typeDocumentRepository->find($id);
 
             if ($typeDocument != null) {
 
