@@ -16,11 +16,11 @@ class TypeDocument
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Group(["group1", "group_libelle"])]
+    #[Group(["group1","group_", "group_libelle"])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Group(["group1", "group_libelle"])]
+    #[Group(["group1","group_", "group_libelle"])]
     private ?string $libelle = null;
 
   

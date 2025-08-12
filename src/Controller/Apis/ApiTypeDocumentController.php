@@ -280,7 +280,7 @@ class ApiTypeDocumentController extends ApiInterface
                     $typeDocumentRepository->add($typeDocument, true);
                 }
 
-                $response = $this->responseData($typeDocument, 'group1', ['Content-Type' => 'application/json']);
+                $response = $this->responseData($typeDocument, 'group_', ['Content-Type' => 'application/json']);
             } else {
                 $this->setMessage("Cette ressource est inexsitante");
                 $this->setStatusCode(300);
