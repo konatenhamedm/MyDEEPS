@@ -269,6 +269,8 @@ class ApiTypeDocumentController extends ApiInterface
                 $typeDocument->setUpdatedAt(new \DateTime());
                 $typeDocument->setUpdatedBy($this->userRepository->find($data->userUpdate));
                 $errorResponse = $this->errorResponse($typeDocument);
+
+                dd($errorResponse, $data);
                 if ($errorResponse !== null) {
                     return $errorResponse; // Retourne la réponse d'erreur si des erreurs sont présentes
                 } else {
