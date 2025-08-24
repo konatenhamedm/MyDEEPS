@@ -149,6 +149,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: Professionnel::class, mappedBy: 'imputation')]
     private Collection $professionnels;
 
+    /**
+     * @var Collection<int, Etablissement>
+     */
+    #[ORM\OneToMany(targetEntity: Etablissement::class, mappedBy: 'imputation')]
+    private Collection $etablissements;
+
 
     public function __construct()
     {
@@ -170,6 +176,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->avis = new ArrayCollection();
         $this->notifications = new ArrayCollection();
         $this->professionnels = new ArrayCollection();
+        $this->etablissements = new ArrayCollection();
     }
 
 
@@ -577,6 +584,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             // set the owning side to null (unless already changed)
             if ($professionnel->getImputation() === $this) {
                 $professionnel->setImputation(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Etablissement>
+     */
+    public function getEtablissements(): Collection
+    {
+        return $this->etablissements;
+    }
+
+    public function addEtablissement(Etablissement $etablissement): static
+    {
+        if (!$this->etablissements->contains($etablissement)) {
+            $this->etablissements->add($etablissement);
+            $etablissement->setImputation($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEtablissement(Etablissement $etablissement): static
+    {
+        if ($this->etablissements->removeElement($etablissement)) {
+            // set the owning side to null (unless already changed)
+            if ($etablissement->getImputation() === $this) {
+                $etablissement->setImputation(null);
             }
         }
 

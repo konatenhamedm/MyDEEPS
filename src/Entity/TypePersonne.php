@@ -37,6 +37,10 @@ class TypePersonne
     #[ORM\OneToMany(targetEntity: TypeDocument::class, mappedBy: 'typePersonne')]
     private Collection $typeDocuments;
 
+    #[ORM\Column(length: 10, nullable: true)]
+    #[Group(["group1","group_pro"])]
+    private ?string $code = null;
+
     public function __construct()
     {
         $this->etablissements = new ArrayCollection();
@@ -116,6 +120,18 @@ class TypePersonne
                 $typeDocument->setTypePersonne(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getCode(): ?string
+    {
+        return $this->code;
+    }
+
+    public function setCode(?string $code): static
+    {
+        $this->code = $code;
 
         return $this;
     }

@@ -81,6 +81,12 @@ class Etablissement extends Entite
         #[Group(["group_pro"])]
     private ?string $emailAutre = null;
 
+    #[ORM\ManyToOne(inversedBy: 'etablissements')]
+    private ?NiveauIntervention $niveauIntervention = null;
+
+    #[ORM\ManyToOne(inversedBy: 'etablissements')]
+    private ?User $imputation = null;
+
     public function __construct()
     {
         parent::__construct();
@@ -282,6 +288,30 @@ class Etablissement extends Entite
     public function setEmailAutre(?string $emailAutre): static
     {
         $this->emailAutre = $emailAutre;
+
+        return $this;
+    }
+
+    public function getNiveauIntervention(): ?NiveauIntervention
+    {
+        return $this->niveauIntervention;
+    }
+
+    public function setNiveauIntervention(?NiveauIntervention $niveauIntervention): static
+    {
+        $this->niveauIntervention = $niveauIntervention;
+
+        return $this;
+    }
+
+    public function getImputation(): ?User
+    {
+        return $this->imputation;
+    }
+
+    public function setImputation(?User $imputation): static
+    {
+        $this->imputation = $imputation;
 
         return $this;
     }

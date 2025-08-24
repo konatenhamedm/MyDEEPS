@@ -17,6 +17,7 @@ use App\Repository\CiviliteRepository;
 use App\Repository\DocumentRepository;
 use App\Repository\GenreRepository;
 use App\Repository\LibelleGroupeRepository;
+use App\Repository\NiveauInterventionRepository;
 use App\Repository\OrganisationRepository;
 use App\Repository\PaysRepository;
 use App\Repository\SpecialiteRepository;
@@ -133,57 +134,58 @@ class ApiEtablissementController extends ApiInterface
     }
 
 
-#[Route('/create', methods: ['POST'])]
-/**
- * Crée un nouvel établissement avec ses documents associés.
- */
-#[OA\Post(
-    summary: "Création d'un établissement",
-    description: "Permet de créer un nouvel établissement avec toutes les informations requises et documents joints.",
-    requestBody: new OA\RequestBody(
-        required: true,
-        content: new OA\MediaType(
-            mediaType: "multipart/form-data",
-            schema: new OA\Schema(
-                properties: [
-                    new OA\Property(property: "password", type: "string"),
-                    new OA\Property(property: "confirmPassword", type: "string"),
-                    new OA\Property(property: "email", type: "string"),
-                    new OA\Property(property: "nom", type: "string"),
-                    new OA\Property(property: "prenoms", type: "string"),
-                    new OA\Property(property: "telephone", type: "string"),
-                    new OA\Property(property: "typePersonne", type: "string"),
-                    new OA\Property(property: "bp", type: "string"),
-                    new OA\Property(property: "emailAutre", type: "string"),
-                    new OA\Property(property: "adresse", type: "string"),
-                    new OA\Property(property: "nomRepresentant", type: "string"),
-                    new OA\Property(property: "denomination", type: "string"),
-                    new OA\Property(property: "reference", type: "string"),
-                    new OA\Property(
-                        property: "documents",
-                        type: "array",
-                        items: new OA\Items(
-                            type: "object",
-                            properties: [
-                                new OA\Property(property: "libelle", type: "string"),
-                                new OA\Property(property: "path", type: "string", format: "binary"),
-                                new OA\Property(property: "libelleGroupe", type: "string")
-                            ]
+    #[Route('/create', methods: ['POST'])]
+    /**
+     * Crée un nouvel établissement avec ses documents associés.
+     */
+    #[OA\Post(
+        summary: "Création d'un établissement",
+        description: "Permet de créer un nouvel établissement avec toutes les informations requises et documents joints.",
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\MediaType(
+                mediaType: "multipart/form-data",
+                schema: new OA\Schema(
+                    properties: [
+                        new OA\Property(property: "password", type: "string"),
+                        new OA\Property(property: "confirmPassword", type: "string"),
+                        new OA\Property(property: "email", type: "string"),
+                        new OA\Property(property: "nom", type: "string"),
+                        new OA\Property(property: "prenoms", type: "string"),
+                        new OA\Property(property: "telephone", type: "string"),
+                        new OA\Property(property: "typePersonne", type: "string"),
+                        new OA\Property(property: "bp", type: "string"),
+                        new OA\Property(property: "emailAutre", type: "string"),
+                        new OA\Property(property: "adresse", type: "string"),
+                        new OA\Property(property: "nomRepresentant", type: "string"),
+                        new OA\Property(property: "denomination", type: "string"),
+                        new OA\Property(property: "reference", type: "string"),
+                        new OA\Property(property: "niveauIntervention", type: "string"),
+                        new OA\Property(
+                            property: "documents",
+                            type: "array",
+                            items: new OA\Items(
+                                type: "object",
+                                properties: [
+                                    new OA\Property(property: "libelle", type: "string"),
+                                    new OA\Property(property: "path", type: "string", format: "binary"),
+                                    new OA\Property(property: "libelleGroupe", type: "string")
+                                ]
+                            ),
                         ),
-                    ),
-                ],
-                type: "object"
+                    ],
+                    type: "object"
+                )
             )
-        )
-    ),
-    responses: [
-        new OA\Response(response: 201, description: "Établissement créé avec succès"),
-        new OA\Response(response: 400, description: "Données invalides"),
-        new OA\Response(response: 404, description: "Transaction introuvable")
-    ]
-)]
-#[OA\Tag(name: 'etablissement')]
-    public function create(UserPasswordHasherInterface $hasher, Utils $utils, LibelleGroupeRepository $libelleGroupeRepository, Request $request, SessionInterface $session, SendMailService $sendMailService, TransactionRepository $transactionRepository, GenreRepository $genreRepository, EtablissementRepository $etablissementRepository, TypePersonneRepository $typePersonneRepository): Response
+        ),
+        responses: [
+            new OA\Response(response: 201, description: "Établissement créé avec succès"),
+            new OA\Response(response: 400, description: "Données invalides"),
+            new OA\Response(response: 404, description: "Transaction introuvable")
+        ]
+    )]
+    #[OA\Tag(name: 'etablissement')]
+    public function create(UserPasswordHasherInterface $hasher, NiveauInterventionRepository $niveauInterventionRepository, Utils $utils, LibelleGroupeRepository $libelleGroupeRepository, Request $request, SessionInterface $session, SendMailService $sendMailService, TransactionRepository $transactionRepository, GenreRepository $genreRepository, EtablissementRepository $etablissementRepository, TypePersonneRepository $typePersonneRepository): Response
     {
 
         $names = 'document_' . '01';
@@ -217,10 +219,11 @@ class ApiEtablissementController extends ApiInterface
                 return $errorResponse1; // Retourne la réponse d'erreur si des erreurs sont présentes
             } else {
 
-                $typePersonne = $typePersonneRepository->find($request->get('typePersonne'));
+                $typePersonne = $typePersonneRepository->findOneByCode($request->get('typePersonne'));
                 $etablissement = new Etablissement();
+                $etablissement->setNiveauIntervention($niveauInterventionRepository->find($request->get('niveauIntervention')));
 
-                if ($typePersonne->getLibelle() === 'PHYSIQUE') {
+                if ($typePersonne->getCode() === 'PHYSIQUE') {
                     $etablissement->setNom($request->get('nom'));
                     $etablissement->setPrenoms($request->get('prenoms'));
                     $etablissement->setBp($request->get('bp'));
@@ -235,7 +238,7 @@ class ApiEtablissementController extends ApiInterface
 
                 $etablissement->setTypePersonne($typePersonne);
                 $etablissement->setStatus("attente");
-                
+
 
                 $documents = $request->get('documents');
 
@@ -416,7 +419,8 @@ class ApiEtablissementController extends ApiInterface
         Request $request,
         TypePersonneRepository $typePersonneRepository,
         EtablissementRepository $etablissementRepository,
-        DocumentRepository $documentRepository
+        DocumentRepository $documentRepository,
+        NiveauInterventionRepository $niveauInterventionRepository
     ): Response {
         $etablissement = $etablissementRepository->find($id);
 
@@ -429,6 +433,7 @@ class ApiEtablissementController extends ApiInterface
             $typePersonne = $typePersonneRepository->find($request->get('typePersonne'));
             if ($typePersonne) {
                 $etablissement->setTypePersonne($typePersonne);
+                $etablissement->setNiveauIntervention($niveauInterventionRepository->find($request->get('niveauIntervention')));
 
                 // Mise à jour conditionnelle des champs selon le type de personne
                 if ($typePersonne->getLibelle() === 'PHYSIQUE') {

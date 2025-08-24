@@ -88,6 +88,9 @@ class TempEtablissement
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $nomRepresentant = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $niveauIntervention = null;
+
     public function __construct()
     {
         $this->documentTemporaires = new ArrayCollection();
@@ -364,6 +367,18 @@ class TempEtablissement
     public function setNomRepresentant(?string $nomRepresentant): static
     {
         $this->nomRepresentant = $nomRepresentant;
+
+        return $this;
+    }
+
+    public function getNiveauIntervention(): ?string
+    {
+        return $this->niveauIntervention;
+    }
+
+    public function setNiveauIntervention(?string $niveauIntervention): static
+    {
+        $this->niveauIntervention = $niveauIntervention;
 
         return $this;
     }

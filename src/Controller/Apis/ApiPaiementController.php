@@ -594,6 +594,7 @@ class ApiPaiementController extends ApiInterface
     #[Security(name: 'Bearer')]
     public function doPaiement(Request $request, PaiementService $paiementService)
     {
+
         $createTransactionData = $paiementService->traiterPaiement($request);
         /* 
         if (!isset($createTransactionData['type'])) {
@@ -800,6 +801,7 @@ class ApiPaiementController extends ApiInterface
         $etablissement->setUsername($request->get('nomEntreprise') . " " . $this->numero());
 
         $etablissement->setTypePersonne($request->get('typePersonne'));
+        $etablissement->setNiveauIntervention($request->get('niveauIntervention'));
         
         $etablissement->setReference($data['reference']);
         $etablissement->setTypeUser(User::TYPE['ETABLISSEMENT']);
@@ -815,8 +817,8 @@ class ApiPaiementController extends ApiInterface
      
 
 
-        $uploadedDocuments = $request->files->get('documents'); // Récupère les fichiers
         $libelles = $request->request->get('documents'); // Récupère les libellés
+        $uploadedDocuments = $request->files->get('documents'); // Récupère les fichiers
 
         if ($uploadedDocuments) {
             foreach ($uploadedDocuments as $key => $uploadedDocument) {

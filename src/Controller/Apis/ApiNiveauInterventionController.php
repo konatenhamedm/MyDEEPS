@@ -3,10 +3,10 @@
 namespace  App\Controller\Apis;
 
 use App\Controller\Apis\Config\ApiInterface;
-use App\DTO\TypePersonneDTO;
+use App\DTO\NiveauInterventionDTO;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use App\Entity\TypePersonne;
-use App\Repository\TypePersonneRepository;
+use App\Entity\NiveauIntervention;
+use App\Repository\NiveauInterventionRepository;
 use App\Repository\UserRepository;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -16,15 +16,15 @@ use Nelmio\ApiDocBundle\Annotation\Security;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 
-#[Route('/api/typePersonne')]
-class ApiTypePersonneController extends ApiInterface
+#[Route('/api/niveauIntervention')]
+class ApiNiveauInterventionController extends ApiInterface
 {
 
 
 
     #[Route('/', methods: ['GET'])]
     /**
-     * Retourne la liste des typePersonnes.
+     * Retourne la liste des niveauInterventions.
      * 
      */
     #[OA\Response(
@@ -32,21 +32,20 @@ class ApiTypePersonneController extends ApiInterface
         description: 'Returns the rewards of an user',
         content: new OA\JsonContent(
             type: 'array',
-            items: new OA\Items(ref: new Model(type: TypePersonne::class, groups: ['full']))
+            items: new OA\Items(ref: new Model(type: NiveauIntervention::class, groups: ['full']))
         )
     )]
-    #[OA\Tag(name: 'typePersonne')]
+    #[OA\Tag(name: 'niveauIntervention')]
     // #[Security(name: 'Bearer')]
-    public function index(TypePersonneRepository $typePersonneRepository): Response
+    public function index(NiveauInterventionRepository $niveauInterventionRepository): Response
     {
         try {
 
-            $typePersonnes = $typePersonneRepository->findAll();
+            $niveauInterventions = $niveauInterventionRepository->findAll();
 
-            $context = [AbstractNormalizer::GROUPS => 'group1'];
-            $json = $this->serializer->serialize($typePersonnes, 'json', $context);
+          
 
-            return new JsonResponse(['code' => 200, 'data' => json_decode($json)]);
+            $response =  $this->responseData($niveauInterventions, 'group1', ['Content-Type' => 'application/json']);
         } catch (\Exception $exception) {
             $this->setMessage("");
             $response = $this->response('[]');
@@ -59,32 +58,32 @@ class ApiTypePersonneController extends ApiInterface
 
     #[Route('/get/one/{id}', methods: ['GET'])]
     /**
-     * Affiche un(e) typePersonne en offrant un identifiant.
+     * Affiche un(e) niveauIntervention en offrant un identifiant.
      */
     #[OA\Response(
         response: 200,
-        description: 'Affiche un(e) typePersonne en offrant un identifiant',
+        description: 'Affiche un(e) niveauIntervention en offrant un identifiant',
         content: new OA\JsonContent(
             type: 'array',
-            items: new OA\Items(ref: new Model(type: TypePersonne::class, groups: ['full']))
+            items: new OA\Items(ref: new Model(type: NiveauIntervention::class, groups: ['full']))
         )
     )]
     #[OA\Parameter(
-        name: 'libelle',
+        name: 'code',
         in: 'query',
         schema: new OA\Schema(type: 'string')
     )]
-    #[OA\Tag(name: 'typePersonne')]
+    #[OA\Tag(name: 'niveauIntervention')]
     //#[Security(name: 'Bearer')]
-    public function getOne(?TypePersonne $typePersonne)
+    public function getOne(?NiveauIntervention $niveauIntervention)
     {
         try {
-            if ($typePersonne) {
-                $response = $this->response($typePersonne);
+            if ($niveauIntervention) {
+                $response = $this->response($niveauIntervention);
             } else {
                 $this->setMessage('Cette ressource est inexistante');
                 $this->setStatusCode(300);
-                $response = $this->response($typePersonne);
+                $response = $this->response($niveauIntervention);
             }
         } catch (\Exception $exception) {
             $this->setMessage($exception->getMessage());
@@ -98,7 +97,7 @@ class ApiTypePersonneController extends ApiInterface
 
     #[Route('/create',  methods: ['POST'])]
     /**
-     * Permet de créer un(e) typePersonne.
+     * Permet de créer un(e) niveauIntervention.
      */
     #[OA\Post(
         summary: "Authentification admin",
@@ -109,6 +108,7 @@ class ApiTypePersonneController extends ApiInterface
                 properties: [
                     new OA\Property(property: "libelle", type: "string"),
                     new OA\Property(property: "code", type: "string"),
+                    new OA\Property(property: "montant", type: "string"),
                     new OA\Property(property: "userUpdate", type: "string"),
 
                 ],
@@ -119,39 +119,41 @@ class ApiTypePersonneController extends ApiInterface
             new OA\Response(response: 401, description: "Invalid credentials")
         ]
     )]
-    #[OA\Tag(name: 'typePersonne')]
+    #[OA\Tag(name: 'niveauIntervention')]
     #[Security(name: 'Bearer')]
-    public function create(Request $request, TypePersonneRepository $typePersonneRepository): Response
+    public function create(Request $request, NiveauInterventionRepository $niveauInterventionRepository): Response
     {
 
         $data = json_decode($request->getContent(), true);
-        $typePersonne = new TypePersonne();
-        $typePersonne->setLibelle($data['libelle']);
-        $typePersonne->setCode($data['code']);
-        $typePersonne->setCreatedBy($this->userRepository->find($data['userUpdate']));
-        $typePersonne->setUpdatedBy($this->userRepository->find($data['userUpdate']));
-        $errorResponse = $this->errorResponse($typePersonne);
+        $niveauIntervention = new NiveauIntervention();
+        $niveauIntervention->setLibelle($data['libelle']);
+        $niveauIntervention->setMontant($data['montant']);
+        $niveauIntervention->setCode($data['code']);
+        $niveauIntervention->setCreatedBy($this->userRepository->find($data['userUpdate']));
+        $niveauIntervention->setUpdatedBy($this->userRepository->find($data['userUpdate']));
+        $errorResponse = $this->errorResponse($niveauIntervention);
         if ($errorResponse !== null) {
             return $errorResponse; // Retourne la réponse d'erreur si des erreurs sont présentes
         } else {
 
-            $typePersonneRepository->add($typePersonne, true);
+            $niveauInterventionRepository->add($niveauIntervention, true);
         }
 
-        return $this->responseData($typePersonne, 'group1', ['Content-Type' => 'application/json']);
+        return $this->responseData($niveauIntervention, 'group1', ['Content-Type' => 'application/json']);
     }
 
 
     #[Route('/update/{id}', methods: ['PUT', 'POST'])]
     #[OA\Post(
-        summary: "Creation de typePersonne",
-        description: "Permet de créer un typePersonne.",
+        summary: "Creation de niveauIntervention",
+        description: "Permet de créer un niveauIntervention.",
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
                 properties: [
                     new OA\Property(property: "libelle", type: "string"),
                     new OA\Property(property: "code", type: "string"),
+                    new OA\Property(property: "montant", type: "string"),
                     new OA\Property(property: "userUpdate", type: "string"),
 
                 ],
@@ -162,31 +164,31 @@ class ApiTypePersonneController extends ApiInterface
             new OA\Response(response: 401, description: "Invalid credentials")
         ]
     )]
-    #[OA\Tag(name: 'typePersonne')]
+    #[OA\Tag(name: 'niveauIntervention')]
     #[Security(name: 'Bearer')]
-    public function update(Request $request, TypePersonne $typePersonne, TypePersonneRepository $typePersonneRepository): Response
+    public function update(Request $request, NiveauIntervention $niveauIntervention, NiveauInterventionRepository $niveauInterventionRepository): Response
     {
         try {
             $data = json_decode($request->getContent());
-            if ($typePersonne != null) {
+            if ($niveauIntervention != null) {
 
-                $typePersonne->setLibelle($data->libelle);
-                $typePersonne->setCode($data->code);
-                $typePersonne->setUpdatedBy($this->userRepository->find($data->userUpdate));
-                $typePersonne->setUpdatedAt(new \DateTime());
-
-                $errorResponse = $this->errorResponse($typePersonne);
+                $niveauIntervention->setLibelle($data->libelle);
+                $niveauIntervention->setCode($data->code);
+                $niveauIntervention->setMontant($data->montant);
+                $niveauIntervention->setUpdatedBy($this->userRepository->find($data->userUpdate));
+                $niveauIntervention->setUpdatedAt(new \DateTime());
+                $errorResponse = $this->errorResponse($niveauIntervention);
 
                 if ($errorResponse !== null) {
                     return $errorResponse; // Retourne la réponse d'erreur si des erreurs sont présentes
                 } else {
-                    $typePersonneRepository->add($typePersonne, true);
+                    $niveauInterventionRepository->add($niveauIntervention, true);
                 }
 
 
 
                 // On retourne la confirmation
-                $response = $this->responseData($typePersonne, 'group1', ['Content-Type' => 'application/json']);
+                $response = $this->responseData($niveauIntervention, 'group1', ['Content-Type' => 'application/json']);
             } else {
                 $this->setMessage("Cette ressource est inexsitante");
                 $this->setStatusCode(300);
@@ -203,29 +205,29 @@ class ApiTypePersonneController extends ApiInterface
 
     #[Route('/delete/{id}',  methods: ['DELETE'])]
     /**
-     * permet de supprimer un(e) typePersonne.
+     * permet de supprimer un(e) niveauIntervention.
      */
     #[OA\Response(
         response: 200,
-        description: 'permet de supprimer un(e) typePersonne',
+        description: 'permet de supprimer un(e) niveauIntervention',
         content: new OA\JsonContent(
             type: 'array',
-            items: new OA\Items(ref: new Model(type: TypePersonne::class, groups: ['full']))
+            items: new OA\Items(ref: new Model(type: NiveauIntervention::class, groups: ['full']))
         )
     )]
-    #[OA\Tag(name: 'typePersonne')]
+    #[OA\Tag(name: 'niveauIntervention')]
     //#[Security(name: 'Bearer')]
-    public function delete(Request $request, TypePersonne $typePersonne, TypePersonneRepository $villeRepository): Response
+    public function delete(Request $request, NiveauIntervention $niveauIntervention, NiveauInterventionRepository $villeRepository): Response
     {
         try {
 
-            if ($typePersonne != null) {
+            if ($niveauIntervention != null) {
 
-                $villeRepository->remove($typePersonne, true);
+                $villeRepository->remove($niveauIntervention, true);
 
                 // On retourne la confirmation
                 $this->setMessage("Operation effectuées avec success");
-                $response = $this->response($typePersonne);
+                $response = $this->response($niveauIntervention);
             } else {
                 $this->setMessage("Cette ressource est inexistante");
                 $this->setStatusCode(300);
@@ -240,28 +242,28 @@ class ApiTypePersonneController extends ApiInterface
 
     #[Route('/delete/all',  methods: ['DELETE'])]
     /**
-     * Permet de supprimer plusieurs typePersonne.
+     * Permet de supprimer plusieurs niveauIntervention.
      */
     #[OA\Response(
         response: 200,
         description: 'Returns the rewards of an user',
         content: new OA\JsonContent(
             type: 'array',
-            items: new OA\Items(ref: new Model(type: TypePersonne::class, groups: ['full']))
+            items: new OA\Items(ref: new Model(type: NiveauIntervention::class, groups: ['full']))
         )
     )]
-    #[OA\Tag(name: 'typePersonne')]
+    #[OA\Tag(name: 'niveauIntervention')]
     #[Security(name: 'Bearer')]
-    public function deleteAll(Request $request, TypePersonneRepository $villeRepository): Response
+    public function deleteAll(Request $request, NiveauInterventionRepository $villeRepository): Response
     {
         try {
             $data = json_decode($request->getContent());
 
             foreach ($data->ids as $key => $value) {
-                $typePersonne = $villeRepository->find($value['id']);
+                $niveauIntervention = $villeRepository->find($value['id']);
 
-                if ($typePersonne != null) {
-                    $villeRepository->remove($typePersonne);
+                if ($niveauIntervention != null) {
+                    $villeRepository->remove($niveauIntervention);
                 }
             }
             $this->setMessage("Operation effectuées avec success");

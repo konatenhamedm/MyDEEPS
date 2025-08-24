@@ -266,7 +266,7 @@ class ApiTypeDocumentController extends ApiInterface
 
                 $typeDocument->setLibelle($data->libelle);
                 $typeDocument->setNombre($data->nombre);
-                $typeDocument->setLibelleGroupe($libelleGroupeRepository->find($data->typePersonne->libelleGroupe));
+                $typeDocument->setLibelleGroupe($libelleGroupeRepository->find($data->libelleGroupe));
                 $typeDocument->setTypePersonne($typePersonneRepository->find($data->typePersonne));
                 $typeDocument->setUpdatedAt(new \DateTime());
                 $typeDocument->setUpdatedBy($this->userRepository->find($data->userUpdate));

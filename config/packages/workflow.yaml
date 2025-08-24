@@ -47,32 +47,55 @@ framework:
                 property: 'status'
             supports:
                 - App\Entity\Etablissement
-            initial_marking: attente
+            initial_marking: dossier_initie
             places:
-                - attente
-                - accepte
-                - valide
-                - refuse
-                - renouvellement
-                - a_jour
+                - dossier_initie
+                - attente_dossier_depot_service_courrier
+                - dossier_attente_validation_directrice
+                - dossier_valide_directrice
+                - dossier_rejete_directrice
+                - dossier_imputer
+                - dossier_attente_pragramme_visite
+                - visite_programmer
+                - visite_programmer_conforme
+                - visite_programmer_non_conforme_attente_paiement
             transitions:
-                acceptation:
-                    from: attente
-                    to: accepte
-                    guard: "is_granted('ROLE_ADMIN')"
-                rejet:
-                    from: attente
-                    to: refuse
-                    guard: "is_granted('ROLE_ADMIN')"
-                validation:
-                    from: accepte
-                    to: valide
-                    guard: "is_granted('ROLE_VALIDATEUR')"
-                renouvellement:
-                    from: valide
-                    to: renouvellement
-                    guard: "is_granted('ROLE_ETABLISSEMENT')"
-                mis_a_jour:
-                    from: renouvellement
-                    to: a_jour
-                    guard: "is_granted('ROLE_ADMIN') or is_granted('ROLE_VALIDATEUR')"
+                depot_service_courrier:
+                    from: dossier_initie
+                    to: attente_dossier_depot_service_courrier
+                
+                soumission_validation:
+                    from: attente_dossier_depot_service_courrier
+                    to: dossier_attente_validation_directrice
+                
+                validation_directrice:
+                    from: dossier_attente_validation_directrice
+                    to: dossier_valide_directrice
+                
+                rejet_directrice:
+                    from: dossier_attente_validation_directrice
+                    to: dossier_rejete_directrice
+                
+                imputation_dossier:
+                    from: dossier_valide_directrice
+                    to: dossier_imputer
+                
+                attente_programmation_visite:
+                    from: dossier_imputer
+                    to: dossier_attente_pragramme_visite
+                
+                programmation_visite:
+                    from: dossier_attente_pragramme_visite
+                    to: visite_programmer
+                
+                validation_visite_conforme:
+                    from: visite_programmer
+                    to: visite_programmer_conforme
+
+                validation_visite_conforme_paiement:
+                    from: visite_programmer
+                    to: visite_programmer_non_conforme_attente_paiement
+
+                validation_visite_conforme_paiement_soumision:
+                    from: visite_programmer_non_conforme_attente_paiement
+                    to: attente_dossier_depot_service_courrier

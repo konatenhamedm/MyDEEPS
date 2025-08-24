@@ -18,6 +18,7 @@ use App\Repository\CommuneRepository;
 use App\Repository\DistrictRepository;
 use App\Repository\GenreRepository;
 use App\Repository\LieuDiplomeRepository;
+use App\Repository\NiveauInterventionRepository;
 use App\Repository\PaysRepository;
 use App\Repository\ProfessionRepository;
 use App\Repository\RegionRepository;
@@ -67,6 +68,7 @@ class PaiementService
         private SituationProfessionnelleRepository $situationProfessionnelleRepository,
         private TempEtablissementRepository $tempEtablissementRepository,
         private TypePersonneRepository $typePersonneRepository,
+        private NiveauInterventionRepository $niveauInterventionRepository,
         private VilleRepository $villeRepository,
         private SendMailService $sendMailService,
         private PaysRepository $paysRepository,
@@ -449,7 +451,7 @@ class PaiementService
 
         // Informations générales
         if ($dataTemp->getTypePersonne())
-            $etablissement->setTypePersonne($this->typePersonneRepository->find($dataTemp->getTypePersonne()));
+            $etablissement->setTypePersonne($this->typePersonneRepository->findOneByCode($dataTemp->getTypePersonne()));
 
         if ($dataTemp->getDocumentTemporaires()) {
             foreach ($dataTemp->getDocumentTemporaires() as $doc) {
@@ -462,6 +464,7 @@ class PaiementService
             }
         }
        
+        $etablissement->setNiveauIntervention($this->niveauInterventionRepository->find($dataTemp->getNiveauIntervention()));
         $etablissement->setDenomination($dataTemp->getDenomination());
         $etablissement->setNom($dataTemp->getNom());
         $etablissement->setPrenoms($dataTemp->getPrenoms());
