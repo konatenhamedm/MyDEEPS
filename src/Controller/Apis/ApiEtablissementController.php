@@ -194,11 +194,11 @@ class ApiEtablissementController extends ApiInterface
 
 
 
-        $transaction = $transactionRepository->findOneBy(['reference' =>  $request->get('reference'), 'user' => null]);
+      /*   $transaction = $transactionRepository->findOneBy(['reference' =>  $request->get('reference'), 'user' => null]);
 
         if (!$transaction) {
             return $this->response("Transaction introuvable");
-        } else {
+        } else { */
 
 
             $user = new User();
@@ -310,7 +310,7 @@ class ApiEtablissementController extends ApiInterface
                     );
                 }
             }
-        }
+        //}
 
         return $this->responseData($etablissement, 'group_pro', ['Content-Type' => 'application/json']);
     }
