@@ -26,6 +26,7 @@ class NiveauIntervention
     private ?string $code = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(["group1"])]
     private ?string $montant = null;
 
     /**
