@@ -43,7 +43,7 @@ class ApiNiveauInterventionController extends ApiInterface
 
             $niveauInterventions = $niveauInterventionRepository->findAll();
 
-          
+
 
             $response =  $this->responseData($niveauInterventions, 'group1', ['Content-Type' => 'application/json']);
         } catch (\Exception $exception) {
@@ -109,6 +109,7 @@ class ApiNiveauInterventionController extends ApiInterface
                     new OA\Property(property: "libelle", type: "string"),
                     new OA\Property(property: "code", type: "string"),
                     new OA\Property(property: "montant", type: "string"),
+                    new OA\Property(property: "montantRenouvellement", type: "string"),
                     new OA\Property(property: "userUpdate", type: "string"),
 
                 ],
@@ -128,6 +129,7 @@ class ApiNiveauInterventionController extends ApiInterface
         $niveauIntervention = new NiveauIntervention();
         $niveauIntervention->setLibelle($data['libelle']);
         $niveauIntervention->setMontant($data['montant']);
+        $niveauIntervention->setMontantRenouvellement($data['montantRenouvellement']);
         $niveauIntervention->setCode($data['code']);
         $niveauIntervention->setCreatedBy($this->userRepository->find($data['userUpdate']));
         $niveauIntervention->setUpdatedBy($this->userRepository->find($data['userUpdate']));
@@ -154,6 +156,7 @@ class ApiNiveauInterventionController extends ApiInterface
                     new OA\Property(property: "libelle", type: "string"),
                     new OA\Property(property: "code", type: "string"),
                     new OA\Property(property: "montant", type: "string"),
+                    new OA\Property(property: "montantRenouvellement", type: "string"),
                     new OA\Property(property: "userUpdate", type: "string"),
 
                 ],
@@ -175,6 +178,7 @@ class ApiNiveauInterventionController extends ApiInterface
                 $niveauIntervention->setLibelle($data->libelle);
                 $niveauIntervention->setCode($data->code);
                 $niveauIntervention->setMontant($data->montant);
+                $niveauIntervention->setMontantRenouvellement($data->montantRenouvellement);
                 $niveauIntervention->setUpdatedBy($this->userRepository->find($data->userUpdate));
                 $niveauIntervention->setUpdatedAt(new \DateTime());
                 $errorResponse = $this->errorResponse($niveauIntervention);

@@ -679,6 +679,7 @@ class ApiPaiementController extends ApiInterface
         $professionnel->setProfessionnel($request->get('professionnel'));
         $professionnel->setPrenoms($request->get('prenoms'));
         $professionnel->setLieuExercicePro($request->get('lieuExercicePro'));
+        $professionnel->setSpecialiteAutre($request->get('specialiteAutre'));
 
         // etatpe 3
         $professionnel->setStatusPro($request->get('statusPro'));

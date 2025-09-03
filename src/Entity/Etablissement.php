@@ -24,61 +24,61 @@ class Etablissement extends Entite
      * @var Collection<int, Document>
      */
     #[ORM\OneToMany(targetEntity: Document::class, mappedBy: 'etablissement')]
-        #[Group(["group_pro"])]
+    #[Group(["group_pro"])]
     private Collection $documents;
 
     #[ORM\Column(length: 255, nullable: true)]
-        #[Group(["group_pro"])]
+    #[Group(["group_pro"])]
     private ?string $nom = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-        #[Group(["group_pro"])]
+    #[Group(["group_pro"])]
     private ?string $prenoms = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-        #[Group(["group_pro"])]
+    #[Group(["group_pro"])]
     private ?string $telephone = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-        #[Group(["group_pro"])]
+    #[Group(["group_pro"])]
     private ?string $email = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-        #[Group(["group_pro"])]
+    #[Group(["group_pro"])]
     private ?string $bp = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-        #[Group(["group_pro"])]
+    #[Group(["group_pro"])]
     private ?string $typeSociete = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-        #[Group(["group_pro"])]
+    #[Group(["group_pro"])]
     private ?string $denomination = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-        #[Group(["group_pro"])]
+    #[Group(["group_pro"])]
     private ?string $adresse = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-        #[Group(["group_pro"])]
+    #[Group(["group_pro"])]
     private ?string $nomRepresentant = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
-        #[Group(["group_pro"])]
+    #[Group(["group_pro"])]
     private ?\DateTimeInterface $dateVisite = null;
 
-  
-      #[ORM\ManyToOne(cascade: ["persist"], fetch: "EAGER")]
+
+    #[ORM\ManyToOne(cascade: ["persist"], fetch: "EAGER")]
     #[ORM\JoinColumn(nullable: true)]
     #[Group(["fichier", "group_pro"])]
     private ?Fichier $rapportExamen = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
-        #[Group(["group_pro"])]
+    #[Group(["group_pro"])]
     private ?\DateTimeInterface $dateExamenRapport = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-        #[Group(["group_pro"])]
+    #[Group(["group_pro"])]
     private ?string $emailAutre = null;
 
     #[ORM\ManyToOne(inversedBy: 'etablissements')]
@@ -87,13 +87,16 @@ class Etablissement extends Entite
     #[ORM\ManyToOne(inversedBy: 'etablissements')]
     private ?User $imputation = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $code = null;
+
     public function __construct()
     {
         parent::__construct();
         $this->documents = new ArrayCollection();
     }
 
-    
+
     public function getTypePersonne(): ?TypePersonne
     {
         return $this->typePersonne;
@@ -316,5 +319,15 @@ class Etablissement extends Entite
         return $this;
     }
 
+    public function getCode(): ?string
+    {
+        return $this->code;
+    }
 
+    public function setCode(?string $code): static
+    {
+        $this->code = $code;
+
+        return $this;
+    }
 }

@@ -233,6 +233,9 @@ class TempProfessionnel
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $lieuObtentionDiplome = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $specialiteAutre = null;
+
 
     public function getReference(): ?string
     {
@@ -1048,6 +1051,18 @@ class TempProfessionnel
     public function setLieuObtentionDiplome(?string $lieuObtentionDiplome): static
     {
         $this->lieuObtentionDiplome = $lieuObtentionDiplome;
+
+        return $this;
+    }
+
+    public function getSpecialiteAutre(): ?string
+    {
+        return $this->specialiteAutre;
+    }
+
+    public function setSpecialiteAutre(?string $specialiteAutre): static
+    {
+        $this->specialiteAutre = $specialiteAutre;
 
         return $this;
     }

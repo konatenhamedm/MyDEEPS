@@ -35,6 +35,10 @@ class NiveauIntervention
     #[ORM\OneToMany(targetEntity: Etablissement::class, mappedBy: 'niveauIntervention')]
     private Collection $etablissements;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(["group1"])]
+    private ?string $montantRenouvellement = null;
+
     public function __construct()
     {
         $this->etablissements = new ArrayCollection();
@@ -107,6 +111,18 @@ class NiveauIntervention
                 $etablissement->setNiveauIntervention(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getMontantRenouvellement(): ?string
+    {
+        return $this->montantRenouvellement;
+    }
+
+    public function setMontantRenouvellement(?string $montantRenouvellement): static
+    {
+        $this->montantRenouvellement = $montantRenouvellement;
 
         return $this;
     }

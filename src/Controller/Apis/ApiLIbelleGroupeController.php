@@ -59,7 +59,7 @@ class ApiLibelleGroupeController extends ApiInterface
 
       #[Route('/all/{id}', methods: ['GET'])]
     /**
-     * Retourne la liste des typeDocuments.
+     * Retourne la liste des typeDocuments pour l'accord de principe.
      * 
      */
     #[OA\Response(
@@ -77,6 +77,36 @@ class ApiLibelleGroupeController extends ApiInterface
         try {
 
             $libelleGroupe = $libelleGroupeRepository->findAllByLibelleGroupe($typePersonne->getId());
+            
+            $response =  $this->responseData($libelleGroupe, 'group_libelle', ['Content-Type' => 'application/json']);
+        } catch (\Exception $exception) {
+            $this->setMessage("");
+            $response = $this->response('[]');
+        }
+
+        // On envoie la réponse
+        return $response;
+    }
+      #[Route('/all/oep/{id}', methods: ['GET'])]
+    /**
+     * Retourne la liste des typeDocuments pour l'exploitation.
+     * 
+     */
+    #[OA\Response(
+        response: 200,
+        description: 'Returns the rewards of an user',
+        content: new OA\JsonContent(
+            type: 'array',
+            items: new OA\Items(ref: new Model(type: LibelleGroupe::class, groups: ['full']))
+        )
+    )]
+    #[OA\Tag(name: 'libelleGroupe')]
+    // #[Security(name: 'Bearer')]
+    public function indexByLibelleOep(LibelleGroupeRepository $libelleGroupeRepository,TypePersonne $typePersonne): Response
+    {
+        try {
+
+            $libelleGroupe = $libelleGroupeRepository->findAllByLibelleGroupeOep($typePersonne->getId());
             
             $response =  $this->responseData($libelleGroupe, 'group_libelle', ['Content-Type' => 'application/json']);
         } catch (\Exception $exception) {
@@ -140,6 +170,7 @@ class ApiLibelleGroupeController extends ApiInterface
             content: new OA\JsonContent(
                 properties: [
                     new OA\Property(property: "libelle", type: "string"),
+                    new OA\Property(property: "type", type: "string"),
                     new OA\Property(property: "userUpdate", type: "string"),
 
                 ],
@@ -158,6 +189,7 @@ class ApiLibelleGroupeController extends ApiInterface
         $data = json_decode($request->getContent(), true);
         $libelleGroupe = new LibelleGroupe();
         $libelleGroupe->setLibelle($data['libelle']);
+        $libelleGroupe->setType($data['type']);
         $libelleGroupe->setCreatedBy($this->userRepository->find($data['userUpdate']));
         $libelleGroupe->setUpdatedBy($this->userRepository->find($data['userUpdate']));
         $errorResponse = $this->errorResponse($libelleGroupe);
@@ -181,6 +213,7 @@ class ApiLibelleGroupeController extends ApiInterface
             content: new OA\JsonContent(
                 properties: [
                     new OA\Property(property: "libelle", type: "string"),
+                    new OA\Property(property: "type", type: "string"),
                     new OA\Property(property: "userUpdate", type: "string"),
 
                 ],
@@ -200,6 +233,7 @@ class ApiLibelleGroupeController extends ApiInterface
             if ($libelleGroupe != null) {
 
                 $libelleGroupe->setLibelle($data->libelle);
+                $libelleGroupe->setType($data->type);
                 $libelleGroupe->setUpdatedBy($this->userRepository->find($data->userUpdate));
                 $libelleGroupe->setUpdatedAt(new \DateTime());
 

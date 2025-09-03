@@ -702,6 +702,7 @@ class ApiProfessionnelController extends ApiInterface
                     'dateDiplome' => $this->formatDate($personne->getDateDiplome()),
                     'diplome' => $personne->getDiplome() ?? "",
                     'poleSanitaire' => $personne->getPoleSanitaire() ?? "",
+                    'specialiteAutre' => $personne->getSpecialiteAutre() ?? "",
                     'organisationNom' => $personne->getOrganisationNom() ?? "",
                     'poleSanitairePro' => $personne->getPoleSanitairePro() ?? "",
                     'lieuExercicePro' => $personne->getLieuExercicePro() ?? "",
@@ -841,6 +842,7 @@ class ApiProfessionnelController extends ApiInterface
                         /*  new OA\Property(property: "organisationNumero", type: "string"),
                         new OA\Property(property: "organisationAnnee", type: "string"), */
                         new OA\Property(property: "reference", type: "string"),
+                        new OA\Property(property: "specialiteAutre", type: "string"),
 
 
                     ],
@@ -915,6 +917,7 @@ class ApiProfessionnelController extends ApiInterface
                 $professionnel->setStatus("attente");
             }
             $professionnel->setPoleSanitaire($request->get('poleSanitaire'));
+            $professionnel->setSpecialiteAutre($request->get('specialiteAutre'));
             $professionnel->setRegion($regionRepository->find($request->get('region')));
             $professionnel->setDistrict($districtRepository->find($request->get('district')));
             $professionnel->setVille($villeRepository->find($request->get('ville')));
@@ -1123,6 +1126,7 @@ class ApiProfessionnelController extends ApiInterface
                         new OA\Property(property: "organisationNom", type: "string"),
 
                         new OA\Property(property: "reference", type: "string"),
+                        new OA\Property(property: "specialiteAutre", type: "string"),
 
 
 
@@ -1242,6 +1246,9 @@ class ApiProfessionnelController extends ApiInterface
                 }
                 if (!empty($request->get('diplome'))) {
                     $professionnel->setDiplome($request->get('diplome'));
+                }
+                if (!empty($request->get('diplospecialiteAutreme'))) {
+                    $professionnel->setSpecialiteAutre($request->get('specialiteAutre'));
                 }
                 if (!empty($request->get('situationPro'))) {
                     $professionnel->setSituationPro($situationProfessionnelleRepository->find($request->get('situationPro')));

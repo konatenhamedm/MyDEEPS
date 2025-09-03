@@ -333,6 +333,7 @@ class PaiementService
         $professionnel->setNom($dataTemp->getNom());
         $professionnel->setPrenoms($dataTemp->getPrenoms());
         $professionnel->setProfessionnel($dataTemp->getProfessionnel());
+        $professionnel->setSpecialiteAutre($dataTemp->getSpecialiteAutre());
         $professionnel->setEmail($dataTemp->getEmailAutre());
         $professionnel->setLieuExercicePro($dataTemp->getLieuExercicePro());
 
@@ -447,6 +448,7 @@ class PaiementService
 
 
         $etablissement = new Etablissement();
+        $etablissement->setStatus('acp_attente_dossier_depot_service_courrier');
 
 
         // Informations générales

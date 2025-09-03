@@ -197,6 +197,9 @@ class Professionnel extends Entite
     #[Group(["fichier", "group_pro"])]
     private ?LieuDiplome $lieuObtentionDiplome = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $specialiteAutre = null;
+
   
 
     public function __construct()
@@ -710,6 +713,18 @@ class Professionnel extends Entite
     public function setLieuObtentionDiplome(?LieuDiplome $lieuObtentionDiplome): static
     {
         $this->lieuObtentionDiplome = $lieuObtentionDiplome;
+
+        return $this;
+    }
+
+    public function getSpecialiteAutre(): ?string
+    {
+        return $this->specialiteAutre;
+    }
+
+    public function setSpecialiteAutre(?string $specialiteAutre): static
+    {
+        $this->specialiteAutre = $specialiteAutre;
 
         return $this;
     }

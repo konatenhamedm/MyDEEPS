@@ -40,7 +40,23 @@ class LibelleGroupeRepository extends ServiceEntityRepository
             ->innerJoin('l.typeDocuments', 't')
             ->innerJoin('t.typePersonne', 'p')
             ->andWhere('p.id = :val')
+            ->andWhere('l.type = :type')
             ->setParameter('val', $id)
+            ->setParameter('type', 'ACP')
+            ->orderBy('l.id', 'ASC')
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+    public function findAllByLibelleGroupeOep($id): array
+    {
+        return $this->createQueryBuilder('l')
+            ->innerJoin('l.typeDocuments', 't')
+            ->innerJoin('t.typePersonne', 'p')
+            ->andWhere('l.type = :type')
+            ->andWhere('p.id = :val')
+            ->setParameter('val', $id)
+            ->setParameter('type', 'OEP')
             ->orderBy('l.id', 'ASC')
             ->getQuery()
             ->getResult()

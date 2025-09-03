@@ -13,6 +13,7 @@ use App\Entity\TypePersonne;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Repository\EtablissementRepository;
 use App\Entity\User;
+use App\Entity\ValidationWorkflow;
 use App\Repository\CiviliteRepository;
 use App\Repository\DocumentRepository;
 use App\Repository\GenreRepository;
@@ -26,6 +27,7 @@ use App\Repository\UserRepository;
 use App\Repository\TypePersonneRepository;
 use App\Service\SendMailService;
 use App\Service\Utils;
+use DateTime;
 use DateTimeImmutable;
 
 
@@ -70,7 +72,7 @@ class ApiEtablissementController extends ApiInterface
     public function active(
         Request $request,
         Etablissement $etablissement,
-        EtablissementRepository $etablissementlRepository,
+        EtablissementRepository $etablissementRepository,
         UserRepository $userRepository,
         ValidatorInterface $validator,
         Registry $workflowRegistry,
@@ -80,8 +82,6 @@ class ApiEtablissementController extends ApiInterface
 
 
             $data = json_decode($request->getContent(), true);
-
-            $user = $userRepository->find($etablissement->getId());
 
             $dto = new ActiveProfessionnelRequest();
             $dto->status = $data['status'] ?? null;
@@ -108,16 +108,47 @@ class ApiEtablissementController extends ApiInterface
             $validationCompteWorkflow->apply($etablissement, $dto->status);
 
             $etablissement->setReason($dto->raison);
-            $etablissementlRepository->add($etablissement, true);
+            $etablissementRepository->add($etablissement, true);
+
+            $validationWorkflow = new ValidationWorkflow();
+            $validationWorkflow->setEtape($dto->status);
+            $validationWorkflow->setRaison($dto->raison);
+            $validationWorkflow->setPersonne($etablissement);
+            $validationWorkflow->setCreatedAtValue(new DateTime());
+            $validationWorkflow->setUpdatedAt(new DateTime());
+            $validationWorkflow->setCreatedBy($userRepository->find($data['userUpdate']));
+            $validationWorkflow->setUpdatedBy($userRepository->find($data['userUpdate']));
+
+            $this->em->persist($validationWorkflow);
+            $this->em->flush();
+
+        
+
+            $message = "";
+
+            if ($dto->status == "acceptation") {
+                $message = "Votre dossier vient de passer l'etape d'acceptation et est en séance d'analyse";
+            } elseif ($dto->status == "rejet") {
+                $message = "Votre dossier vient de passer d'être réjeté pour la raison suivante: " . $dto->raison;
+            } elseif ($dto->status == "refuse") {
+
+                $message = "Votre dossier vient de passer d'être réfusé pour la raison suivante: " . $dto->raison;
+            } elseif ($dto->status == "validation") {
+                $message = "Votre dossier a été jugé conforme et est désormais en attente de validation finale. Vous recevrez une notification dès que le processus sera complété.";
+            }
+            $user = $userRepository->find($data['userUpdate']);
 
             $info_user = [
-                'user' => $userRepository->find($data['userUpdate'])->getUsername(),
+                'user' => $user->getUserIdentifier(),
+                'nom' => $etablissement->getNom() . ' ' . $etablissement->getPrenoms(),
+                'profession' => "",
                 'etape' => $dto->status,
+                'message' => $message,
+                'annee' => $etablissement->getCreatedAt()->format('Y'),
             ];
 
             $context = compact('info_user');
 
-            // TO DO
             $sendMailService->send(
                 'depps@myonmci.ci',
                 $data['email'],
@@ -127,8 +158,13 @@ class ApiEtablissementController extends ApiInterface
             );
 
 
-            return $this->responseData($etablissement, 'group_pro', ['Content-Type' => 'application/json']);
+
+            $sendMailService->sendNotification("votre compte vient d'être valider pour l'etape " . $dto->status, $userRepository->findOneBy(['personne' => $professionnel->getId()]), $userRepository->find($data['userUpdate']));
+
+            return $this->responseData($info_user, 'group_pro', ['Content-Type' => 'application/json']);
         } catch (\Exception $exception) {
+
+            dd($exception->getMessage());
             return $this->json(["message" => "Une erreur est survenue"], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
@@ -235,9 +271,10 @@ class ApiEtablissementController extends ApiInterface
                     $etablissement->setAdresse($request->get('adresse'));
                     $etablissement->setNomRepresentant($request->get('nomRepresentant'));
                 }
-
+                
                 $etablissement->setTypePersonne($typePersonne);
-                $etablissement->setStatus("attente");
+                $etablissement->setTypePersonne($typePersonne);
+                $etablissement->setStatus("acp_attente_dossier_depot_service_courrier");
 
 
                 $documents = $request->get('documents');
@@ -569,4 +606,8 @@ class ApiEtablissementController extends ApiInterface
         }
         return $response;
     }
+
+
+
+    
 }

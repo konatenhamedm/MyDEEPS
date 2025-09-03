@@ -44,6 +44,10 @@ class LibelleGroupe
     #[ORM\OneToMany(targetEntity: DocumentTemporaire::class, mappedBy: 'libelleGroupe')]
     private Collection $documentTemporaires;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group_libelle"])]
+    private ?string $type = null;
+
     public function __construct()
     {
         $this->typeDocuments = new ArrayCollection();
@@ -154,6 +158,18 @@ class LibelleGroupe
                 $documentTemporaire->setLibelleGroupe(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getType(): ?string
+    {
+        return $this->type;
+    }
+
+    public function setType(?string $type): static
+    {
+        $this->type = $type;
 
         return $this;
     }
