@@ -29,7 +29,7 @@ class LibelleGroupe
      * @var Collection<int, TypeDocument>
      */
     #[ORM\OneToMany(targetEntity: TypeDocument::class, mappedBy: 'libelleGroupe')]
-    #[Group(["group1","group_libelle"])]
+    #[Group(["group_libelle"])]
     private Collection $typeDocuments;
 
     /**
