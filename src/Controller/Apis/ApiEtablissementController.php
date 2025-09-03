@@ -305,11 +305,11 @@ class ApiEtablissementController extends ApiInterface
                         }
                     }
 
-/* 
-                    $doc->setCreatedBy($user);
-                    $doc->setUpdatedBy($user); */
-                    $doc->setCreatedAtValue(new \DateTime());
-                    $doc->setUpdatedAt(new \DateTime());
+
+                    $newDocument->setCreatedBy($user);
+                    $newDocument->setUpdatedBy($user);
+                    $newDocument->setCreatedAtValue(new \DateTime());
+                    $newDocument->setUpdatedAt(new \DateTime());
 
 
                     $etablissement->addDocument($doc);
