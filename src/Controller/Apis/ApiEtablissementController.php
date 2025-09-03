@@ -312,7 +312,7 @@ class ApiEtablissementController extends ApiInterface
                     $newDocument->setUpdatedAt(new \DateTime());
 
 
-                    $etablissement->addDocument($doc);
+                    $etablissement->addDocument($newDocument);
                 }
 
 
