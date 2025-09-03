@@ -459,7 +459,7 @@ class PaiementService
             foreach ($dataTemp->getDocumentTemporaires() as $doc) {
                 $document = new Document();
                 $libelle = $doc->getLibelle() ?: 'Document sans libellé';
-                $document->setPath($libelle);
+                $document->setPath($doc->getPath());
                 $document->setLibelle($libelle);
                 $document->setLibelleGroupe($doc->getLibelleGroupe());
                 $etablissement->addDocument($document);
