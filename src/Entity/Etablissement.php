@@ -23,7 +23,7 @@ class Etablissement extends Entite
     /**
      * @var Collection<int, Document>
      */
-    #[ORM\OneToMany(targetEntity: Document::class, mappedBy: 'etablissement')]
+    #[ORM\OneToMany(targetEntity: Document::class, mappedBy: 'etablissement', cascade: ['persist', 'remove'])]
     #[Group(["group_pro"])]
     private Collection $documents;
 
