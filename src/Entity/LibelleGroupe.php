@@ -29,7 +29,7 @@ class LibelleGroupe
      * @var Collection<int, TypeDocument>
      */
     #[ORM\OneToMany(targetEntity: TypeDocument::class, mappedBy: 'libelleGroupe')]
-    #[Group(["group_libelle"])]
+    #[Group(["group1","group_libelle"])]
     private Collection $typeDocuments;
 
     /**
@@ -45,7 +45,7 @@ class LibelleGroupe
     private Collection $documentTemporaires;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Group(["group_libelle"])]
+    #[Group(["group1","group_libelle"])]
     private ?string $type = null;
 
     public function __construct()

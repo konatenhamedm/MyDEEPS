@@ -8,6 +8,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Entity\LibelleGroupe;
 use App\Entity\TypePersonne;
 use App\Repository\LibelleGroupeRepository;
+use App\Repository\TypePersonneRepository;
 use App\Repository\UserRepository;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -57,7 +58,7 @@ class ApiLibelleGroupeController extends ApiInterface
         return $response;
     }
 
-      #[Route('/all/{id}', methods: ['GET'])]
+      #[Route('/all/{code}', methods: ['GET'])]
     /**
      * Retourne la liste des typeDocuments pour l'accord de principe.
      * 
@@ -72,11 +73,11 @@ class ApiLibelleGroupeController extends ApiInterface
     )]
     #[OA\Tag(name: 'libelleGroupe')]
     // #[Security(name: 'Bearer')]
-    public function indexByLibelle(LibelleGroupeRepository $libelleGroupeRepository,TypePersonne $typePersonne): Response
+    public function indexByLibelle(LibelleGroupeRepository $libelleGroupeRepository,TypePersonneRepository $typePersonneRepository,$code): Response
     {
         try {
 
-            $libelleGroupe = $libelleGroupeRepository->findAllByLibelleGroupe($typePersonne->getId());
+            $libelleGroupe = $libelleGroupeRepository->findAllByLibelleGroupe($typePersonneRepository->findOneByCode($code)->getId());
             
             $response =  $this->responseData($libelleGroupe, 'group_libelle', ['Content-Type' => 'application/json']);
         } catch (\Exception $exception) {
