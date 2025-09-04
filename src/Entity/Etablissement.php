@@ -88,6 +88,7 @@ class Etablissement extends Entite
     private ?User $imputation = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Group(["group_pro"])]
     private ?string $code = null;
 
     public function __construct()
