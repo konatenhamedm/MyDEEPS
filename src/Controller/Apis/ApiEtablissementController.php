@@ -403,7 +403,11 @@ class ApiEtablissementController extends ApiInterface
                         'createdAt' => $personne->getCreatedAt(),
                         'dateVisite' => $personne->getDateVisite(),
                         'typePersonne' => $personne->getTypePersonne() ?  $this->formatEntity($personne->getTypePersonne()) : null,
-
+                        'imputationData' => $personne->getImputation() ? [
+                            'id' =>  $personne->getImputation()->getId(),
+                            'username' =>  $personne->getImputation()->getUsername(),
+                            'email' =>  $personne->getImputation()->getEmail(),
+                        ] : null,
                         'denomination' => $personne->getDenomination(),
                         'nomRepresentant' => $personne->getNomRepresentant(),
                         'adresse' => $personne->getAdresse(),
