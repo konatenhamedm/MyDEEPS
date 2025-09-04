@@ -397,7 +397,7 @@ class ApiEtablissementController extends ApiInterface
                     'typeUser' => $etablissement->getTypeUser(),
                     'personne' => [
                         'id' => $personne->getId(),
-                        'code' => $personne->getCode(),
+                        'code' => $personne->getCode(),//
                         'type' => "etablissement",
                         'status' => $personne->getStatus(),
                         'createdAt' => $personne->getCreatedAt(),
