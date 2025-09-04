@@ -416,7 +416,7 @@ class ApiEtablissementController extends ApiInterface
             }, $etablissements);
 
 
-            $response = $this->responseData($etablissements, 'group_pro', ['Content-Type' => 'application/json']);
+            $response = $this->responseData($formattedProfessionnels, 'group_pro', ['Content-Type' => 'application/json']);
         } catch (\Exception $exception) {
             $this->setMessage("");
             $this->response('[]');
