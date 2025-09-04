@@ -32,7 +32,7 @@ class Document
     private ?string $libelle = null;
 
     #[ORM\ManyToOne(inversedBy: 'documents')]
-    #[Groups(["group_pro"])]
+/*     #[Groups(["group_pro"])] */
     private ?LibelleGroupe $libelleGroupe = null;
 
 
