@@ -17,12 +17,12 @@ trait TraitEntity
     #[Group(["group_user"])]
     private ?\DateTimeImmutable $updatedAt = null;
 
-    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\ManyToOne(targetEntity: User::class, cascade: ['persist'])]
     #[ORM\JoinColumn(nullable: true)]
     #[Group(["group_pro","group_pro_validate"])]
     private ?User $createdBy = null;
 
-    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\ManyToOne(targetEntity: User::class, cascade: ['persist'])]
     #[ORM\JoinColumn(nullable: true)]
     private ?User $updatedBy = null;
 
