@@ -159,7 +159,7 @@ class ApiEtablissementController extends ApiInterface
 
 
 
-            $sendMailService->sendNotification("votre compte vient d'être valider pour l'etape " . $dto->status, $userRepository->findOneBy(['personne' => $professionnel->getId()]), $userRepository->find($data['userUpdate']));
+            $sendMailService->sendNotification("votre compte vient d'être valider pour l'etape " . $dto->status, $userRepository->findOneBy(['personne' => $etablissement->getId()]), $userRepository->find($data['userUpdate']));
 
             return $this->responseData($info_user, 'group_pro', ['Content-Type' => 'application/json']);
         } catch (\Exception $exception) {
@@ -325,9 +325,10 @@ class ApiEtablissementController extends ApiInterface
                     return $errorResponse; // Retourne la réponse d'erreur si des erreurs sont présentes
                 } else {
 
+                    $etablissementRepository->add($etablissement, true);
+                    $user->setPersonne($etablissement);
                     $this->userRepository->add($user, true);
 
-                    $etablissementRepository->add($etablissement, true);
 
 
                     $info_user = [
@@ -349,7 +350,13 @@ class ApiEtablissementController extends ApiInterface
             }
         //}
 
-        return $this->responseData($etablissement, 'group_pro', ['Content-Type' => 'application/json']);
+        return $this->responseData([
+            'id' => $etablissement->getId(),
+            'code' => $etablissement->getCode(),
+            'status' => $etablissement->getStatus(),
+    
+
+        ], 'group_pro', ['Content-Type' => 'application/json']);
     }
 
 
@@ -374,7 +381,40 @@ class ApiEtablissementController extends ApiInterface
         try {
             /* $etablissements = $etablissementRepository->findAll(); */
 
-            $etablissements = $userRepository->findBy(['typeUser' => 'ETABLISSEMENT']);
+            $etablissements = $userRepository->findBy(['typeUser' => 'ETABLISSEMENT'], ['id' => 'DESC']);
+
+
+            $formattedProfessionnels = array_map(function ($etablissement) use ($etablissementRepository) {
+                $personne = $etablissement->getPersonne();
+              
+
+                return [
+                    'username' => $etablissement->getUsername(),
+                    'id' => $etablissement->getId(),
+                    'email' => $etablissement->getEmail(),
+                    'typeUser' => $etablissement->getTypeUser(),
+                    'personne' => [
+                        'id' => $personne->getId(),
+                        'code' => $personne->getCode(),
+                        'type' => "etablissement",
+                        'status' => $personne->getStatus(),
+                        'createdAt' => $personne->getCreatedAt(),
+                        'dateVisite' => $personne->getDateVisite(),
+                        'typePersonne' => $personne->getTypePersonne(),
+                        'denomination' => $personne->getDenomination(),
+                        'nomRepresentant' => $personne->getNomRepresentant(),
+                        'adresse' => $personne->getAdresse(),
+                        'telephone' => $personne->getTelephone(),
+                        'emailAutre' => $personne->getEmailAutre(),
+                        'bp' => $personne->getBp(),
+                        'nom' => $personne->getNom(),
+                        'prenoms' => $personne->getPrenoms(),
+                        'documents' => $personne->getDocuments(),
+                    ]
+
+                ];
+            }, $etablissements);
+
 
             $response = $this->responseData($etablissements, 'group_pro', ['Content-Type' => 'application/json']);
         } catch (\Exception $exception) {
@@ -567,7 +607,13 @@ class ApiEtablissementController extends ApiInterface
 
         $etablissementRepository->add($etablissement, true);
 
-        return $this->responseData($etablissement, 'group_pro', ['Content-Type' => 'application/json']);
+         return $this->responseData([
+            'id' => $etablissement->getId(),
+            'code' => $etablissement->getCode(),
+            'status' => $etablissement->getStatus(),
+    
+
+        ], 'group_pro', ['Content-Type' => 'application/json']);
     }
 
     #[Route('/delete/{id}',  methods: ['DELETE'])]
