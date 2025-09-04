@@ -122,7 +122,7 @@ class ApiEtablissementController extends ApiInterface
             $this->em->persist($validationWorkflow);
             $this->em->flush();
 
-        
+
 
             $message = "";
 
@@ -230,131 +230,133 @@ class ApiEtablissementController extends ApiInterface
 
 
 
-      /*   $transaction = $transactionRepository->findOneBy(['reference' =>  $request->get('reference'), 'user' => null]);
+        /*   $transaction = $transactionRepository->findOneBy(['reference' =>  $request->get('reference'), 'user' => null]);
 
         if (!$transaction) {
             return $this->response("Transaction introuvable");
         } else { */
 
 
-            $user = new User();
-            $user->setUsername($request->get('nomEntreprise') . " " . $this->numero());
-            $user->setEmail($request->get('email'));
-            $plainPassword = $request->get('password');
+        $user = new User();
+        $user->setUsername($request->get('nomEntreprise') . " " . $this->numero());
+        $user->setEmail($request->get('email'));
+        $plainPassword = $request->get('password');
 
 
-            $user->setPassword($hasher->hashPassword($user, $plainPassword));
-            // $user->setPassword("test");
-            $user->setRoles(['ROLE_MEMBRE']);
-            $user->setTypeUser(User::TYPE['ETABLISSEMENT']);
-            $user->setPayement(User::PAYEMENT['init_payement']);
+        $user->setPassword($hasher->hashPassword($user, $plainPassword));
+        // $user->setPassword("test");
+        $user->setRoles(['ROLE_MEMBRE']);
+        $user->setTypeUser(User::TYPE['ETABLISSEMENT']);
+        $user->setPayement(User::PAYEMENT['init_payement']);
 
 
-            $errorResponse1 = $request->get('password') !== $request->get('confirmPassword') ?  $this->errorResponse($user, "Les mots de passe ne sont pas identiques") :  $this->errorResponse($user);
-            if ($errorResponse1 !== null) {
-                return $errorResponse1; // Retourne la réponse d'erreur si des erreurs sont présentes
+        $errorResponse1 = $request->get('password') !== $request->get('confirmPassword') ?  $this->errorResponse($user, "Les mots de passe ne sont pas identiques") :  $this->errorResponse($user);
+        if ($errorResponse1 !== null) {
+            return $errorResponse1; // Retourne la réponse d'erreur si des erreurs sont présentes
+        } else {
+
+            $typePersonne = $typePersonneRepository->findOneByCode($request->get('typePersonne'));
+            $etablissement = new Etablissement();
+            $etablissement->setNiveauIntervention($niveauInterventionRepository->find($request->get('niveauIntervention')));
+
+            if ($typePersonne->getCode() === 'PHYSIQUE') {
+                $etablissement->setNom($request->get('nom'));
+                $etablissement->setPrenoms($request->get('prenoms'));
+                $etablissement->setBp($request->get('bp'));
+                $etablissement->setTelephone($request->get('telephone'));
+                $etablissement->setEmailAutre($request->get('emailAutre'));
             } else {
+                $etablissement->setDenomination($request->get('denomination'));
+                $etablissement->setTypeSociete($request->get('typeSociete'));
+                $etablissement->setAdresse($request->get('adresse'));
+                $etablissement->setNomRepresentant($request->get('nomRepresentant'));
+            }
 
-                $typePersonne = $typePersonneRepository->findOneByCode($request->get('typePersonne'));
-                $etablissement = new Etablissement();
-                $etablissement->setNiveauIntervention($niveauInterventionRepository->find($request->get('niveauIntervention')));
-
-                if ($typePersonne->getCode() === 'PHYSIQUE') {
-                    $etablissement->setNom($request->get('nom'));
-                    $etablissement->setPrenoms($request->get('prenoms'));
-                    $etablissement->setBp($request->get('bp'));
-                    $etablissement->setTelephone($request->get('telephone'));
-                    $etablissement->setEmailAutre($request->get('emailAutre'));
-                } else {
-                    $etablissement->setDenomination($request->get('denomination'));
-                    $etablissement->setTypeSociete($request->get('typeSociete'));
-                    $etablissement->setAdresse($request->get('adresse'));
-                    $etablissement->setNomRepresentant($request->get('nomRepresentant'));
-                }
-                
-                $etablissement->setTypePersonne($typePersonne);
-                $etablissement->setTypePersonne($typePersonne);
-                $etablissement->setStatus("acp_attente_dossier_depot_service_courrier");
+            $etablissement->setTypePersonne($typePersonne);
+            $etablissement->setTypePersonne($typePersonne);
+            $etablissement->setStatus("acp_attente_dossier_depot_service_courrier");
 
 
-                $documents = $request->get('documents');
+            $documents = $request->get('documents');
 
 
-                $uploadedFiles = $request->files->get('documents');
+            $uploadedFiles = $request->files->get('documents');
 
-                foreach ($documents as $index => $doc) {
+            foreach ($documents as $index => $doc) {
 
-                    $newDocument = new Document();
-                    $newDocument->setLibelle($doc['libelle'])
-                        ->setLibelleGroupe($libelleGroupeRepository->find($doc['libelleGroupe']));
+                $newDocument = new Document();
+                $newDocument->setLibelle($doc['libelle'])
+                    ->setLibelleGroupe($libelleGroupeRepository->find($doc['libelleGroupe']));
 
-                    if (isset($uploadedFiles[$index])) {
-                        $fileKeys = [
-                            'path',
-                        ];
+                if (isset($uploadedFiles[$index])) {
+                    $fileKeys = [
+                        'path',
+                    ];
 
-                        foreach ($fileKeys as $key) {
-                            if (!empty($uploadedFiles[$index][$key])) {
-                                $uploadedFile = $uploadedFiles[$index][$key];
-                                $fichier = $utils->sauvegardeFichier($filePath, $filePrefix, $uploadedFile, self::UPLOAD_PATH);
-                                if ($fichier) {
-                                    $setter = 'set' . ucfirst($key);
-                                    $doc->$setter($fichier);
-                                }
+                    foreach ($fileKeys as $key) {
+                        if (!empty($uploadedFiles[$index][$key])) {
+                            $uploadedFile = $uploadedFiles[$index][$key];
+                            $fichier = $utils->sauvegardeFichier($filePath, $filePrefix, $uploadedFile, self::UPLOAD_PATH);
+                            if ($fichier) {
+                                $setter = 'set' . ucfirst($key);
+                                $newDocument->$setter($fichier);
                             }
                         }
                     }
-
-
-                    $newDocument->setCreatedBy($user);
-                    $newDocument->setUpdatedBy($user);
-                    $newDocument->setCreatedAtValue(new \DateTime());
-                    $newDocument->setUpdatedAt(new \DateTime());
-
-
-                    $etablissement->addDocument($newDocument);
                 }
 
 
-
-                $etablissement->setCreatedBy($user);
-                $etablissement->setUpdatedBy($user);
-
-                $errorResponse = $this->errorResponse($etablissement);
-                if ($errorResponse !== null) {
-                    return $errorResponse; // Retourne la réponse d'erreur si des erreurs sont présentes
-                } else {
-
-                    $etablissementRepository->add($etablissement, true);
-                    $user->setPersonne($etablissement);
-                    $this->userRepository->add($user, true);
+                $newDocument->setCreatedBy($user);
+                $newDocument->setUpdatedBy($user);
+                $newDocument->setCreatedAtValue(new \DateTime());
+                $newDocument->setUpdatedAt(new \DateTime());
 
 
-
-                    $info_user = [
-                        'login' => $request->get('email'),
-                        'password' => $request->get('confirmPassword')
-                    ];
-
-                    $context = compact('info_user');
-
-                    // TO DO
-                    $sendMailService->send(
-                        'depps@myonmci.ci',
-                        $request->get('email'),
-                        'Informations',
-                        'content_mail',
-                        $context
-                    );
-                }
+                $etablissement->addDocument($newDocument);
             }
+
+
+
+            $etablissement->setCreatedBy($user);
+            $etablissement->setUpdatedBy($user);
+            $etablissement->setCreatedAtValue(new \DateTime());
+            $etablissement->setUpdatedAt(new \DateTime());
+
+            $errorResponse = $this->errorResponse($etablissement);
+            if ($errorResponse !== null) {
+                return $errorResponse; // Retourne la réponse d'erreur si des erreurs sont présentes
+            } else {
+
+                $etablissementRepository->add($etablissement, true);
+                $user->setPersonne($etablissement);
+                $this->userRepository->add($user, true);
+
+
+
+                $info_user = [
+                    'login' => $request->get('email'),
+                    'password' => $request->get('confirmPassword')
+                ];
+
+                $context = compact('info_user');
+
+                // TO DO
+                $sendMailService->send(
+                    'depps@myonmci.ci',
+                    $request->get('email'),
+                    'Informations',
+                    'content_mail',
+                    $context
+                );
+            }
+        }
         //}
 
         return $this->responseData([
             'id' => $etablissement->getId(),
             'code' => $etablissement->getCode(),
             'status' => $etablissement->getStatus(),
-    
+
 
         ], 'group_pro', ['Content-Type' => 'application/json']);
     }
@@ -386,7 +388,7 @@ class ApiEtablissementController extends ApiInterface
 
             $formattedProfessionnels = array_map(function ($etablissement) use ($etablissementRepository) {
                 $personne = $etablissement->getPersonne();
-              
+
 
                 return [
                     'username' => $etablissement->getUsername(),
@@ -400,7 +402,8 @@ class ApiEtablissementController extends ApiInterface
                         'status' => $personne->getStatus(),
                         'createdAt' => $personne->getCreatedAt(),
                         'dateVisite' => $personne->getDateVisite(),
-                        'typePersonne' => $personne->getTypePersonne(),
+                        'typePersonne' => $personne->getTypePersonne() ?  $this->formatEntity($personne->getTypePersonne()) : null,
+
                         'denomination' => $personne->getDenomination(),
                         'nomRepresentant' => $personne->getNomRepresentant(),
                         'adresse' => $personne->getAdresse(),
@@ -409,7 +412,15 @@ class ApiEtablissementController extends ApiInterface
                         'bp' => $personne->getBp(),
                         'nom' => $personne->getNom(),
                         'prenoms' => $personne->getPrenoms(),
-                        'documents' => $personne->getDocuments(),
+                        'documents' => array_map(function ($doc) {
+                            return [
+                                'id' => $doc->getId(),
+                                'libelle' => $doc->getLibelle(),
+                                'libelleGroupe' => $this->formatEntity($doc->getLibelleGroupe()),
+                                'path' => $doc->getPath() ?  $this->formatEntityFichier($doc->getPath()) : null,
+                            ];
+                        }, $personne->getDocuments()->toArray())
+
                     ]
 
                 ];
@@ -427,6 +438,20 @@ class ApiEtablissementController extends ApiInterface
     }
 
 
+    private function formatEntity($entity): ?array
+    {
+        return $entity ? [
+            'libelle' => $entity->getLibelle(),
+            'id' => $entity->getId(),
+        ] : null;
+    }
+    private function formatEntityFichier($entity): ?array
+    {
+        return $entity ? [
+            'alt' => $entity->getAlt(),
+            'path' => $entity->getPath(),
+        ] : null;
+    }
 
 
 
@@ -607,11 +632,11 @@ class ApiEtablissementController extends ApiInterface
 
         $etablissementRepository->add($etablissement, true);
 
-         return $this->responseData([
+        return $this->responseData([
             'id' => $etablissement->getId(),
             'code' => $etablissement->getCode(),
             'status' => $etablissement->getStatus(),
-    
+
 
         ], 'group_pro', ['Content-Type' => 'application/json']);
     }
@@ -652,8 +677,4 @@ class ApiEtablissementController extends ApiInterface
         }
         return $response;
     }
-
-
-
-    
 }
