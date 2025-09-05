@@ -480,7 +480,7 @@ class ApiEtablissementController extends ApiInterface
     )]
     #[OA\Tag(name: 'etablissement')]
     //#[Security(name: 'Bearer')]
-    public function getOne(EtablissementRepository $etablissementRepository,UserRepository $userRepository, ProfessionRepository $professionRepository, int $id, Etablissement $etablissement)
+    public function getOne(EtablissementRepository $etablissementRepository,UserRepository $userRepository,int $id)
     {
      try {
             $etablissement = $userRepository->findOneBy(['personne' => $id]);
