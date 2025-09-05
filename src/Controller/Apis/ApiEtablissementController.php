@@ -21,6 +21,7 @@ use App\Repository\LibelleGroupeRepository;
 use App\Repository\NiveauInterventionRepository;
 use App\Repository\OrganisationRepository;
 use App\Repository\PaysRepository;
+use App\Repository\ProfessionRepository;
 use App\Repository\SpecialiteRepository;
 use App\Repository\TransactionRepository;
 use App\Repository\UserRepository;
@@ -479,24 +480,63 @@ class ApiEtablissementController extends ApiInterface
     )]
     #[OA\Tag(name: 'etablissement')]
     //#[Security(name: 'Bearer')]
-    public function getOne(EtablissementRepository $etablissementRepository, Etablissement $etablissement)
+    public function getOne(EtablissementRepository $etablissementRepository,UserRepository $userRepository, ProfessionRepository $professionRepository, int $id, Etablissement $etablissement)
     {
-        try {
+     try {
+            $etablissement = $userRepository->findOneBy(['personne' => $id]);
 
-
-            if ($etablissement) {
-                $response = $this->responseData($etablissement, 'group_pro', ['Content-Type' => 'application/json']);
-            } else {
+            if (!$etablissement) {
                 $this->setMessage('Cette ressource est inexistante');
                 $this->setStatusCode(300);
+                return $this->response('[]');
             }
+
+            $personne = $etablissement->getPersonne();
+         
+            $responseData =[
+                    'username' => $etablissement->getUsername(),
+                    'id' => $etablissement->getId(),
+                    'email' => $etablissement->getEmail(),
+                    'typeUser' => $etablissement->getTypeUser(),
+                    'personne' => [
+                        'id' => $personne->getId(),
+                        'code' => $personne->getCode(),//
+                        'type' => "etablissement",
+                        'status' => $personne->getStatus(),
+                        'createdAt' => $personne->getCreatedAt(),
+                        'dateVisite' => $personne->getDateVisite(),
+                        'typePersonne' => $personne->getTypePersonne() ?  $this->formatEntity($personne->getTypePersonne()) : null,
+                        'imputationData' => $personne->getImputation() ? [
+                            'id' =>  $personne->getImputation()->getId(),
+                            'username' =>  $personne->getImputation()->getUsername(),
+                            'email' =>  $personne->getImputation()->getEmail(),
+                        ] : null,
+                        'denomination' => $personne->getDenomination(),
+                        'nomRepresentant' => $personne->getNomRepresentant(),
+                        'adresse' => $personne->getAdresse(),
+                        'telephone' => $personne->getTelephone(),
+                        'emailAutre' => $personne->getEmailAutre(),
+                        'bp' => $personne->getBp(),
+                        'nom' => $personne->getNom(),
+                        'prenoms' => $personne->getPrenoms(),
+                        'documents' => array_map(function ($doc) {
+                            return [
+                                'id' => $doc->getId(),
+                                'libelle' => $doc->getLibelle(),
+                                'libelleGroupe' => $this->formatEntity($doc->getLibelleGroupe()),
+                                'path' => $doc->getPath() ?  $this->formatEntityFichier($doc->getPath()) : null,
+                            ];
+                        }, $personne->getDocuments()->toArray())
+
+                    ]
+
+                ];
+
+            return $this->responseData($responseData, 'group_pro', ['Content-Type' => 'application/json']);
         } catch (\Exception $exception) {
             $this->setMessage($exception->getMessage());
-            $response = $this->response('[]');
+            return $this->response('[]');
         }
-
-
-        return $response;
     }
 
 
