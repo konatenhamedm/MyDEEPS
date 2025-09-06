@@ -106,7 +106,8 @@ class ApiEtablissementController extends ApiInterface
                 if ($uploaded) {
                     $fichier = $utils->sauvegardeFichier($filePath, $filePrefix, $uploaded, self::UPLOAD_PATH);
                     if ($fichier) {
-                        $etablissement->setRapportExamen($fichier);
+                       // $etablissement->setRapportExamen($fichier);
+                        $dto->rapportExamen = $fichier;
                     }
                 }
             }
@@ -154,7 +155,7 @@ class ApiEtablissementController extends ApiInterface
 
                 // Enregistrer le rapport d'examen dans l'établissement
                 $etablissement->setRapportExamen($dto->rapportExamen);
-                $etablissement->setReason($dto->raison);
+                
             }
 
             $etablissementRepository->add($etablissement, true);
