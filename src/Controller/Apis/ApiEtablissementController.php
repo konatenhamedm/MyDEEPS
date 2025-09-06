@@ -5,6 +5,7 @@ namespace App\Controller\Apis;
 
 use App\Controller\Apis\Config\ApiInterface;
 use App\DTO\ActiveProfessionnelRequest;
+use App\DTO\ActiveProfessionnelRequestEtablissement;
 use App\Entity\Document;
 use App\Entity\Etablissement;
 use App\Entity\LibelleGroupe;
@@ -58,7 +59,9 @@ class ApiEtablissementController extends ApiInterface
             content: new OA\JsonContent(
                 properties: [
                     new OA\Property(property: "status", type: "string"),
-                    new OA\Property(property: "raison", type: "string", nullable: true)
+                    new OA\Property(property: "raison", type: "string", nullable: true),
+                    new OA\Property(property: "dateSisite", type: "string", nullable: true),
+                    new OA\Property(property: "rapportExamen", type: "string", nullable: true),
                 ],
                 type: "object"
             )
@@ -77,16 +80,36 @@ class ApiEtablissementController extends ApiInterface
         UserRepository $userRepository,
         ValidatorInterface $validator,
         Registry $workflowRegistry,
-        SendMailService $sendMailService  // Injecter le Registry
+        SendMailService $sendMailService,
+        Utils $utils
+
     ): Response {
         try {
+
+            $names = 'document_' . '01';
+            $filePrefix  = str_slug($names);
+            $filePath = $this->getUploadDir(self::UPLOAD_PATH, true);
 
 
             $data = json_decode($request->getContent(), true);
 
-            $dto = new ActiveProfessionnelRequest();
-            $dto->status = $data['status'] ?? null;
-            $dto->raison = $data['raison'] ?? null;
+            $dto = new ActiveProfessionnelRequestEtablissement();
+            $dto->status = $request->get('status') ?? null;
+            $dto->raison = $request->get('raison') ?? null;
+            $dto->dateVisite = $request->get('dateVisite') ?? null; 
+            $dto->rapportExamen = $request->get('rapportExamen') ?? null;
+
+            // Gérer l'upload du fichier pour la transition visite_effectuee
+            if ($dto->status === "visite_effectuee") {
+                $uploaded = $request->files->get('rapportExamen');
+
+                if ($uploaded) {
+                    $fichier = $utils->sauvegardeFichier($filePath, $filePrefix, $uploaded, self::UPLOAD_PATH);
+                    if ($fichier) {
+                        $etablissement->setRapportExamen($fichier);
+                    }
+                }
+            }
 
             $errors = $validator->validate($dto);
             if (count($errors) > 0) {
@@ -108,7 +131,32 @@ class ApiEtablissementController extends ApiInterface
 
             $validationCompteWorkflow->apply($etablissement, $dto->status);
 
-            $etablissement->setReason($dto->raison);
+            // Traitement spécifique pour programmation_visite
+            if ($dto->status === "programmation_visite") {
+                if (!$dto->dateVisite) {
+                    return new JsonResponse([
+                        'error' => "La date de visite est obligatoire pour cette transition"
+                    ], Response::HTTP_BAD_REQUEST);
+                }
+
+                // Enregistrer la date de visite dans l'établissement
+                $etablissement->setDateVisite(new \DateTime($dto->dateVisite));
+                $etablissement->setReason($dto->raison);
+            }
+
+            // Traitement spécifique pour visite_effectuee
+            if ($dto->status === "visite_effectuee") {
+                if (!$dto->rapportExamen) {
+                    return new JsonResponse([
+                        'error' => "Le rapport d'examen est obligatoire pour cette transition"
+                    ], Response::HTTP_BAD_REQUEST);
+                }
+
+                // Enregistrer le rapport d'examen dans l'établissement
+                $etablissement->setRapportExamen($dto->rapportExamen);
+                $etablissement->setReason($dto->raison);
+            }
+
             $etablissementRepository->add($etablissement, true);
 
             $validationWorkflow = new ValidationWorkflow();
@@ -117,26 +165,29 @@ class ApiEtablissementController extends ApiInterface
             $validationWorkflow->setPersonne($etablissement);
             $validationWorkflow->setCreatedAtValue(new DateTime());
             $validationWorkflow->setUpdatedAt(new DateTime());
-            $validationWorkflow->setCreatedBy($userRepository->find($data['userUpdate']));
-            $validationWorkflow->setUpdatedBy($userRepository->find($data['userUpdate']));
+            $validationWorkflow->setCreatedBy($userRepository->find($request->get('userUpdate')));
+            $validationWorkflow->setUpdatedBy($userRepository->find($request->get('userUpdate')));
 
             $this->em->persist($validationWorkflow);
             $this->em->flush();
 
-
-
             $message = "";
 
             if ($dto->status == "acceptation") {
-                $message = "Votre dossier vient de passer l'etape d'acceptation et est en séance d'analyse";
+                $message = "Votre dossier vient de passer l'étape d'acceptation et est en séance d'analyse";
             } elseif ($dto->status == "rejet") {
-                $message = "Votre dossier vient de passer d'être réjeté pour la raison suivante: " . $dto->raison;
+                $message = "Votre dossier vient d'être rejeté pour la raison suivante: " . $dto->raison;
             } elseif ($dto->status == "refuse") {
-
-                $message = "Votre dossier vient de passer d'être réfusé pour la raison suivante: " . $dto->raison;
+                $message = "Votre dossier vient d'être refusé pour la raison suivante: " . $dto->raison;
             } elseif ($dto->status == "validation") {
-                $message = "Votre dossier a été jugé conforme et est désormais en attente de validation finale. Vous recevrez une notification dès que le processus sera complété.";
+                $message = "Votre dossier a été jugé conforme et est désormais en attente de validation finale.";
+            } elseif ($dto->status == "programmation_visite") {
+                $message = "Une visite a été programmée dans votre établissement pour le " .
+                    (new \DateTime($dto->dateVisite))->format('d/m/Y');
+            } elseif ($dto->status == "visite_effectuee") {
+                $message = "La visite dans votre établissement a été effectuée. Le rapport d'examen est disponible.";
             }
+
             $user = $userRepository->find($data['userUpdate']);
 
             $info_user = [
@@ -146,6 +197,8 @@ class ApiEtablissementController extends ApiInterface
                 'etape' => $dto->status,
                 'message' => $message,
                 'annee' => $etablissement->getCreatedAt()->format('Y'),
+                // Ajouter la date de visite dans le contexte pour l'email
+                'date_visite' => $dto->status === "programmation_visite" ? $dto->dateVisite : null
             ];
 
             $context = compact('info_user');
@@ -153,20 +206,23 @@ class ApiEtablissementController extends ApiInterface
             $sendMailService->send(
                 'depps@myonmci.ci',
                 $data['email'],
-                'Validaton du dossier',
+                'Validation du dossier - Étape: ' . $dto->status,
                 'content_validation',
                 $context
             );
 
-
-
-            $sendMailService->sendNotification("votre compte vient d'être valider pour l'etape " . $dto->status, $userRepository->findOneBy(['personne' => $etablissement->getId()]), $userRepository->find($data['userUpdate']));
+            $sendMailService->sendNotification(
+                "Votre compte vient d'être validé pour l'étape " . $dto->status,
+                $userRepository->findOneBy(['personne' => $etablissement->getId()]),
+                $userRepository->find($data['userUpdate'])
+            );
 
             return $this->responseData($info_user, 'group_pro', ['Content-Type' => 'application/json']);
         } catch (\Exception $exception) {
-
-            dd($exception->getMessage());
-            return $this->json(["message" => "Une erreur est survenue"], Response::HTTP_INTERNAL_SERVER_ERROR);
+            return $this->json([
+                "message" => "Une erreur est survenue",
+                "error" => $exception->getMessage()
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -398,10 +454,13 @@ class ApiEtablissementController extends ApiInterface
                     'typeUser' => $etablissement->getTypeUser(),
                     'personne' => [
                         'id' => $personne->getId(),
-                        'code' => $personne->getCode(),//
+                        'code' => $personne->getCode(), //
                         'type' => "etablissement",
                         'status' => $personne->getStatus(),
                         'createdAt' => $personne->getCreatedAt(),
+                        'dateExamenRapport' => $personne->getDateExamenRapport(),
+                        'rapportExamen' => $personne->getRapportExamen() ? $this->formatFile($personne->getRapportExamen()) : null,
+                        'niveauIntervention' => $personne->getNiveauIntervention() ? $this->formatEntity($personne->getNiveauIntervention()) : null,
                         'dateVisite' => $personne->getDateVisite(),
                         'typePersonne' => $personne->getTypePersonne() ?  $this->formatEntity($personne->getTypePersonne()) : null,
                         'imputationData' => $personne->getImputation() ? [
@@ -410,6 +469,7 @@ class ApiEtablissementController extends ApiInterface
                             'email' =>  $personne->getImputation()->getEmail(),
                         ] : null,
                         'denomination' => $personne->getDenomination(),
+                        'typeSociete' => $personne->getTypeSociete(),
                         'nomRepresentant' => $personne->getNomRepresentant(),
                         'adresse' => $personne->getAdresse(),
                         'telephone' => $personne->getTelephone(),
@@ -422,7 +482,7 @@ class ApiEtablissementController extends ApiInterface
                                 'id' => $doc->getId(),
                                 'libelle' => $doc->getLibelle(),
                                 'libelleGroupe' => $this->formatEntity($doc->getLibelleGroupe()),
-                                'path' => $doc->getPath() ?  $this->formatEntityFichier($doc->getPath()) : null,
+                                'path' => $doc->getPath() ?  $this->formatFile($doc->getPath()) : null,
                             ];
                         }, $personne->getDocuments()->toArray())
 
@@ -448,6 +508,14 @@ class ApiEtablissementController extends ApiInterface
         return $entity ? [
             'libelle' => $entity->getLibelle(),
             'id' => $entity->getId(),
+        ] : null;
+    }
+    private function formatFile($file): ?array
+    {
+        return $file ? [
+            'path' => $file->getPath(),
+            'alt' => $file->getAlt(),
+            'url' => $file->getPath() . "/" . $file->getAlt(),
         ] : null;
     }
     private function formatEntityFichier($entity): ?array
@@ -480,9 +548,9 @@ class ApiEtablissementController extends ApiInterface
     )]
     #[OA\Tag(name: 'etablissement')]
     //#[Security(name: 'Bearer')]
-    public function getOne(EtablissementRepository $etablissementRepository,UserRepository $userRepository,int $id)
+    public function getOne(EtablissementRepository $etablissementRepository, UserRepository $userRepository, int $id)
     {
-     try {
+        try {
             $etablissement = $userRepository->findOneBy(['personne' => $id]);
 
             if (!$etablissement) {
@@ -492,45 +560,49 @@ class ApiEtablissementController extends ApiInterface
             }
 
             $personne = $etablissement->getPersonne();
-         
-            $responseData =[
-                    'username' => $etablissement->getUsername(),
-                    'id' => $etablissement->getId(),
-                    'email' => $etablissement->getEmail(),
-                    'typeUser' => $etablissement->getTypeUser(),
-                    'personne' => [
-                        'id' => $personne->getId(),
-                        'code' => $personne->getCode(),//
-                        'type' => "etablissement",
-                        'status' => $personne->getStatus(),
-                        'createdAt' => $personne->getCreatedAt(),
-                        'dateVisite' => $personne->getDateVisite(),
-                        'typePersonne' => $personne->getTypePersonne() ?  $this->formatEntity($personne->getTypePersonne()) : null,
-                        'imputationData' => $personne->getImputation() ? [
-                            'id' =>  $personne->getImputation()->getId(),
-                            'username' =>  $personne->getImputation()->getUsername(),
-                            'email' =>  $personne->getImputation()->getEmail(),
-                        ] : null,
-                        'denomination' => $personne->getDenomination(),
-                        'nomRepresentant' => $personne->getNomRepresentant(),
-                        'adresse' => $personne->getAdresse(),
-                        'telephone' => $personne->getTelephone(),
-                        'emailAutre' => $personne->getEmailAutre(),
-                        'bp' => $personne->getBp(),
-                        'nom' => $personne->getNom(),
-                        'prenoms' => $personne->getPrenoms(),
-                        'documents' => array_map(function ($doc) {
-                            return [
-                                'id' => $doc->getId(),
-                                'libelle' => $doc->getLibelle(),
-                                'libelleGroupe' => $this->formatEntity($doc->getLibelleGroupe()),
-                                'path' => $doc->getPath() ?  $this->formatEntityFichier($doc->getPath()) : null,
-                            ];
-                        }, $personne->getDocuments()->toArray())
 
-                    ]
+            $responseData = [
+                'username' => $etablissement->getUsername(),
+                'id' => $etablissement->getId(),
+                'email' => $etablissement->getEmail(),
+                'typeUser' => $etablissement->getTypeUser(),
+                'personne' => [
+                    'id' => $personne->getId(),
+                    'code' => $personne->getCode(), //
+                    'type' => "etablissement",
+                    'status' => $personne->getStatus(),
+                    'createdAt' => $personne->getCreatedAt(),
+                    'dateExamenRapport' => $personne->getDateExamenRapport(),
+                    'rapportExamen' => $personne->getRapportExamen() ? $this->formatFile($personne->getRapportExamen()) : null,
+                    'niveauIntervention' => $personne->getNiveauIntervention() ? $this->formatEntity($personne->getNiveauIntervention()) : null,
+                    'dateVisite' => $personne->getDateVisite(),
+                    'typePersonne' => $personne->getTypePersonne() ?  $this->formatEntity($personne->getTypePersonne()) : null,
+                    'imputationData' => $personne->getImputation() ? [
+                        'id' =>  $personne->getImputation()->getId(),
+                        'username' =>  $personne->getImputation()->getUsername(),
+                        'email' =>  $personne->getImputation()->getEmail(),
+                    ] : null,
+                    'denomination' => $personne->getDenomination(),
+                    'typeSociete' => $personne->getTypeSociete(),
+                    'nomRepresentant' => $personne->getNomRepresentant(),
+                    'adresse' => $personne->getAdresse(),
+                    'telephone' => $personne->getTelephone(),
+                    'emailAutre' => $personne->getEmailAutre(),
+                    'bp' => $personne->getBp(),
+                    'nom' => $personne->getNom(),
+                    'prenoms' => $personne->getPrenoms(),
+                    'documents' => array_map(function ($doc) {
+                        return [
+                            'id' => $doc->getId(),
+                            'libelle' => $doc->getLibelle(),
+                            'libelleGroupe' => $this->formatEntity($doc->getLibelleGroupe()),
+                            'path' => $doc->getPath() ?  $this->formatFile($doc->getPath()) : null,
+                        ];
+                    }, $personne->getDocuments()->toArray())
 
-                ];
+                ]
+
+            ];
 
             return $this->responseData($responseData, 'group_pro', ['Content-Type' => 'application/json']);
         } catch (\Exception $exception) {
@@ -557,7 +629,54 @@ class ApiEtablissementController extends ApiInterface
     }
 
 
-    #[Route('/update/{id}', methods: ['PUT'])]
+    #[Route('/update/{id}', methods: ['PUT', 'POST'])]
+    #[OA\Post(
+        summary: "Création d'un établissement",
+        description: "Permet de créer un nouvel établissement avec toutes les informations requises et documents joints.",
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\MediaType(
+                mediaType: "multipart/form-data",
+                schema: new OA\Schema(
+                    properties: [
+                        new OA\Property(property: "password", type: "string"),
+                        new OA\Property(property: "confirmPassword", type: "string"),
+                        new OA\Property(property: "email", type: "string"),
+                        new OA\Property(property: "nom", type: "string"),
+                        new OA\Property(property: "prenoms", type: "string"),
+                        new OA\Property(property: "telephone", type: "string"),
+                        new OA\Property(property: "typePersonne", type: "string"),
+                        new OA\Property(property: "bp", type: "string"),
+                        new OA\Property(property: "emailAutre", type: "string"),
+                        new OA\Property(property: "adresse", type: "string"),
+                        new OA\Property(property: "nomRepresentant", type: "string"),
+                        new OA\Property(property: "denomination", type: "string"),
+                        /*  new OA\Property(property: "reference", type: "string"), */
+                        new OA\Property(property: "niveauIntervention", type: "string"),
+                        new OA\Property(
+                            property: "documents",
+                            type: "array",
+                            items: new OA\Items(
+                                type: "object",
+                                properties: [
+                                    new OA\Property(property: "libelle", type: "string"),
+                                    new OA\Property(property: "path", type: "string", format: "binary"),
+                                    new OA\Property(property: "libelleGroupe", type: "string")
+                                ]
+                            ),
+                        ),
+                    ],
+                    type: "object"
+                )
+            )
+        ),
+        responses: [
+            new OA\Response(response: 201, description: "Établissement créé avec succès"),
+            new OA\Response(response: 400, description: "Données invalides"),
+            new OA\Response(response: 404, description: "Transaction introuvable")
+        ]
+    )]
+    #[OA\Tag(name: 'etablissement')]
     public function update(
         int $id,
         Utils $utils,
