@@ -62,7 +62,8 @@ class ApiEtablissementController extends ApiInterface
                     properties: [
                         new OA\Property(property: "status", type: "string"),
                         new OA\Property(property: "raison", type: "string", nullable: true),
-                        new OA\Property(property: "dateSisite", type: "string", format: "date", nullable: true),
+                        new OA\Property(property: "dateVisite", type: "string", format: "date", nullable: true),
+                        new OA\Property(property: "userUpdate", type: "string"),
                         new OA\Property(
                             property: "rapportExamen",
                             type: "string",
