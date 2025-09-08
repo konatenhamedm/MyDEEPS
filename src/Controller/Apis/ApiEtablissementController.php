@@ -197,7 +197,7 @@ class ApiEtablissementController extends ApiInterface
                 $message = "La visite dans votre établissement a été effectuée. Le rapport d'examen est disponible.";
             }
 
-            $user = $userRepository->find($data['userUpdate']);
+            $user = $userRepository->find($request->get('userUpdate'));
 
             $info_user = [
                 'user' => $user->getUserIdentifier(),
@@ -223,7 +223,7 @@ class ApiEtablissementController extends ApiInterface
             $sendMailService->sendNotification(
                 "Votre compte vient d'être validé pour l'étape " . $dto->status,
                 $userRepository->findOneBy(['personne' => $etablissement->getId()]),
-                $userRepository->find($data['userUpdate'])
+                $userRepository->find($request->get('userUpdate'))
             );
 
             return $this->responseData($info_user, 'group_pro', ['Content-Type' => 'application/json']);
