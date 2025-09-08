@@ -82,7 +82,7 @@ class ApiEtablissementController extends ApiInterface
 
                 $etablissement->setUpdatedBy($userRepository->find($data->userUpdate));
                 $etablissement->setUpdatedAt(new \DateTime());
-                $etablissement->setStatus("oep_demande_initie");
+                $etablissement->setStatus("oep_dossier_imputer");
                 $errorResponse = $this->errorResponse($etablissement);
 
                 if ($errorResponse !== null) {
