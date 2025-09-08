@@ -70,7 +70,7 @@ class ApiEtablissementController extends ApiInterface
             new OA\Response(response: 401, description: "Invalid credentials")
         ]
     )]
-    #[OA\Tag(name: 'professionnel')]
+    #[OA\Tag(name: 'etablissement')]
     /* #[Security(name: 'Bearer')] */
     public function updateImputation(Request $request,SendMailService $sendMailService, Etablissement $etablissement, EtablissementRepository $etablissementRepository, UserRepository $userRepository): Response
     {
