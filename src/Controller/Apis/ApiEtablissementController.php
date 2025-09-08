@@ -50,6 +50,98 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 class ApiEtablissementController extends ApiInterface
 {
 
+
+    #[Route('/update/imputation/{id}', methods: ['PUT', 'POST'])]
+    #[OA\Post(
+        summary: "Creation de pro",
+        description: "Permet de créer un pro.",
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: "imputation", type: "string"),
+                    new OA\Property(property: "userUpdate", type: "string"),
+
+                ],
+                type: "object"
+            )
+        ),
+        responses: [
+            new OA\Response(response: 401, description: "Invalid credentials")
+        ]
+    )]
+    #[OA\Tag(name: 'professionnel')]
+    /* #[Security(name: 'Bearer')] */
+    public function updateImputation(Request $request,SendMailService $sendMailService, Etablissement $etablissement, EtablissementRepository $etablissementRepository, UserRepository $userRepository): Response
+    {
+        try {
+            $data = json_decode($request->getContent());
+            if ($etablissement != null) {
+
+                $etablissement->setImputation($userRepository->find($data->imputation));
+
+                $etablissement->setUpdatedBy($userRepository->find($data->userUpdate));
+                $etablissement->setUpdatedAt(new \DateTime());
+                $errorResponse = $this->errorResponse($etablissement);
+
+                if ($errorResponse !== null) {
+                    return $errorResponse; // Retourne la réponse d'erreur si des erreurs sont présentes
+                } else {
+                    $etablissementRepository->add($etablissement, true);
+                }
+
+
+               /*   $info_user = [
+                'user' => $user->getUserIdentifier(),
+              
+                'profession' => "",
+                'etape' => $dto->status,
+                'message' => $message,
+                'annee' => $etablissement->getCreatedAt()->format('Y'),
+                // Ajouter la date de visite dans le contexte pour l'email
+                'date_visite' => $dto->status === "programmation_visite" ? $dto->dateVisite : null
+            ];
+
+
+                     $context = compact('info_user');
+
+            $sendMailService->send(
+                'depps@myonmci.ci',
+                $etablissement->getEmail(),
+                'Imputation',
+                'content_validation',
+                $context
+            );
+
+            $sendMailService->sendNotification(
+                "Votre dossier viens d'être imputé " ,
+                $userRepository->findOneBy(['personne' => $etablissement->getId()]),
+                $userRepository->find($data->userUpdate)
+            ); */
+
+
+                // On retourne la confirmation
+                $response = $this->responseData([
+                    'error' => $errorResponse,
+                    'id' => $etablissement->getId(),
+                    'code' => $etablissement->getCode(),
+                    'status' => $etablissement->getStatus(),
+                    'email' => $etablissement->getEmail(),
+                   
+
+                ], 'group_pro', ['Content-Type' => 'application/json']);
+            } else {
+                $this->setMessage("Cette ressource est inexsitante");
+                $this->setStatusCode(300);
+                $response = $this->response('[]');
+            }
+        } catch (\Exception $exception) {
+            $this->setMessage("");
+            $response = $this->response('[]');
+        }
+        return $response;
+    }
+
     #[Route('/active/{id}', methods: ['PUT', 'POST'])]
     #[OA\Post(
         summary: "Accepter ou refuser un etablissement",
