@@ -9,7 +9,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 class ActiveProfessionnelRequestEtablissement
 {
-/*     #[Assert\NotBlank(message: "Le champ status est requis.")]
+    #[Assert\NotBlank(message: "Le champ status est requis.")]
     #[Assert\Choice(
         choices: [
             "soumission_validation",
@@ -25,13 +25,15 @@ class ActiveProfessionnelRequestEtablissement
             "rejet_final"
         ],
         message: "Le statut doit être l'une des valeurs suivantes : acceptation, rejet, validation, renouvellement, mis_a_jour."
-    )] */
+    )]
     public ?string $status = null;
 
 
     public ?string $raison = null;
 
     public ?string $dateVisite = null;
+    public ?string $email = null;
+    public ?string $userUpdate = null;
 
-    public ?string $rapportExamen = null;
+    public ?Fichier $rapportExamen = null;
 }

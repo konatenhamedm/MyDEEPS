@@ -104,16 +104,18 @@ class ApiEtablissementController extends ApiInterface
             $data = json_decode($request->getContent(), true);
 
             $dto = new ActiveProfessionnelRequestEtablissement();
-            $dto->status = $request->get('status') ?? null;
-            $dto->raison = $request->get('raison') ?? null;
-            $dto->dateVisite = $request->get('dateVisite') ?? null;
-           // $dto->rapportExamen = $request->get('rapportExamen') ?? null;
-            dd($dto);
+
+            $dto->status = $request->request->get('status');
+            $dto->email = $request->request->get('email');
+            $dto->userUpdate = $request->request->get('userUpdate');
+            $dto->raison = $request->request->get('raison');
+            $dto->dateVisite = $request->request->get('dateVisite');
+          
+             $uploaded = $request->files->get('rapportExamen');
             // Gérer l'upload du fichier pour la transition visite_effectuee
             if ($dto->status === "visite_effectuee") {
-                $uploaded = $request->files->get('rapportExamen');
 
-                if ($uploaded) {
+                if ($uploaded ) {
                     $fichier = $utils->sauvegardeFichier($filePath, $filePrefix, $uploaded, self::UPLOAD_PATH);
                     if ($fichier) {
                         // $etablissement->setRapportExamen($fichier);
@@ -175,8 +177,8 @@ class ApiEtablissementController extends ApiInterface
             $validationWorkflow->setPersonne($etablissement);
             $validationWorkflow->setCreatedAtValue(new DateTime());
             $validationWorkflow->setUpdatedAt(new DateTime());
-            $validationWorkflow->setCreatedBy($userRepository->find($request->get('userUpdate')));
-            $validationWorkflow->setUpdatedBy($userRepository->find($request->get('userUpdate')));
+            $validationWorkflow->setCreatedBy($userRepository->find($dto->userUpdate));
+            $validationWorkflow->setUpdatedBy($userRepository->find($dto->userUpdate));
 
             $this->em->persist($validationWorkflow);
             $this->em->flush();
@@ -215,7 +217,7 @@ class ApiEtablissementController extends ApiInterface
 
             $sendMailService->send(
                 'depps@myonmci.ci',
-                $request->get('email'),
+                $request->request->get('email'),
                 'Validation du dossier - Étape: ' . $dto->status,
                 'content_validation',
                 $context
@@ -224,7 +226,7 @@ class ApiEtablissementController extends ApiInterface
             $sendMailService->sendNotification(
                 "Votre compte vient d'être validé pour l'étape " . $dto->status,
                 $userRepository->findOneBy(['personne' => $etablissement->getId()]),
-                $userRepository->find($request->get('userUpdate'))
+                $userRepository->find($dto->userUpdate)
             );
 
             return $this->responseData($info_user, 'group_pro', ['Content-Type' => 'application/json']);
