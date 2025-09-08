@@ -64,6 +64,7 @@ class ApiEtablissementController extends ApiInterface
                         new OA\Property(property: "raison", type: "string", nullable: true),
                         new OA\Property(property: "dateVisite", type: "string", format: "date", nullable: true),
                         new OA\Property(property: "userUpdate", type: "string"),
+                        new OA\Property(property: "email", type: "string"),
                         new OA\Property(
                             property: "rapportExamen",
                             type: "string",
@@ -214,7 +215,7 @@ class ApiEtablissementController extends ApiInterface
 
             $sendMailService->send(
                 'depps@myonmci.ci',
-                $data['email'],
+                $request->get('email'),
                 'Validation du dossier - Étape: ' . $dto->status,
                 'content_validation',
                 $context
