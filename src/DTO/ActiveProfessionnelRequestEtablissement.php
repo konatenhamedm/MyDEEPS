@@ -33,5 +33,5 @@ class ActiveProfessionnelRequestEtablissement
 
     public ?string $dateVisite = null;
 
-    public ?Fichier $rapportExamen = null;
+    public ?string $rapportExamen = null;
 }
