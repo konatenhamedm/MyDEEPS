@@ -106,7 +106,7 @@ class ApiEtablissementController extends ApiInterface
             $dto->status = $request->get('status') ?? null;
             $dto->raison = $request->get('raison') ?? null;
             $dto->dateVisite = $request->get('dateVisite') ?? null;
-            $dto->rapportExamen = $request->get('rapportExamen') ?? null;
+           // $dto->rapportExamen = $request->get('rapportExamen') ?? null;
 
             // Gérer l'upload du fichier pour la transition visite_effectuee
             if ($dto->status === "visite_effectuee") {
