@@ -502,14 +502,11 @@ class ApiEtablissementController extends ApiInterface
             }, $etablissements);
 
 
-            $response = $this->responseData($formattedProfessionnels, 'group_pro', ['Content-Type' => 'application/json']);
+         return $this->responseData($formattedProfessionnels, 'group_pro', ['Content-Type' => 'application/json']);
         } catch (\Exception $exception) {
-            $this->setMessage("");
-            $this->response('[]');
+            $this->setMessage($exception->getMessage());
+            return $this->response('[]');
         }
-
-        // On envoie la réponse
-        return $response;
     }
 
 
