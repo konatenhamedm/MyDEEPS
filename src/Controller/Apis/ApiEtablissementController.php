@@ -56,14 +56,22 @@ class ApiEtablissementController extends ApiInterface
         description: "Permet d'accepter ou de refuser un etablissement.",
         requestBody: new OA\RequestBody(
             required: true,
-            content: new OA\JsonContent(
-                properties: [
-                    new OA\Property(property: "status", type: "string"),
-                    new OA\Property(property: "raison", type: "string", nullable: true),
-                    new OA\Property(property: "dateSisite", type: "string", nullable: true),
-                    new OA\Property(property: "rapportExamen", type: "string", nullable: true),
-                ],
-                type: "object"
+            content: new OA\MediaType(
+                mediaType: "multipart/form-data",
+                schema: new OA\Schema(
+                    properties: [
+                        new OA\Property(property: "status", type: "string"),
+                        new OA\Property(property: "raison", type: "string", nullable: true),
+                        new OA\Property(property: "dateSisite", type: "string", format: "date", nullable: true),
+                        new OA\Property(
+                            property: "rapportExamen",
+                            type: "string",
+                            format: "binary", // Important pour les fichiers
+                            nullable: true
+                        ),
+                    ],
+                    type: "object"
+                )
             )
         ),
         responses: [
@@ -96,7 +104,7 @@ class ApiEtablissementController extends ApiInterface
             $dto = new ActiveProfessionnelRequestEtablissement();
             $dto->status = $request->get('status') ?? null;
             $dto->raison = $request->get('raison') ?? null;
-            $dto->dateVisite = $request->get('dateVisite') ?? null; 
+            $dto->dateVisite = $request->get('dateVisite') ?? null;
             $dto->rapportExamen = $request->get('rapportExamen') ?? null;
 
             // Gérer l'upload du fichier pour la transition visite_effectuee
@@ -106,7 +114,7 @@ class ApiEtablissementController extends ApiInterface
                 if ($uploaded) {
                     $fichier = $utils->sauvegardeFichier($filePath, $filePrefix, $uploaded, self::UPLOAD_PATH);
                     if ($fichier) {
-                       // $etablissement->setRapportExamen($fichier);
+                        // $etablissement->setRapportExamen($fichier);
                         $dto->rapportExamen = $fichier;
                     }
                 }
@@ -155,7 +163,6 @@ class ApiEtablissementController extends ApiInterface
 
                 // Enregistrer le rapport d'examen dans l'établissement
                 $etablissement->setRapportExamen($dto->rapportExamen);
-                
             }
 
             $etablissementRepository->add($etablissement, true);
