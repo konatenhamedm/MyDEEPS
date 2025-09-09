@@ -58,8 +58,8 @@ framework:
                 - oep_dossier_imputer_non_conforme
                 - oep_dossier_visite_programme
                 - oep_visite_effectue_attente_validation_directrice
-                - oep_dossier_valide
-                - oep_dossier_rejette
+                - oep_dossier_conforme
+                - oep_dossier_non_conforme
             transitions:
                 soumission_validation:
                     from: acp_attente_dossier_depot_service_courrier
