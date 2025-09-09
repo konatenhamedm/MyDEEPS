@@ -55,7 +55,7 @@ class TempEtablissement
     /**
      * @var Collection<int, DocumentTemporaire>
      */
-    #[ORM\OneToMany(targetEntity: DocumentTemporaire::class, mappedBy: 'tempEtablissement')]
+    #[ORM\OneToMany(targetEntity: DocumentTemporaire::class, mappedBy: 'tempEtablissement' , orphanRemoval: true, cascade: ['persist', 'remove'])]
     private Collection $documentTemporaires;
 
     #[ORM\Column(length: 255)]
