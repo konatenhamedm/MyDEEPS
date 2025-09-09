@@ -99,8 +99,8 @@ framework:
 
                 validation_finale:
                     from: oep_visite_effectue_attente_validation_directrice
-                    to: oep_dossier_valide
+                    to: oep_dossier_conforme
 
                 rejet_final:
                     from: oep_visite_effectue_attente_validation_directrice
-                    to: oep_dossier_rejette
+                    to: oep_dossier_non_conforme

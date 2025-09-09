@@ -170,12 +170,11 @@ class ApiPaiementController extends ApiInterface
                 $etatPro = false;
             } else {
                 if ($user->getPersonne()->getDateValidation() !== null) {
-                   
+
                     $expiration = (clone $user->getPersonne()->getDateValidation())->modify('+1 year');
                     $today = new \DateTime();
                     $joursRestants = max(0, $today->diff($expiration)->days);
                     $expire = $expiration < $today;
-                
                 } else {
 
                     $expiration = (clone $dernierAbonnement->getCreatedAt())->modify('+1 year');
@@ -803,7 +802,7 @@ class ApiPaiementController extends ApiInterface
 
         $etablissement->setTypePersonne($request->get('typePersonne'));
         $etablissement->setNiveauIntervention($request->get('niveauIntervention'));
-        
+
         $etablissement->setReference($data['reference']);
         $etablissement->setTypeUser(User::TYPE['ETABLISSEMENT']);
         $etablissement->setNom($request->get('nom'));
@@ -815,9 +814,41 @@ class ApiPaiementController extends ApiInterface
         $etablissement->setNomRepresentant($request->get('nomRepresentant'));
         $etablissement->setTelephone($request->get('telephone'));
         $etablissement->setTypeSociete($request->get('typeSociete'));
-     
 
 
+        $documents = $request->get('documents');
+
+
+        $uploadedFiles = $request->files->get('documents');
+
+        foreach ($documents as $index => $doc) {
+
+            $newDocument = new DocumentTemporaire();
+            $newDocument->setLibelle($doc['libelle'])
+                ->setLibelleGroupe($this->em->getRepository(LibelleGroupe::class)->find($doc['libelleGroupe']));
+
+            if (isset($uploadedFiles[$index])) {
+                $fileKeys = [
+                    'path',
+                ];
+
+                foreach ($fileKeys as $key) {
+                    if (!empty($uploadedFiles[$index][$key])) {
+                        $uploadedFile = $uploadedFiles[$index][$key];
+                        $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedFile, self::UPLOAD_PATH);
+                        if ($fichier) {
+                            $setter = 'set' . ucfirst($key);
+                            $newDocument->$setter($fichier);
+                        }
+                    }
+                }
+            }
+
+            $etablissement->addDocumentTemporaire($newDocument);
+        }
+
+
+        /* 
         $libelles = $request->request->get('documents'); // Récupère les libellés
         $uploadedDocuments = $request->files->get('documents'); // Récupère les fichiers
 
@@ -830,7 +861,6 @@ class ApiPaiementController extends ApiInterface
                 if ($uploadedPhoto) {
                     $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedPhoto, self::UPLOAD_PATH);
                     if ($fichier) {
-                        // Associez le fichier et le libellé
                         $document = new DocumentTemporaire();
                         $document->setPath($fichier);
                         $document->setLibelle($libelle);
@@ -840,7 +870,7 @@ class ApiPaiementController extends ApiInterface
                 }
             }
         }
-
+ */
 
         $errorResponse = $this->errorResponse($etablissement);
         if ($errorResponse !== null) {
