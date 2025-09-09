@@ -229,7 +229,7 @@ class PaiementService
             $requestData = [
                 "code_paiement" => $transaction->getReference(),
                 "nom_usager" => "Mydepps",
-                "prenom_usager" => "Mydepps Admin",
+                "prenom_usager" => "Mydepps",
                 "telephone" => "0704314164",
                 "email" => $request->get('email'),
                 "libelle_article" => "DEMANDE D'ADHESION",

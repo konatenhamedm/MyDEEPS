@@ -71,10 +71,11 @@ class AuthenticationSuccessListener
                         : $userData->getPersonne()->getPhoto()->getPath() . '/' . $userData->getPersonne()->getPhoto()->getAlt()
                     )
                     : null, */
-                'status' => $userData->getTypeUser() == "PROFESSIONNEL" ? $userData->getPersonne()->getStatus() : null,
-                'nom' => $userData->getTypeUser() == "PROFESSIONNEL" ? $userData->getPersonne()->getNom() . " " . $userData->getPersonne()->getPrenoms() : null,
+                'status' =>  $userData->getPersonne()->getStatus(),
+                'nom' => $userData->getTypeUser() == "PROFESSIONNEL" ? $userData->getPersonne()->getNom() . " " . $userData->getPersonne()->getPrenoms() :  $userData->getPersonne()->getTypePersonne()->getCode() == "PHYSIQUE",
                 'payement' => $userData->getPayement(),
                 'type' => $userData->getTypeUser(),
+                'typePersonne' => $userData->getTypePersonne(),
                 'personneId' => $userData->getTypeUser() == "ADMINISTRATEUR" ? null : $userData->getPersonne()->getId()
             ];
 

@@ -824,7 +824,7 @@ class ApiPaiementController extends ApiInterface
 
         $uploadedFiles = $request->files->get('documents');
 
-        dd($documents);
+     /*    dd($documents); */
 
         foreach ($documents as $index => $doc) {
 
