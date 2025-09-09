@@ -211,36 +211,36 @@ class PaiementService
 
         $this->transactionRepository->add($transaction, true);
 
-        if($request->get('type') == "professionnel" ){
-    $requestData = [
-            "code_paiement" => $transaction->getReference(),
-            "nom_usager" => $request->get('nom'),
-            "prenom_usager" => $request->get('prenoms'),
-            "telephone" => $request->get('numero'),
-            "email" => $request->get('email'),
-            "libelle_article" => "DEMANDE D'ADHESION",
-            "quantite" => 1,
-            "montant" => $montant,
-            "lib_order" => "PAIEMENT ONMCI",
-            "Url_Retour" => "https://mydepps.net/site/" . $request->get('type'),
-            "Url_Callback" => "https://prodmydepps.leadagro.net/api/paiement/info-paiement"
-        ];
-        }else{
-              $requestData = [
-            "code_paiement" => $transaction->getReference(),
-            "nom_usager" => "Mydepps",
-            "prenom_usager" => "Mydepps",
-            "telephone" => "0704314164",
-            "email" => $request->get('email'),
-            "libelle_article" => "DEMANDE D'ADHESION",
-            "quantite" => 1,
-            "montant" => $montant,
-            "lib_order" => "PAIEMENT ONMCI",
-            "Url_Retour" => "https://mydepps.net/site/" . $request->get('type'),
-            "Url_Callback" => "https://prodmydepps.leadagro.net/api/paiement/info-paiement"
-        ];
+        if ($request->get('type') == "professionnel") {
+            $requestData = [
+                "code_paiement" => $transaction->getReference(),
+                "nom_usager" => $request->get('nom'),
+                "prenom_usager" => $request->get('prenoms'),
+                "telephone" => $request->get('numero'),
+                "email" => $request->get('email'),
+                "libelle_article" => "DEMANDE D'ADHESION",
+                "quantite" => 1,
+                "montant" => $montant,
+                "lib_order" => "PAIEMENT ONMCI",
+                "Url_Retour" => "https://mydepps.net/site/" . $request->get('type'),
+                "Url_Callback" => "https://prodmydepps.leadagro.net/api/paiement/info-paiement"
+            ];
+        } else {
+            $requestData = [
+                "code_paiement" => $transaction->getReference(),
+                "nom_usager" => "Mydepps",
+                "prenom_usager" => "Mydepps Admin",
+                "telephone" => "0704314164",
+                "email" => $request->get('email'),
+                "libelle_article" => "DEMANDE D'ADHESION",
+                "quantite" => 1,
+                "montant" => $montant,
+                "lib_order" => "PAIEMENT ONMCI",
+                "Url_Retour" => "https://mydepps.net/site/" . $request->get('type'),
+                "Url_Callback" => "https://prodmydepps.leadagro.net/api/paiement/info-paiement"
+            ];
         }
-    
+
 
         $response = $this->httpClient->request('POST', $this->paiementUrl, [
             'json' => $requestData,
@@ -482,7 +482,7 @@ class PaiementService
                 $etablissement->addDocument($document);
             }
         }
-       
+
         $etablissement->setNiveauIntervention($this->niveauInterventionRepository->find($dataTemp->getNiveauIntervention()));
         $etablissement->setDenomination($dataTemp->getDenomination());
         $etablissement->setNom($dataTemp->getNom());
