@@ -297,7 +297,7 @@ class ApiEtablissementController extends ApiInterface
 
             $info_user = [
                 'user' => $user->getUserIdentifier(),
-                'nom' => $etablissement->getNom() . ' ' . $etablissement->getPrenoms(),
+                'nom' => $etablissement->getTypePersonne()->getCode() == "PHYSIQUE" ? $etablissement->getNom() . ' ' . $etablissement->getPrenoms() : $etablissement->getDenomination(),
                 'profession' => "",
                 'etape' => $dto->status,
                 'message' => $message,

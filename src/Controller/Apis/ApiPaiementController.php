@@ -594,6 +594,9 @@ class ApiPaiementController extends ApiInterface
     public function doPaiement(Request $request, PaiementService $paiementService)
     {
 
+
+ /*   dd($request); */
+
         $createTransactionData = $paiementService->traiterPaiement($request);
         /* 
         if (!isset($createTransactionData['type'])) {
@@ -820,6 +823,8 @@ class ApiPaiementController extends ApiInterface
 
 
         $uploadedFiles = $request->files->get('documents');
+
+        dd($documents);
 
         foreach ($documents as $index => $doc) {
 
