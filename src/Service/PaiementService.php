@@ -153,6 +153,7 @@ class PaiementService
 
         $data = json_decode($request->getContent(), true);
         $transaction = $this->transactionRepository->findOneBy(['reference' => $data['codePaiement']]);
+        $etablissement = $transaction->getUser()->getPersonne();
 
         $transaction->setReferenceChannel($data['referencePaiement']);
         if ($data['code'] == 200) {
@@ -171,6 +172,9 @@ class PaiementService
                     $this->documentOepTempRepository->remove($t, true);
                 }
             }
+            $etablissement->setStatus('oep_demande_initie');
+            $this->em->persist($etablissement);
+            $this->em->flush();
         } else {
             $response = [
                 'message' => 'Echec',
@@ -431,19 +435,22 @@ class PaiementService
 
         if ($dataTemp) {
             foreach ($dataTemp as $doc) {
+                $user = $this->em->getRepository(User::class)->findOneBy(['personne' => $doc->getEtablissement()]);
+                $etbalissement = $this->etablissementRepository->find($doc->getEtablissement());
                 $document = new DocumentOep();
                 $libelle = $doc->getLibelle() ?: 'Document sans libellé';
                 $document->setPath($doc->getPath());
                 $document->setLibelle($libelle);
                 $document->setLibelleGroupe($doc->getLibelleGroupe());
-                $document->setEtablissement($this->etablissementRepository->find($doc->getEtablissement()));
+                $document->setEtablissement($etbalissement);
 
-                $user = $this->em->getRepository(User::class)->findOneBy(['personne' => $doc->getEtablissement()]);
 
                 $transaction->setUser($user);
                 $transaction->setCreatedBy($user);
                 $transaction->setUpdatedBy($user);
                 $this->transactionRepository->add($transaction, true);
+
+               
 
                 $this->em->persist($document);
                 $this->em->flush();
