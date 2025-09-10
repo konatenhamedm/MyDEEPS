@@ -11,12 +11,15 @@ use Nelmio\ApiDocBundle\Annotation\Security;
 use Symfony\Component\HttpFoundation\Request;
 use App\Controller\Apis\Config\ApiInterface;
 use App\Entity\Document;
+use App\Entity\DocumentOepTemp;
 use App\Entity\DocumentTemporaire;
 use App\Entity\LibelleGroupe;
 use App\Entity\TempEtablissement;
 use App\Entity\TempProfessionnel;
 use App\Entity\Transaction;
 use App\Entity\User;
+use App\Repository\DocumentOepTempRepository;
+use App\Repository\EtablissementRepository;
 use App\Repository\ProfessionRepository;
 use App\Repository\TempProfessionnelRepository;
 use App\Repository\TransactionRepository;
@@ -473,6 +476,39 @@ class ApiPaiementController extends ApiInterface
 
         return  $this->responseData($response, 'group1', ['Content-Type' => 'application/json']);
     }
+    #[Route('/info-paiement-oep', name: 'webhook_paiement_oep',  methods: ['POST'])]
+    /**
+     * Il s'agit de la webhook pour les paiement.
+     */
+    #[OA\Post(
+        summary: "Authentification admin",
+        description: "Génère un token JWT pour les administrateurs.",
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: "codePaiement", type: "string"),
+                    new OA\Property(property: "referencePaiement", type: "string"),
+                    new OA\Property(property: "code", type: "string"),
+                    new OA\Property(property: "moyenPaiement", type: "string"),
+
+                ],
+                type: "object"
+            )
+        ),
+        responses: [
+            new OA\Response(response: 401, description: "Invalid credentials")
+        ]
+    )]
+    #[OA\Tag(name: 'paiements')]
+    #[Security(name: 'Bearer')]
+    public function webHookOep(Request $request,  PaiementService $paiementService): Response
+    {
+        $response = $paiementService->methodeWebHookOep($request);
+
+
+        return  $this->responseData($response, 'group1', ['Content-Type' => 'application/json']);
+    }
 
     #[Route('/info-paiement-renouvellement', name: 'webhook_paiement_renouvellement',  methods: ['POST'])]
     /**
@@ -628,19 +664,10 @@ class ApiPaiementController extends ApiInterface
                 mediaType: "multipart/form-data",
                 schema: new OA\Schema(
                     properties: [
-                        new OA\Property(property: "password", type: "string"),
-                        new OA\Property(property: "confirmPassword", type: "string"),
-                        new OA\Property(property: "email", type: "string"),
-                        new OA\Property(property: "nom", type: "string"),
-                        new OA\Property(property: "prenoms", type: "string"),
-                        new OA\Property(property: "telephone", type: "string"),
-                        new OA\Property(property: "typePersonne", type: "string"),
-                        new OA\Property(property: "bp", type: "string"),
-                        new OA\Property(property: "emailAutre", type: "string"),
-                        new OA\Property(property: "adresse", type: "string"),
-                        new OA\Property(property: "nomRepresentant", type: "string"),
-                        new OA\Property(property: "denomination", type: "string"),
-                        new OA\Property(property: "reference", type: "string"),
+              
+                       
+                        new OA\Property(property: "etablissement", type: "string"),
+                        new OA\Property(property: "perdsonneId", type: "string"),
                         new OA\Property(property: "niveauIntervention", type: "string"),
                         new OA\Property(
                             property: "documents",
@@ -664,28 +691,47 @@ class ApiPaiementController extends ApiInterface
         ]
     )]
     #[OA\Tag(name: 'paiements')]
-    public function initieOpe(Request $request, PaiementService $paiementService)
+    public function initieOpe(Request $request, PaiementService $paiementService,EtablissementRepository $etablissementRepository,DocumentOepTempRepository $documentOepTempRepository)
     {
+         $names = 'document_' . '01';
+        $filePrefix  = str_slug($names);
+        $filePath = $this->getUploadDir(self::UPLOAD_PATH, true);
+       // $etablissement = $etablissementRepository->find($request->get('perdsonneId'));
+        $createTransactionData = $paiementService->traiterPaiementOpe($request);
 
+        $documents = $request->get('documents');
+        $uploadedFiles = $request->files->get('documents');
 
- /*   dd($request); */
+        foreach ($documents as $index => $doc) {
 
-        $createTransactionData = $paiementService->traiterPaiement($request);
-        /* 
-        if (!isset($createTransactionData['type'])) {
-            return [
-                'code' => 400,
-                'message' => 'Type de paiement manquant'
-            ];
+            $newDocument = new DocumentOepTemp();
+            $newDocument->setLibelle($doc['libelle'])
+            ->setReference($createTransactionData['reference'])
+            ->setEtablissement($request->get('etablissement'))
+                ->setLibelleGroupe($this->em->getRepository(LibelleGroupe::class)->find($doc['libelleGroupe']));
+
+            if (isset($uploadedFiles[$index])) {
+                $fileKeys = [
+                    'path',
+                ];
+
+                foreach ($fileKeys as $key) {
+                    if (!empty($uploadedFiles[$index][$key])) {
+                        $uploadedFile = $uploadedFiles[$index][$key];
+                        $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedFile, self::UPLOAD_PATH);
+                        if ($fichier) {
+                            $setter = 'set' . ucfirst($key);
+                            $newDocument->$setter($fichier);
+                        }
+                    }
+                }
+            }
+
+            $documentOepTempRepository->add($newDocument);
         }
-     */
-        if ($createTransactionData['type'] == "professionnel") {
-            $resultat = $this->createProfessionnelTemp($request, $createTransactionData);
-        } else {
-            $resultat = $this->createEtablissemntTemp($request, $createTransactionData);
-        }
 
-        return $resultat;
+
+        return $createTransactionData;
     }
 
     #[Route('/renouvellement', name: 'renouvellement', methods: ['POST'])]

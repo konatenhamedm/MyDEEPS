@@ -48,11 +48,25 @@ class LibelleGroupe
     #[Group(["group1","group_libelle"])]
     private ?string $type = null;
 
+    /**
+     * @var Collection<int, DocumentOep>
+     */
+    #[ORM\OneToMany(targetEntity: DocumentOep::class, mappedBy: 'libelleGroupe')]
+    private Collection $documentOeps;
+
+    /**
+     * @var Collection<int, DocumentOepTemp>
+     */
+    #[ORM\OneToMany(targetEntity: DocumentOepTemp::class, mappedBy: 'libelleGroupe')]
+    private Collection $documentOepTemps;
+
     public function __construct()
     {
         $this->typeDocuments = new ArrayCollection();
         $this->documents = new ArrayCollection();
         $this->documentTemporaires = new ArrayCollection();
+        $this->documentOeps = new ArrayCollection();
+        $this->documentOepTemps = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -170,6 +184,66 @@ class LibelleGroupe
     public function setType(?string $type): static
     {
         $this->type = $type;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, DocumentOep>
+     */
+    public function getDocumentOeps(): Collection
+    {
+        return $this->documentOeps;
+    }
+
+    public function addDocumentOep(DocumentOep $documentOep): static
+    {
+        if (!$this->documentOeps->contains($documentOep)) {
+            $this->documentOeps->add($documentOep);
+            $documentOep->setLibelleGroupe($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDocumentOep(DocumentOep $documentOep): static
+    {
+        if ($this->documentOeps->removeElement($documentOep)) {
+            // set the owning side to null (unless already changed)
+            if ($documentOep->getLibelleGroupe() === $this) {
+                $documentOep->setLibelleGroupe(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, DocumentOepTemp>
+     */
+    public function getDocumentOepTemps(): Collection
+    {
+        return $this->documentOepTemps;
+    }
+
+    public function addDocumentOepTemp(DocumentOepTemp $documentOepTemp): static
+    {
+        if (!$this->documentOepTemps->contains($documentOepTemp)) {
+            $this->documentOepTemps->add($documentOepTemp);
+            $documentOepTemp->setLibelleGroupe($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDocumentOepTemp(DocumentOepTemp $documentOepTemp): static
+    {
+        if ($this->documentOepTemps->removeElement($documentOepTemp)) {
+            // set the owning side to null (unless already changed)
+            if ($documentOepTemp->getLibelleGroupe() === $this) {
+                $documentOepTemp->setLibelleGroupe(null);
+            }
+        }
 
         return $this;
     }

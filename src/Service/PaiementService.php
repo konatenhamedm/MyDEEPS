@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Controller\FileTrait;
 use App\Entity\Civilite;
 use App\Entity\Document;
+use App\Entity\DocumentOep;
 use App\Entity\Etablissement;
 use App\Entity\Genre;
 use App\Entity\Organisation;
@@ -16,6 +17,10 @@ use App\Entity\User;
 use App\Repository\CiviliteRepository;
 use App\Repository\CommuneRepository;
 use App\Repository\DistrictRepository;
+use App\Repository\DocumentOepRepository;
+use App\Repository\DocumentOepTempRepository;
+use App\Repository\DocumentRepository;
+use App\Repository\EtablissementRepository;
 use App\Repository\GenreRepository;
 use App\Repository\LieuDiplomeRepository;
 use App\Repository\NiveauInterventionRepository;
@@ -80,7 +85,11 @@ class PaiementService
         private ProfessionRepository $professionRepository,
         private StatusProRepository $statusProRepository,
         private TypeDiplomeRepository $typeDiplomeRepository,
-        private LieuDiplomeRepository $lieuDiplomeRepository
+        private LieuDiplomeRepository $lieuDiplomeRepository,
+        private DocumentOepTempRepository $documentOepTempRepository,
+        private DocumentRepository $documentRepository,
+        private DocumentOepRepository $documentOepRepository,
+        private EtablissementRepository $etablissementRepository
 
 
     ) {
@@ -127,6 +136,39 @@ class PaiementService
                 } else {
                     $temp =  $this->tempEtablissementRepository->findOneBy(['reference' => $data['codePaiement']]);
                     $this->tempEtablissementRepository->remove($temp, true);
+                }
+            }
+        } else {
+            $response = [
+                'message' => 'Echec',
+                'code' => 400
+            ];
+        }
+
+
+        return $response;
+    }
+    public function methodeWebHookOep(Request $request)
+    {
+
+        $data = json_decode($request->getContent(), true);
+        $transaction = $this->transactionRepository->findOneBy(['reference' => $data['codePaiement']]);
+
+        $transaction->setReferenceChannel($data['referencePaiement']);
+        if ($data['code'] == 200) {
+            $transaction->setState(1);
+
+            $transaction->setChannel($data['moyenPaiement']);
+            $transaction->setData(json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+
+            $this->transactionRepository->add($transaction, true);
+            $response =  $this->updateDocumentOep($data['codePaiement']);
+            if ($response) {
+
+                $temp =  $this->documentOepTempRepository->findBy(['reference' => $data['codePaiement']]);
+
+                foreach ($temp as $t) {
+                    $this->documentOepTempRepository->remove($t, true);
                 }
             }
         } else {
@@ -263,6 +305,63 @@ class PaiementService
             'type' => $request->get('type')
         ];
     }
+    public function traiterPaiementOpe(Request $request): array
+    {
+        $data = json_decode($request->getContent(), true);
+
+        $montant =  $this->niveauInterventionRepository->findOneByCode($request->get('niveauIntervention'))->getMontantRenouvellement();
+
+        $transaction = new Transaction();
+        $transaction->setChannel("");
+        $transaction->setReference($this->genererNumero());
+        $transaction->setMontant($montant);
+        $transaction->setReferenceChannel("");
+        $transaction->setType("OUVERTURE D'EXPLOITATION");
+        $transaction->setTypeUser($request->get('type'));
+        $transaction->setState(0);
+        $transaction->setCreatedAtValue(new \DateTime());
+        $transaction->setUpdatedAt(new \DateTime());
+
+        $this->transactionRepository->add($transaction, true);
+
+
+        $requestData = [
+            "code_paiement" => $transaction->getReference(),
+            "nom_usager" => "Mydepps",
+            "prenom_usager" => "Mydepps",
+            "telephone" => "0704314164",
+            "email" => $request->get('email'),
+            "libelle_article" => "OUVERTURE D'EXPLOITATION",
+            "quantite" => 1,
+            "montant" => $montant,
+            "lib_order" => "PAIEMENT ONMCI",
+            "Url_Retour" => "https://mydepps.net/site/" . $request->get('type'),
+            "Url_Callback" => "https://prodmydepps.leadagro.net/api/paiement/info-paiement-ope"
+        ];
+
+
+
+        $response = $this->httpClient->request('POST', $this->paiementUrl, [
+            'json' => $requestData,
+            'headers' => [
+                "ApiKey" => $this->apiKey,
+                "MerchantId" => $this->merchantId,
+                "Accept" => "application/json",
+                "Content-Type" => "application/json",
+            ],
+            'verify_peer' => false,
+            'verify_host' => false
+        ]);
+
+        $dataResponse = $response->toArray();
+
+        return [
+            'code' => 200,
+            'url' => $dataResponse['url'] ?? null,
+            'reference' => $transaction->getReference(),
+            'type' => $request->get('type')
+        ];
+    }
     public function traiterPaiementRenouvellement(Request $request): array
     {
         $data = json_decode($request->getContent(), true);
@@ -323,6 +422,38 @@ class PaiementService
 
 
 
+    public function updateDocumentOep($reference)
+    {
+
+        $dataTemp = $this->documentOepTempRepository->findBy(['reference' => $reference]);
+        $transaction = $this->transactionRepository->findOneBy(['reference' =>  $reference]);
+
+
+        if ($dataTemp) {
+            foreach ($dataTemp as $doc) {
+                $document = new DocumentOep();
+                $libelle = $doc->getLibelle() ?: 'Document sans libellé';
+                $document->setPath($doc->getPath());
+                $document->setLibelle($libelle);
+                $document->setLibelleGroupe($doc->getLibelleGroupe());
+                $document->setEtablissement($this->etablissementRepository->find($doc->getEtablissement()));
+
+                $user = $this->em->getRepository(User::class)->findOneBy(['personne' => $doc->getEtablissement()]);
+
+                $transaction->setUser($user);
+                $transaction->setCreatedBy($user);
+                $transaction->setUpdatedBy($user);
+                $this->transactionRepository->add($transaction, true);
+
+                $this->em->persist($document);
+                $this->em->flush();
+            }
+        }
+
+        return  [
+            'code' => 200,
+        ];
+    }
     public function updateProfessionnel($reference)
     {
 

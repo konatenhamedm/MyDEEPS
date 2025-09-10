@@ -91,10 +91,17 @@ class Etablissement extends Entite
     #[Group(["group_pro"])]
     private ?string $code = null;
 
+    /**
+     * @var Collection<int, DocumentOep>
+     */
+    #[ORM\OneToMany(targetEntity: DocumentOep::class, mappedBy: 'etablissement')]
+    private Collection $documentOeps;
+
     public function __construct()
     {
         parent::__construct();
         $this->documents = new ArrayCollection();
+        $this->documentOeps = new ArrayCollection();
     }
 
 
@@ -328,6 +335,36 @@ class Etablissement extends Entite
     public function setCode(?string $code): static
     {
         $this->code = $code;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, DocumentOep>
+     */
+    public function getDocumentOeps(): Collection
+    {
+        return $this->documentOeps;
+    }
+
+    public function addDocumentOep(DocumentOep $documentOep): static
+    {
+        if (!$this->documentOeps->contains($documentOep)) {
+            $this->documentOeps->add($documentOep);
+            $documentOep->setEtablissement($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDocumentOep(DocumentOep $documentOep): static
+    {
+        if ($this->documentOeps->removeElement($documentOep)) {
+            // set the owning side to null (unless already changed)
+            if ($documentOep->getEtablissement() === $this) {
+                $documentOep->setEtablissement(null);
+            }
+        }
 
         return $this;
     }
