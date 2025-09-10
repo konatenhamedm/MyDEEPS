@@ -76,7 +76,7 @@ class ApiEtablissementController extends ApiInterface
     )]
     #[OA\Tag(name: 'etablissement')]
     /* #[Security(name: 'Bearer')] */
-    public function updateImputation(Request $request,SendMailService $sendMailService, Etablissement $etablissement, EtablissementRepository $etablissementRepository, UserRepository $userRepository): Response
+    public function updateImputation(Request $request, SendMailService $sendMailService, Etablissement $etablissement, EtablissementRepository $etablissementRepository, UserRepository $userRepository): Response
     {
         try {
             $data = json_decode($request->getContent());
@@ -96,7 +96,7 @@ class ApiEtablissementController extends ApiInterface
                 }
 
 
-               /*   $info_user = [
+                /*   $info_user = [
                 'user' => $user->getUserIdentifier(),
               
                 'profession' => "",
@@ -132,7 +132,7 @@ class ApiEtablissementController extends ApiInterface
                     'code' => $etablissement->getCode(),
                     'status' => $etablissement->getStatus(),
                     'email' => $etablissement->getEmail(),
-                   
+
 
                 ], 'group_pro', ['Content-Type' => 'application/json']);
             } else {
@@ -207,12 +207,12 @@ class ApiEtablissementController extends ApiInterface
             $dto->userUpdate = $request->request->get('userUpdate');
             $dto->raison = $request->request->get('raison');
             $dto->dateVisite = $request->request->get('dateVisite');
-          
-             $uploaded = $request->files->get('rapportExamen');
+
+            $uploaded = $request->files->get('rapportExamen');
             // Gérer l'upload du fichier pour la transition visite_effectuee
             if ($dto->status === "visite_effectuee") {
 
-                if ($uploaded ) {
+                if ($uploaded) {
                     $fichier = $utils->sauvegardeFichier($filePath, $filePrefix, $uploaded, self::UPLOAD_PATH);
                     if ($fichier) {
                         // $etablissement->setRapportExamen($fichier);
@@ -595,7 +595,15 @@ class ApiEtablissementController extends ApiInterface
                                 'libelleGroupe' => $this->formatEntity($doc->getLibelleGroupe()),
                                 'path' => $doc->getPath() ?  $this->formatFile($doc->getPath()) : null,
                             ];
-                        }, $personne->getDocuments()->toArray())
+                        }, $personne->getDocuments()->toArray()),
+                        'documentsOep' => array_map(function ($doc) {
+                            return [
+                                'id' => $doc->getId(),
+                                'libelle' => $doc->getLibelle(),
+                                'libelleGroupe' => $this->formatEntity($doc->getLibelleGroupe()),
+                                'path' => $doc->getPath() ?  $this->formatFile($doc->getPath()) : null,
+                            ];
+                        }, $personne->getDocumentOeps()->toArray())
 
                     ]
 
@@ -603,7 +611,7 @@ class ApiEtablissementController extends ApiInterface
             }, $etablissements);
 
 
-         return $this->responseData($formattedProfessionnels, 'group_pro', ['Content-Type' => 'application/json']);
+            return $this->responseData($formattedProfessionnels, 'group_pro', ['Content-Type' => 'application/json']);
         } catch (\Exception $exception) {
             $this->setMessage($exception->getMessage());
             return $this->response('[]');
@@ -706,7 +714,15 @@ class ApiEtablissementController extends ApiInterface
                             'libelleGroupe' => $this->formatEntity($doc->getLibelleGroupe()),
                             'path' => $doc->getPath() ?  $this->formatFile($doc->getPath()) : null,
                         ];
-                    }, $personne->getDocuments()->toArray())
+                    }, $personne->getDocuments()->toArray()),
+                    'documentsOep' => array_map(function ($doc) {
+                        return [
+                            'id' => $doc->getId(),
+                            'libelle' => $doc->getLibelle(),
+                            'libelleGroupe' => $this->formatEntity($doc->getLibelleGroupe()),
+                            'path' => $doc->getPath() ?  $this->formatFile($doc->getPath()) : null,
+                        ];
+                    }, $personne->getDocumentOeps()->toArray())
 
                 ]
 
