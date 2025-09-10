@@ -196,7 +196,7 @@ class PaiementService
     {
         $data = json_decode($request->getContent(), true);
 
-        $montant = $request->get('type') == "professionnel" ? $this->professionRepository->findOneByCode($request->get('profession'))->getMontantNouvelleDemande() : 100;
+        $montant = $request->get('type') == "professionnel" ? $this->professionRepository->findOneByCode($request->get('profession'))->getMontantNouvelleDemande() : $this->niveauInterventionRepository->findOneByCode($request->get('niveauIntervention'))->getMontant();
 
         $transaction = new Transaction();
         $transaction->setChannel("");

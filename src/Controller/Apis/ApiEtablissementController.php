@@ -51,6 +51,10 @@ class ApiEtablissementController extends ApiInterface
 {
 
 
+
+
+
+
     #[Route('/update/imputation/{id}', methods: ['PUT', 'POST'])]
     #[OA\Post(
         summary: "Creation de pro",
@@ -522,6 +526,8 @@ class ApiEtablissementController extends ApiInterface
 
         ], 'group_pro', ['Content-Type' => 'application/json']);
     }
+
+
 
 
     #[Route('/', methods: ['GET'])]

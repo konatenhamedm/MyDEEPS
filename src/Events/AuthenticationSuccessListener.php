@@ -72,10 +72,10 @@ class AuthenticationSuccessListener
                     )
                     : null, */
                 'status' =>  $userData->getPersonne()->getStatus(),
-                'nom' => $userData->getTypeUser() == "PROFESSIONNEL" ? $userData->getPersonne()->getNom() . " " . $userData->getPersonne()->getPrenoms() :  $userData->getPersonne()->getTypePersonne()->getCode() == "PHYSIQUE",
+                'nom' => $userData->getTypeUser() == "PROFESSIONNEL" ? $userData->getPersonne()->getNom() . " " . $userData->getPersonne()->getPrenoms() : (($userData->getPersonne()->getTypePersonne()->getCode() == "PHYSIQUE") ? $userData->getPersonne()->getNom() . " " . $userData->getPersonne()->getPrenoms() : $userData->getPersonne()->getDenomination()),
                 'payement' => $userData->getPayement(),
                 'type' => $userData->getTypeUser(),
-                'typePersonne' => $userData->getTypePersonne(),
+                'typePersonne' => $userData->getTypeUser() == "ETABLISSEMENT" ? $userData->getPersonne()->getTypePersonne()->getId() : null,
                 'personneId' => $userData->getTypeUser() == "ADMINISTRATEUR" ? null : $userData->getPersonne()->getId()
             ];
 

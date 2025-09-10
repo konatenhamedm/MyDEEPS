@@ -615,6 +615,79 @@ class ApiPaiementController extends ApiInterface
         return $resultat;
     }
 
+    #[Route('/inite/ope', name: 'initie_ope', methods: ['POST'])]
+    /**
+     * Permet d'initier l'ope
+     */
+    #[OA\Post(
+        summary: "Permet d'initier l'ope",
+        description: "Permet de créer un nouvel établissement avec toutes les informations requises et documents joints.",
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\MediaType(
+                mediaType: "multipart/form-data",
+                schema: new OA\Schema(
+                    properties: [
+                        new OA\Property(property: "password", type: "string"),
+                        new OA\Property(property: "confirmPassword", type: "string"),
+                        new OA\Property(property: "email", type: "string"),
+                        new OA\Property(property: "nom", type: "string"),
+                        new OA\Property(property: "prenoms", type: "string"),
+                        new OA\Property(property: "telephone", type: "string"),
+                        new OA\Property(property: "typePersonne", type: "string"),
+                        new OA\Property(property: "bp", type: "string"),
+                        new OA\Property(property: "emailAutre", type: "string"),
+                        new OA\Property(property: "adresse", type: "string"),
+                        new OA\Property(property: "nomRepresentant", type: "string"),
+                        new OA\Property(property: "denomination", type: "string"),
+                        new OA\Property(property: "reference", type: "string"),
+                        new OA\Property(property: "niveauIntervention", type: "string"),
+                        new OA\Property(
+                            property: "documents",
+                            type: "array",
+                            items: new OA\Items(
+                                type: "object",
+                                properties: [
+                                    new OA\Property(property: "libelle", type: "string"),
+                                    new OA\Property(property: "path", type: "string", format: "binary"),
+                                    new OA\Property(property: "libelleGroupe", type: "string")
+                                ]
+                            ),
+                        ),
+                    ],
+                    type: "object"
+                )
+            )
+        ),
+        responses: [
+          
+        ]
+    )]
+    #[OA\Tag(name: 'paiements')]
+    public function initieOpe(Request $request, PaiementService $paiementService)
+    {
+
+
+ /*   dd($request); */
+
+        $createTransactionData = $paiementService->traiterPaiement($request);
+        /* 
+        if (!isset($createTransactionData['type'])) {
+            return [
+                'code' => 400,
+                'message' => 'Type de paiement manquant'
+            ];
+        }
+     */
+        if ($createTransactionData['type'] == "professionnel") {
+            $resultat = $this->createProfessionnelTemp($request, $createTransactionData);
+        } else {
+            $resultat = $this->createEtablissemntTemp($request, $createTransactionData);
+        }
+
+        return $resultat;
+    }
+
     #[Route('/renouvellement', name: 'renouvellement', methods: ['POST'])]
     /**
      * Permet de faire le âiement
