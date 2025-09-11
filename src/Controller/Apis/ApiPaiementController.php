@@ -731,7 +731,7 @@ class ApiPaiementController extends ApiInterface
         }
 
 
-        return $createTransactionData;
+        return $this->json($createTransactionData);
     }
 
     #[Route('/renouvellement', name: 'renouvellement', methods: ['POST'])]
