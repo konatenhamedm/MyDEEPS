@@ -313,7 +313,7 @@ class PaiementService
     {
         $data = json_decode($request->getContent(), true);
 
-        $montant =  $this->niveauInterventionRepository->findOneByCode($request->get('niveauIntervention'))->getMontantRenouvellement();
+        $montant =  $this->niveauInterventionRepository->find($request->get('niveauIntervention'))->getMontantRenouvellement();
 
         $transaction = new Transaction();
         $transaction->setChannel("");
@@ -321,7 +321,7 @@ class PaiementService
         $transaction->setMontant($montant);
         $transaction->setReferenceChannel("");
         $transaction->setType("OUVERTURE D'EXPLOITATION");
-        $transaction->setTypeUser($request->get('type'));
+        $transaction->setTypeUser('etablissement');
         $transaction->setState(0);
         $transaction->setCreatedAtValue(new \DateTime());
         $transaction->setUpdatedAt(new \DateTime());
@@ -339,8 +339,8 @@ class PaiementService
             "quantite" => 1,
             "montant" => $montant,
             "lib_order" => "PAIEMENT ONMCI",
-            "Url_Retour" => "https://mydepps.net/site/" . $request->get('type'),
-            "Url_Callback" => "https://prodmydepps.leadagro.net/api/paiement/info-paiement-ope"
+            "Url_Retour" => "https://mydepps.net/site/dashboard_etablissement",
+            "Url_Callback" => "https://prodmydepps.leadagro.net/api/paiement/info-paiement-oep"
         ];
 
 

@@ -631,7 +631,7 @@ class ApiPaiementController extends ApiInterface
     {
 
 
- /*   dd($request); */
+        /*   dd($request); */
 
         $createTransactionData = $paiementService->traiterPaiement($request);
         /* 
@@ -664,10 +664,10 @@ class ApiPaiementController extends ApiInterface
                 mediaType: "multipart/form-data",
                 schema: new OA\Schema(
                     properties: [
-              
-                       
+
+
                         new OA\Property(property: "etablissement", type: "string"),
-                        new OA\Property(property: "perdsonneId", type: "string"),
+                        new OA\Property(property: "email", type: "string"),
                         new OA\Property(property: "niveauIntervention", type: "string"),
                         new OA\Property(
                             property: "documents",
@@ -686,48 +686,48 @@ class ApiPaiementController extends ApiInterface
                 )
             )
         ),
-        responses: [
-          
-        ]
+        responses: []
     )]
     #[OA\Tag(name: 'paiements')]
-    public function initieOpe(Request $request, PaiementService $paiementService,EtablissementRepository $etablissementRepository,DocumentOepTempRepository $documentOepTempRepository)
+    public function initieOpe(Request $request, PaiementService $paiementService, EtablissementRepository $etablissementRepository, DocumentOepTempRepository $documentOepTempRepository)
     {
-         $names = 'document_' . '01';
+        $names = 'document_' . '01';
         $filePrefix  = str_slug($names);
         $filePath = $this->getUploadDir(self::UPLOAD_PATH, true);
        // $etablissement = $etablissementRepository->find($request->get('perdsonneId'));
         $createTransactionData = $paiementService->traiterPaiementOpe($request);
 
-        $documents = $request->get('documents');
-        $uploadedFiles = $request->files->get('documents');
+        if ($createTransactionData) {
+            $documents = $request->get('documents');
+            $uploadedFiles = $request->files->get('documents');
 
-        foreach ($documents as $index => $doc) {
+            foreach ($documents as $index => $doc) {
 
-            $newDocument = new DocumentOepTemp();
-            $newDocument->setLibelle($doc['libelle'])
-            ->setReference($createTransactionData['reference'])
-            ->setEtablissement($request->get('etablissement'))
-                ->setLibelleGroupe($this->em->getRepository(LibelleGroupe::class)->find($doc['libelleGroupe']));
+                $newDocument = new DocumentOepTemp();
+                $newDocument->setLibelle($doc['libelle'])
+                    ->setReference($createTransactionData['reference'])
+                    ->setEtablissement($request->get('etablissement'))
+                    ->setLibelleGroupe($this->em->getRepository(LibelleGroupe::class)->find($doc['libelleGroupe']));
 
-            if (isset($uploadedFiles[$index])) {
-                $fileKeys = [
-                    'path',
-                ];
+                if (isset($uploadedFiles[$index])) {
+                    $fileKeys = [
+                        'path',
+                    ];
 
-                foreach ($fileKeys as $key) {
-                    if (!empty($uploadedFiles[$index][$key])) {
-                        $uploadedFile = $uploadedFiles[$index][$key];
-                        $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedFile, self::UPLOAD_PATH);
-                        if ($fichier) {
-                            $setter = 'set' . ucfirst($key);
-                            $newDocument->$setter($fichier);
+                    foreach ($fileKeys as $key) {
+                        if (!empty($uploadedFiles[$index][$key])) {
+                            $uploadedFile = $uploadedFiles[$index][$key];
+                            $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedFile, self::UPLOAD_PATH);
+                            if ($fichier) {
+                                $setter = 'set' . ucfirst($key);
+                                $newDocument->$setter($fichier);
+                            }
                         }
                     }
                 }
-            }
 
-            $documentOepTempRepository->add($newDocument);
+                $documentOepTempRepository->add($newDocument);
+            }
         }
 
 
@@ -943,7 +943,7 @@ class ApiPaiementController extends ApiInterface
 
         $uploadedFiles = $request->files->get('documents');
 
-     /*    dd($documents); */
+        /*    dd($documents); */
 
         foreach ($documents as $index => $doc) {
 
