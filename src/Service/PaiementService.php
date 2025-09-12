@@ -363,7 +363,7 @@ class PaiementService
             'code' => 200,
             'url' => $dataResponse['url'] ?? null,
             'reference' => $transaction->getReference(),
-            'type' => $request->get('type')
+            'type' => 'etablissement'
         ];
     }
     public function traiterPaiementRenouvellement(Request $request): array
