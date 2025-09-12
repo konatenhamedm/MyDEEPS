@@ -72,7 +72,16 @@ class AuthenticationSuccessListener
                     )
                     : null, */
                 'status' =>  $userData->getPersonne()->getStatus(),
-                'nom' => $userData->getTypeUser() == "PROFESSIONNEL" ? $userData->getPersonne()->getNom() . " " . $userData->getPersonne()->getPrenoms() : (($userData->getPersonne()->getTypePersonne()->getCode() == "PHYSIQUE") ? $userData->getPersonne()->getNom() . " " . $userData->getPersonne()->getPrenoms() : $userData->getPersonne()->getDenomination()),
+                'nom' => $userData->getTypeUser() === "PROFESSIONNEL"
+                    ? $userData->getPersonne()->getNom() . " " . $userData->getPersonne()->getPrenoms()
+                    : ($userData->getTypeUser() === "ETABLISSEMENT"
+                        ? ($userData->getPersonne()->getTypePersonne()->getCode() === "PHYSIQUE"
+                            ? $userData->getPersonne()->getNom() . " " . $userData->getPersonne()->getPrenoms()
+                            : $userData->getPersonne()->getDenomination()
+                        )
+                        : null
+                    ),
+
                 'payement' => $userData->getPayement(),
                 'type' => $userData->getTypeUser(),
                 'typePersonne' => $userData->getTypeUser() == "ETABLISSEMENT" ? $userData->getPersonne()->getTypePersonne()->getId() : null,
