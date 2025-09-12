@@ -726,7 +726,7 @@ class ApiPaiementController extends ApiInterface
                     }
                 }
 
-                $documentOepTempRepository->add($newDocument);
+                $documentOepTempRepository->add($newDocument,true);
             }
         }
 
