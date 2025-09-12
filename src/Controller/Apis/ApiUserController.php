@@ -681,7 +681,7 @@ class ApiUserController extends ApiInterface
 
                 // On retourne la confirmation
                 $this->setMessage("Operation effectuées avec success");
-                $response = $this->response($user);
+                $response = $this->response($user->getId());
             } else {
                 $this->setMessage("Cette ressource est inexistante");
                 $this->setStatusCode(300);
