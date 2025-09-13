@@ -38,7 +38,7 @@ class TypePersonne
     private Collection $typeDocuments;
 
     #[ORM\Column(length: 10, nullable: true)]
-/*     #[Group(["group1","group_pro"])] */
+    #[Group(["group1","group_pro"])]
     private ?string $code = null;
 
     public function __construct()
