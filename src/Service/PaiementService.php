@@ -164,14 +164,14 @@ class PaiementService
 
             $this->transactionRepository->add($transaction, true);
             $response =  $this->updateDocumentOep($data['codePaiement']);
-            if ($response) {
+         /*    if ($response) {
 
                 $temp =  $this->documentOepTempRepository->findBy(['reference' => $data['codePaiement']]);
 
                 foreach ($temp as $t) {
                     $this->documentOepTempRepository->remove($t, true);
                 }
-            }
+            } */
             $etablissement->setStatus('oep_demande_initie');
             $this->em->persist($etablissement);
             $this->em->flush();
