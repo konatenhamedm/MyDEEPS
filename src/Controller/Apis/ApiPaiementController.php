@@ -670,7 +670,7 @@ class ApiPaiementController extends ApiInterface
         return $resultat;
     }
 
-    #[Route('/inite/ope', name: 'initie_ope', methods: ['POST'])]
+    #[Route('/inite/oep', name: 'initie_ope', methods: ['POST'])]
     /**
      * Permet d'initier l'ope
      */
@@ -687,6 +687,7 @@ class ApiPaiementController extends ApiInterface
 
                         new OA\Property(property: "etablissement", type: "string"),
                         new OA\Property(property: "email", type: "string"),
+                        new OA\Property(property: "user", type: "string"),
                         new OA\Property(property: "niveauIntervention", type: "string"),
                         new OA\Property(
                             property: "documents",

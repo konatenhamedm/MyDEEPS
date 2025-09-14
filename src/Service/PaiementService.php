@@ -153,7 +153,7 @@ class PaiementService
 
         $data = json_decode($request->getContent(), true);
         $transaction = $this->transactionRepository->findOneBy(['reference' => $data['codePaiement']]);
-        $etablissement = $transaction->getUser()->getPersonne();
+        $etablissement = $this->etablissementRepository->findOneBy(['id' => $transaction->getUser()->getPersonne()]);
 
         $transaction->setReferenceChannel($data['referencePaiement']);
         if ($data['code'] == 200) {
@@ -317,6 +317,7 @@ class PaiementService
 
         $transaction = new Transaction();
         $transaction->setChannel("");
+        $transaction->setUser($this->userRepository->find($request->get('user')));
         $transaction->setReference($this->genererNumero());
         $transaction->setMontant($montant);
         $transaction->setReferenceChannel("");
