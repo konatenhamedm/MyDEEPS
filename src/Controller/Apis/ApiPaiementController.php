@@ -714,7 +714,7 @@ class ApiPaiementController extends ApiInterface
         $names = 'document_' . '01';
         $filePrefix  = str_slug($names);
         $filePath = $this->getUploadDir(self::UPLOAD_PATH, true);
-        $uploadedFiles = $request->files->get('documents');
+        $uploadedFiles = $request->files;
 
         dd($uploadedFiles);
         // $etablissement = $etablissementRepository->find($request->get('perdsonneId'));
