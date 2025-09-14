@@ -161,7 +161,7 @@ class ApiPaiementController extends ApiInterface
                 ['user' => $userId, 'state' => 1],
                 ['createdAt' => 'DESC']
             );
-            if ($user->getType() == "PROFESSIONNEL") {
+            if ($user->getTypeUser() == "PROFESSIONNEL") {
                 $profession = $professionRepository->findOneByCode($user->getPersonne()->getProfession());
 
 
