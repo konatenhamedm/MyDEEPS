@@ -450,7 +450,7 @@ class PaiementService
                 $transaction->setUpdatedBy($user);
                 $this->transactionRepository->add($transaction, true);
 
-               
+
 
                 $this->em->persist($document);
                 $this->em->flush();
@@ -597,31 +597,32 @@ class PaiementService
     }
     public function updateEtablissement($reference)
     {
-
         $dataTemp = $this->tempEtablissementRepository->findOneBy(['reference' => $reference]);
-        $transaction = $this->transactionRepository->findOneBy(['reference' =>  $reference]);
-
+        $transaction = $this->transactionRepository->findOneBy(['reference' => $reference]);
 
         $etablissement = new Etablissement();
         $etablissement->setStatus('acp_attente_dossier_depot_service_courrier');
 
-
         // Informations générales
-        if ($dataTemp->getTypePersonne())
-            $etablissement->setTypePersonne($this->typePersonneRepository->findOneByCode($dataTemp->getTypePersonne()));
+        if ($dataTemp->getTypePersonne()) {
+            $etablissement->setTypePersonne(
+                $this->typePersonneRepository->findOneByCode($dataTemp->getTypePersonne())
+            );
+        }
 
         if ($dataTemp->getDocumentTemporaires()) {
             foreach ($dataTemp->getDocumentTemporaires() as $doc) {
                 $document = new Document();
-                $libelle = $doc->getLibelle() ?: 'Document sans libellé';
                 $document->setPath($doc->getPath());
-                $document->setLibelle($libelle);
+                $document->setLibelle($doc->getLibelle() ?: 'Document sans libellé');
                 $document->setLibelleGroupe($doc->getLibelleGroupe());
                 $etablissement->addDocument($document);
             }
         }
 
-        $etablissement->setNiveauIntervention($this->niveauInterventionRepository->find($dataTemp->getNiveauIntervention()));
+        $etablissement->setNiveauIntervention(
+            $this->niveauInterventionRepository->find($dataTemp->getNiveauIntervention())
+        );
         $etablissement->setDenomination($dataTemp->getDenomination());
         $etablissement->setNom($dataTemp->getNom());
         $etablissement->setPrenoms($dataTemp->getPrenoms());
@@ -632,12 +633,10 @@ class PaiementService
         $etablissement->setAdresse($dataTemp->getAdresse());
         $etablissement->setNomRepresentant($dataTemp->getNomRepresentant());
 
-
         $this->em->persist($etablissement);
         $this->em->flush();
 
-
-
+        // Création user
         $user = new User();
         $user->setUsername($dataTemp->getEmail());
         $user->setEmail($dataTemp->getEmail());
@@ -647,29 +646,34 @@ class PaiementService
         $user->setTypeUser(User::TYPE['ETABLISSEMENT']);
         $user->setPayement(User::PAYEMENT['payed']);
         $user->setCreatedBy($user);
+        $user->setCreatedAtValue(new DateTime());
         $user->setUpdatedBy($user);
         $this->em->persist($user);
         $this->em->flush();
 
         $etablissement->setCreatedBy($user);
+        $etablissement->setCreatedAtValue(new DateTime());
         $etablissement->setUpdatedBy($user);
         $this->em->persist($etablissement);
         $this->em->flush();
-
-
 
         $transaction->setUser($user);
         $transaction->setCreatedBy($user);
         $transaction->setUpdatedBy($user);
         $this->transactionRepository->add($transaction, true);
 
+      
+        foreach ($dataTemp->getDocumentTemporaires() as $doc) {
+            $this->em->remove($doc);
+        }
+        $this->em->remove($dataTemp);
+        $this->em->flush();
+
         $info_user = [
             'login' => $dataTemp->getEmail(),
-
         ];
 
         $context = compact('info_user');
-        // TO DO
         $this->sendMailService->send(
             'depps@myonmci.ci',
             $dataTemp->getEmail(),
@@ -678,11 +682,12 @@ class PaiementService
             $context
         );
 
-        return  [
+        return [
             'code' => 200,
             'data' => $etablissement
         ];
     }
+
 
     public function genererNumero(): string
     {
