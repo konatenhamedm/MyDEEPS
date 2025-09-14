@@ -97,6 +97,9 @@ class Etablissement extends Entite
     #[ORM\OneToMany(targetEntity: DocumentOep::class, mappedBy: 'etablissement')]
     private Collection $documentOeps;
 
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $dateValidation = null;
+
     public function __construct()
     {
         parent::__construct();
@@ -365,6 +368,18 @@ class Etablissement extends Entite
                 $documentOep->setEtablissement(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getDateValidation(): ?\DateTimeInterface
+    {
+        return $this->dateValidation;
+    }
+
+    public function setDateValidation(?\DateTimeInterface $dateValidation): static
+    {
+        $this->dateValidation = $dateValidation;
 
         return $this;
     }
