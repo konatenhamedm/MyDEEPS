@@ -25,7 +25,7 @@ class TypeDocumentRepository extends ServiceEntityRepository
         }
     }
 
-    
+
 
     public function remove(TypeDocument $entity, bool $flush = false): void
     {
@@ -36,17 +36,27 @@ class TypeDocumentRepository extends ServiceEntityRepository
         }
     }
 
-         public function findAllByLibelleGroupe(): array
-        {
-            return $this->createQueryBuilder('t')
-               ->innerJoin('t.libelleGroupe', 'lg')
-               ->groupBy('lg.libelle')
-               ->orderBy('t.id', 'ASC')
-               ->getQuery()
-                ->getResult()
-            ;
-       }
+    public function findAllByLibelleGroupe(): array
+    {
+        return $this->createQueryBuilder('t')
+            ->innerJoin('t.libelleGroupe', 'lg')
+            ->groupBy('lg.libelle')
+            ->orderBy('t.id', 'ASC')
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+    public function findByTypePersonneGrouped(int $typePersonneId): array
+    {
+        $qb = $this->createQueryBuilder('td')
+            ->join('td.libelleGroupe', 'lg')
+            ->join('td.typePersonne', 'tp')
+            ->andWhere('tp.id = :typePersonneId')
+            ->setParameter('typePersonneId', $typePersonneId)
+            ->orderBy('lg.libelle', 'ASC');
 
+        return $qb->getQuery()->getResult();
+    }
 
     //    /**
     //     * @return TypeDocument[] Returns an array of TypeDocument objects

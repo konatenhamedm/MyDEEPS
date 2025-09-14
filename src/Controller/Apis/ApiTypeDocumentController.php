@@ -23,6 +23,34 @@ use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 class ApiTypeDocumentController extends ApiInterface
 {
 
+    #[Route('/api/type-documents/{typePersonneId}', name: 'get_type_documents_by_type_personne', methods: ['GET'])]
+    #[OA\Response(
+        response: 200,
+        description: 'Returns the rewards of an user',
+        content: new OA\JsonContent(
+            type: 'array',
+            items: new OA\Items(ref: new Model(type: TypeDocument::class, groups: ['full']))
+        )
+    )]
+    #[OA\Tag(name: 'typeDocument')]
+    public function getByTypePersonne(
+        int $typePersonneId,
+        TypeDocumentRepository $typeDocumentRepository
+    ): JsonResponse {
+        $documents = $typeDocumentRepository->findByTypePersonneGrouped($typePersonneId);
+
+        $grouped = [];
+        foreach ($documents as $doc) {
+            $groupe = $doc->getLibelleGroupe()->getLibelle();
+            $grouped[$groupe][] = [
+                'id' => $doc->getId(),
+                'libelle' => $doc->getLibelle(),
+            ];
+        }
+
+        return $this->json($grouped);
+    }
+
     #[Route('/', methods: ['GET'])]
     /**
      * Retourne la liste des typeDocuments.
@@ -72,7 +100,7 @@ class ApiTypeDocumentController extends ApiInterface
         try {
 
             $typeDocuments = $typeDocumentRepository->findAllByLibelleGroupe();
-            
+
             $response =  $this->responseData($typeDocuments, 'group1', ['Content-Type' => 'application/json']);
         } catch (\Exception $exception) {
             $this->setMessage("");
@@ -254,7 +282,7 @@ class ApiTypeDocumentController extends ApiInterface
     )]
     #[OA\Tag(name: 'typeDocument')]
     #[Security(name: 'Bearer')]
-    public function update(Request $request,$id, LibelleGroupeRepository $libelleGroupeRepository, TypeDocumentRepository $typeDocumentRepository, TypePersonneRepository $typePersonneRepository): Response
+    public function update(Request $request, $id, LibelleGroupeRepository $libelleGroupeRepository, TypeDocumentRepository $typeDocumentRepository, TypePersonneRepository $typePersonneRepository): Response
     {
         try {
             $data = json_decode($request->getContent());
@@ -272,7 +300,7 @@ class ApiTypeDocumentController extends ApiInterface
                 $typeDocument->setUpdatedBy($this->userRepository->find($data->userUpdate));
                 $errorResponse = $this->errorResponse($typeDocument);
 
-                
+
                 if ($errorResponse !== null) {
                     return $errorResponse; // Retourne la réponse d'erreur si des erreurs sont présentes
                 } else {
