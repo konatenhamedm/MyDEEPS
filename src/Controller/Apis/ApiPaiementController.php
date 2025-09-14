@@ -731,9 +731,9 @@ class ApiPaiementController extends ApiInterface
                     ->setEtablissement($request->get('etablissement'))
                     ->setLibelleGroupe($this->em->getRepository(LibelleGroupe::class)->find($doc['libelleGroupe']));
 
-                if (isset($uploadedFiles[$index])) {
-                    if (!empty($uploadedFiles[$index]['path'])) {
-                        $uploadedFile = $uploadedFiles[$index]['path'];
+                if (isset($doc['path'])) {
+                    if (!empty($doc['path'])) {
+                        $uploadedFile = $doc['path'];
                         $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedFile, self::UPLOAD_PATH);
                         if ($fichier) {
                             $newDocument->setPath($fichier);
