@@ -147,6 +147,16 @@ class ApiEtablissementController extends ApiInterface
         return $response;
     }
 
+        public function genererCodeEtablissement(): string
+    {
+        $query = $this->em->createQueryBuilder();
+        $query->select("count(a.id)")
+            ->from(Etablissement::class, 'a');
+
+        $nb = $query->getQuery()->getSingleScalarResult();
+        return ('DEPPS' . date("y") . date("m") . date("d") . date("H") . date("i") . date("s") . str_pad($nb + 1, 3, '0', STR_PAD_LEFT));
+    }
+
     #[Route('/active/{id}', methods: ['PUT', 'POST'])]
     #[OA\Post(
         summary: "Accepter ou refuser un etablissement",
@@ -264,6 +274,11 @@ class ApiEtablissementController extends ApiInterface
 
                 // Enregistrer le rapport d'examen dans l'établissement
                 $etablissement->setRapportExamen($dto->rapportExamen);
+            }
+            if ($dto->status === "validation_finale") {
+                
+                // Enregistrer le rapport d'examen dans l'établissement
+                $etablissement->setCode($this->genererCodeEtablissement());
             }
 
             $etablissementRepository->add($etablissement, true);
