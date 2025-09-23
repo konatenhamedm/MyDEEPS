@@ -59,7 +59,7 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->andWhere('p.actived = :active')
             ->andWhere('i.id = :imputationId')
             ->setParameter('type', 'PROFESSIONNEL')
-            ->setParameter('active', true)
+            ->setParameter('active', 1)
             ->setParameter('imputationId', $imputationId)
             ->orderBy('u.id', 'DESC')
             ->getQuery()
@@ -73,7 +73,7 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->andWhere('u.typeUser = :type')
             ->andWhere('p.actived = :active')
             ->setParameter('type', 'PROFESSIONNEL')
-            ->setParameter('active', true)
+            ->setParameter('active', 1)
             ->orderBy('u.id', 'DESC')
             ->getQuery()
             ->getResult();
