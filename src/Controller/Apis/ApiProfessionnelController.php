@@ -151,11 +151,11 @@ class ApiProfessionnelController extends ApiInterface
             // Utilisation de deux appels booléens pour alléger la logique
             $existsInCodeGenerateur = $codeGenerateurRepository->findOneBy(['code' => $code]) !== null;
             $existsInProfessionnel = $professionnelRepository->findOneBy(['code' => $code]) !== null;
-    
+
             $this->setStatusCode(200);
-    
+
             return $this->response([
-                'verif'=> $code != '' ? true : false,
+                'verif' => $code != '' ? true : false,
                 'exsiteInProfessionnel' => $existsInProfessionnel,
                 'exsiteInCodeGenerateur' => $existsInCodeGenerateur,
             ]);
@@ -164,7 +164,7 @@ class ApiProfessionnelController extends ApiInterface
             return $this->response([]);
         }
     }
-    
+
     /* public function getExisteCode($code, ProfessionnelRepository $professionnelRepository, CodeGenerateurRepository $codeGenerateurRepository): Response
     {
         try {
@@ -233,7 +233,8 @@ class ApiProfessionnelController extends ApiInterface
         ProfessionRepository $professionRepository
     ): Response {
         try {
-            $professionnels = $userRepository->findBy(['typeUser' => 'PROFESSIONNEL'], ['id' => 'DESC']);
+            $professionnels = $userRepository->findActiveProfessionnelsByImputation($id);
+
 
             $formattedProfessionnels = array_filter(array_map(function ($professionnel) use ($professionRepository, $id) {
                 $personne = $professionnel->getPersonne();
@@ -334,7 +335,7 @@ class ApiProfessionnelController extends ApiInterface
     {
 
         try {
-            $professionnels = $userRepository->findBy(['typeUser' => 'PROFESSIONNEL'], ['id' => 'DESC']);
+            $professionnels = $userRepository->findActiveProfessionnelsByImputationWithouParam();
             //$professionnels = $userRepository->findBy(['typeUser' => 'PROFESSIONNEL'], ['id' => 'DESC']);
 
             $formattedProfessionnels = array_map(function ($professionnel) use ($professionRepository) {
@@ -693,7 +694,7 @@ class ApiProfessionnelController extends ApiInterface
                     'civilite' => $this->formatEntity($personne->getCivilite()),
                     'region' => $this->formatEntity($personne->getRegion()),
                     'district' => $this->formatEntity($personne->getDistrict()),
-                    'lieuObtentionDiplome' => $personne->getLieuObtentionDiplome()?  $this->formatEntity($personne->getLieuObtentionDiplome()) :null,
+                    'lieuObtentionDiplome' => $personne->getLieuObtentionDiplome() ?  $this->formatEntity($personne->getLieuObtentionDiplome()) : null,
                     'commune' => $personne->getCommune() ?  $this->formatEntity($personne->getCommune()) : null,
                     'ville' => $this->formatEntity($personne->getVille()),
                     'nationate' => $this->formatEntity($personne->getNationate()),
@@ -910,7 +911,7 @@ class ApiProfessionnelController extends ApiInterface
             $professionnel = new Professionnel();
 
             //ETAPE 2
-            if ($request->get('code') && $codeGenerateurRepository->findOneBy(['code'=> $request->get('code')])) {
+            if ($request->get('code') && $codeGenerateurRepository->findOneBy(['code' => $request->get('code')])) {
                 $professionnel->setCode($request->get('code'));
                 $professionnel->setStatus("renouvellement");
             } else {
@@ -1362,17 +1363,76 @@ class ApiProfessionnelController extends ApiInterface
     )]
     #[OA\Tag(name: 'professionnel')]
     //#[Security(name: 'Bearer')]
-    public function delete(Request $request, Professionnel $professionnel, ProfessionnelRepository $villeRepository): Response
+    public function delete(Request $request, Professionnel $professionnel, ProfessionnelRepository $professionnelRepository): Response
     {
         try {
 
             if ($professionnel != null) {
 
-                $villeRepository->remove($professionnel, true);
+                $professionnelRepository->remove($professionnel, true);
 
                 // On retourne la confirmation
                 $this->setMessage("Operation effectuées avec success");
-                $response = $this->response($professionnel);
+                $response = $this->responseData([
+
+                    'id' => $professionnel->getId(),
+                    'code' => $professionnel->getCode(),
+                    'status' => $professionnel->getStatus(),
+                    'nom' => $professionnel->getNom(),
+                    'prenom' => $professionnel->getPrenoms(),
+                    'email' => $professionnel->getEmail(),
+                    'professionnel' => $professionnel->getProfessionnel(),
+
+                ], 'group_pro', ['Content-Type' => 'application/json']);
+            } else {
+                $this->setMessage("Cette ressource est inexistante");
+                $this->setStatusCode(300);
+                $response = $this->response('[]');
+            }
+        } catch (\Exception $exception) {
+            $this->setMessage("");
+            $response = $this->response('[]');
+        }
+        return $response;
+    }
+    #[Route('/desactive/{id}',  methods: ['DELETE'])]
+    /**
+     * permet de supprimer un(e) professionnel.
+     */
+    #[OA\Response(
+        response: 200,
+        description: 'permet de supprimer un(e) professionnel',
+        content: new OA\JsonContent(
+            type: 'array',
+            items: new OA\Items(ref: new Model(type: Professionnel::class, groups: ['full']))
+        )
+    )]
+    #[OA\Tag(name: 'professionnel')]
+    //#[Security(name: 'Bearer')]
+    public function desactive(Request $request, Professionnel $professionnel, ProfessionnelRepository $professionnelRepository): Response
+    {
+        try {
+
+            if ($professionnel != null) {
+
+                $professionnel->setActived(false);
+
+                $professionnelRepository->add($professionnel, true);
+
+                // On retourne la confirmation
+                $this->setMessage("Operation effectuées avec success");
+
+                $response = $this->responseData([
+
+                    'id' => $professionnel->getId(),
+                    'code' => $professionnel->getCode(),
+                    'status' => $professionnel->getStatus(),
+                    'nom' => $professionnel->getNom(),
+                    'prenom' => $professionnel->getPrenoms(),
+                    'email' => $professionnel->getEmail(),
+                    'professionnel' => $professionnel->getProfessionnel(),
+
+                ], 'group_pro', ['Content-Type' => 'application/json']);
             } else {
                 $this->setMessage("Cette ressource est inexistante");
                 $this->setStatusCode(300);

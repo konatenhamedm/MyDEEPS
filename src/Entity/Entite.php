@@ -70,6 +70,9 @@ class Entite
     #[ORM\OneToMany(targetEntity: ValidationWorkflow::class, mappedBy: 'personne')]
     private Collection $validationWorkflows;
 
+    #[ORM\Column(nullable: true)]
+    private ?bool $actived = null;
+
  
     public function __construct()
     {
@@ -190,6 +193,18 @@ class Entite
                 $validationWorkflow->setPersonne(null);
             }
         }
+
+        return $this;
+    }
+
+    public function isActived(): ?bool
+    {
+        return $this->actived;
+    }
+
+    public function setActived(?bool $actived): static
+    {
+        $this->actived = $actived;
 
         return $this;
     }

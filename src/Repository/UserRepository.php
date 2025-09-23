@@ -50,6 +50,35 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         $this->getEntityManager()->flush();
     }
 
+    public function findActiveProfessionnelsByImputation(int $imputationId): array
+    {
+        return $this->createQueryBuilder('u')
+            ->innerJoin('u.personne', 'p')
+            ->innerJoin('p.imputation', 'i')
+            ->andWhere('u.typeUser = :type')
+            ->andWhere('u.actived = :active')
+            ->andWhere('i.id = :imputationId')
+            ->setParameter('type', 'PROFESSIONNEL')
+            ->setParameter('active', true)
+            ->setParameter('imputationId', $imputationId)
+            ->orderBy('u.id', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+    public function findActiveProfessionnelsByImputationWithouParam(): array
+    {
+        return $this->createQueryBuilder('u')
+            ->innerJoin('u.personne', 'p')
+            ->innerJoin('p.imputation', 'i')
+            ->andWhere('u.typeUser = :type')
+            ->andWhere('u.actived = :active')
+            ->setParameter('type', 'PROFESSIONNEL')
+            ->setParameter('active', true)
+            ->orderBy('u.id', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
     //    /**
     //     * @return User[] Returns an array of User objects
     //     */
@@ -74,7 +103,7 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->andWhere('u.roles LIKE :role')
             /* ->andWhere('u.typeUser = :typeUser') */
             ->setParameter('role', '%"ROLE_ADMIN"%')
-           /*  ->setParameter('typeUser', 'ADMINISTRATEUR') */
+            /*  ->setParameter('typeUser', 'ADMINISTRATEUR') */
             ->getQuery()
             ->getResult();
     }
@@ -82,14 +111,14 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     {
 
         //$professionnels = $userRepository->findBy(['typeUser' => 'PROFESSIONNEL','imputation'=> $id], ['id' => 'DESC']);
-        
+
         return $this->createQueryBuilder('u')
-            ->innerJoin('u.personne','p')
+            ->innerJoin('u.personne', 'p')
             ->andWhere('u.typeUser = :typeUser')
             ->andWhere('p.imputation = :imputation')
             ->setParameter('imputation', $imputation)
             ->setParameter('typeUser', 'PROFESSIONNEL')
-            ->orderBy('u.id ','DESC')
+            ->orderBy('u.id ', 'DESC')
             ->getQuery()
             ->getResult();
     }
