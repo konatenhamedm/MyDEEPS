@@ -65,7 +65,7 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->getQuery()
             ->getResult();
     }
-    public function findActiveProfessionnelsByImputationWithouParam(): array
+    public function findActiveProfessionnelsByImputationWithouParam()
     {
         return $this->createQueryBuilder('u')
             ->innerJoin('u.personne', 'p')
