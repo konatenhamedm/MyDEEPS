@@ -71,6 +71,7 @@ class Entite
     private Collection $validationWorkflows;
 
     #[ORM\Column(nullable: true)]
+    #[Group(["group_pro"])]
     private ?bool $actived = null;
 
  
