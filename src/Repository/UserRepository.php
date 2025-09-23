@@ -73,7 +73,7 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->andWhere('u.typeUser = :type')
             ->andWhere('u.actived = :active')
             ->setParameter('type', 'PROFESSIONNEL')
-            ->setParameter('active', 1)
+            ->setParameter('active', true)
             ->orderBy('u.id', 'DESC')
             ->getQuery()
             ->getResult();
