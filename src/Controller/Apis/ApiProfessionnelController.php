@@ -338,7 +338,7 @@ class ApiProfessionnelController extends ApiInterface
             $professionnels = $userRepository->findActiveProfessionnelsByImputationWithouParam();
             //$professionnels = $userRepository->findBy(['typeUser' => 'PROFESSIONNEL'], ['id' => 'DESC']);
 
-          
+          dd($professionnels);
 
             $formattedProfessionnels = array_map(function ($professionnel) use ($professionRepository) {
                 $personne = $professionnel->getPersonne();
