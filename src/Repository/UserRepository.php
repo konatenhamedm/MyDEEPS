@@ -54,10 +54,10 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     {
         return $this->createQueryBuilder('u')
             ->innerJoin('u.personne', 'p')
-            ->leftJoin('p.imputation', 'i')
             ->andWhere('u.typeUser = :type')
             ->andWhere('p.actived = :active')
-            ->andWhere('i.id = :imputationId')
+            ->andWhere('p INSTANCE OF App\Entity\Professionnel')  // 🔥 on cible bien les Pros
+            ->andWhere('p.imputation = :imputationId')
             ->setParameter('type', 'PROFESSIONNEL')
             ->setParameter('active', 1)
             ->setParameter('imputationId', $imputationId)
@@ -65,17 +65,18 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->getQuery()
             ->getResult();
     }
+
     public function findActiveProfessionnelsByImputationWithouParam()
     {
         return $this->createQueryBuilder('u')
             ->innerJoin('u.personne', 'p')
-           /* ->leftJoin('p.imputation', 'i') */
-         ->andWhere('p.actived = :active') 
-         
-         
+            /* ->leftJoin('p.imputation', 'i') */
+            ->andWhere('p.actived = :active')
+
+
             ->andWhere('u.typeUser = :type')
             ->setParameter('type', 'PROFESSIONNEL')
-            ->setParameter('active', 1) 
+            ->setParameter('active', 1)
             ->orderBy('u.id', 'DESC')
             ->getQuery()
             ->getResult();
