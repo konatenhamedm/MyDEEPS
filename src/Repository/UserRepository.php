@@ -70,10 +70,12 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         return $this->createQueryBuilder('u')
             ->innerJoin('u.personne', 'p')
          /*    ->leftJoin('p.imputation', 'i')
+         ->andWhere('p.actived = :active')
+         
+         */
             ->andWhere('u.typeUser = :type')
-            ->andWhere('p.actived = :active')
             ->setParameter('type', 'PROFESSIONNEL')
-            ->setParameter('active', 1) */
+           /*  ->setParameter('active', 1)  */
             ->orderBy('u.id', 'DESC')
             ->getQuery()
             ->getResult();
