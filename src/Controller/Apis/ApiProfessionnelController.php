@@ -1395,7 +1395,7 @@ class ApiProfessionnelController extends ApiInterface
         }
         return $response;
     }
-    #[Route('/desactive/{id}',  methods: ['DELETE'])]
+    #[Route('/desactive/{id}',  methods: ['PUT', 'POST'])]
     /**
      * permet de supprimer un(e) professionnel.
      */
