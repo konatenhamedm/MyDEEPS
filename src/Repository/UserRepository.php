@@ -105,11 +105,24 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         return $this->createQueryBuilder('u')
             ->andWhere('u.roles LIKE :role')
             /* ->andWhere('u.typeUser = :typeUser') */
+             ->andWhere('u.deletedAt IS NOT NULL')
             ->setParameter('role', '%"ROLE_ADMIN"%')
             /*  ->setParameter('typeUser', 'ADMINISTRATEUR') */
             ->getQuery()
             ->getResult();
     }
+    public function getUserByRoleExterne()
+    {
+        return $this->createQueryBuilder('u')
+            ->andWhere('u.roles NOT LIKE :role')
+            ->andWhere('u.deletedAt IS NOT NULL')
+            // ->andWhere('u.typeUser = :typeUser') // si besoin
+            ->setParameter('role', '%"ROLE_ADMIN"%')
+            // ->setParameter('typeUser', 'ADMINISTRATEUR')
+            ->getQuery()
+            ->getResult();
+    }
+
     public function getAllProfessionnelImputation($imputation)
     {
 

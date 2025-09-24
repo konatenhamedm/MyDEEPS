@@ -11,6 +11,7 @@ use App\Repository\AdministrateurRepository;
 use App\Repository\ResetPasswordTokenRepository;
 use App\Repository\UserRepository;
 use App\Service\ResetPasswordService;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -152,6 +153,37 @@ class ApiUserController extends ApiInterface
 
 
             $users = $userRepository->getUserByRole();
+
+            $response = $this->responseData($users, 'group_user', ['Content-Type' => 'application/json']);
+        } catch (\Exception $exception) {
+            $this->setMessage("");
+            $response = $this->response('[]');
+        }
+
+        // On envoie la réponse
+        return $response;
+    }
+    #[Route('/get/user/externe', methods: ['GET'])]
+    /**
+     * Retourne la liste des users admin.
+     * 
+     */
+    #[OA\Response(
+        response: 200,
+        description: 'Returns the rewards of an user',
+        content: new OA\JsonContent(
+            type: 'array',
+            items: new OA\Items(ref: new Model(type: User::class, groups: ['full']))
+        )
+    )]
+    #[OA\Tag(name: 'user')]
+    // #[Security(name: 'Bearer')]
+    public function indexUserExterne(UserRepository $userRepository): Response
+    {
+        try {
+
+
+            $users = $userRepository->getUserByRoleExterne();
 
             $response = $this->responseData($users, 'group_user', ['Content-Type' => 'application/json']);
         } catch (\Exception $exception) {
@@ -671,13 +703,53 @@ class ApiUserController extends ApiInterface
     )]
     #[OA\Tag(name: 'user')]
     //#[Security(name: 'Bearer')]
-    public function delete(Request $request, User $user, UserRepository $villeRepository): Response
+    public function delete(Request $request, User $user, UserRepository $userRepository): Response
     {
         try {
 
             if ($user != null) {
 
-                $villeRepository->remove($user, true);
+                $user->setDeleteAt(new DateTime());
+                $user->setEmail($user->getUserIdentifier() . '.' . $user->getId());
+                $userRepository->add($user, true);
+
+                // On retourne la confirmation
+                $this->setMessage("Operation effectuées avec success");
+                $response = $this->response($user->getId());
+            } else {
+                $this->setMessage("Cette ressource est inexistante");
+                $this->setStatusCode(300);
+                $response = $this->response('[]');
+            }
+        } catch (\Exception $exception) {
+            $this->setMessage("");
+            $response = $this->response('[]');
+        }
+        return $response;
+    }
+    #[Route('/delete/user/externe/{id}',  methods: ['DELETE'])]
+    /**
+     * permet de supprimer un(e) user.
+     */
+    #[OA\Response(
+        response: 200,
+        description: 'permet de supprimer un(e) user',
+        content: new OA\JsonContent(
+            type: 'array',
+            items: new OA\Items(ref: new Model(type: User::class, groups: ['full']))
+        )
+    )]
+    #[OA\Tag(name: 'user')]
+    //#[Security(name: 'Bearer')]
+    public function deleteUserExterne(Request $request, User $user, UserRepository $userRepository): Response
+    {
+        try {
+
+            if ($user != null) {
+
+                $user->setDeleteAt(new DateTime());
+                $user->setEmail($user->getUserIdentifier() . '.' . $user->getId());
+                $userRepository->add($user, true);
 
                 // On retourne la confirmation
                 $this->setMessage("Operation effectuées avec success");

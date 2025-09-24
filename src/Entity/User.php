@@ -155,6 +155,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: Etablissement::class, mappedBy: 'imputation')]
     private Collection $etablissements;
 
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $deleteAt = null;
+
 
     public function __construct()
     {
@@ -616,6 +619,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
                 $etablissement->setImputation(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getDeleteAt(): ?\DateTimeInterface
+    {
+        return $this->deleteAt;
+    }
+
+    public function setDeleteAt(?\DateTimeInterface $deleteAt): static
+    {
+        $this->deleteAt = $deleteAt;
 
         return $this;
     }
