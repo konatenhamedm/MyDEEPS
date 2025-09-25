@@ -278,7 +278,7 @@ class PaiementService
                 "prenom_usager" => "Mydepps",
                 "telephone" => "0704314164",
                 "email" => $request->get('email'),
-                "libelle_article" => "DEMANDE D'ADHESION",
+                "libelle_article" => "DEMANDE D'ACCORD DE PRINCIPE",
                 "quantite" => 1,
                 "montant" => $montant,
                 "lib_order" => "PAIEMENT ONMCI",

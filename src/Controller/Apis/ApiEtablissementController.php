@@ -341,6 +341,8 @@ class ApiEtablissementController extends ApiInterface
                 $userRepository->find($dto->userUpdate)
             );
 
+            //$sendMailService->sendNotification("votre compte vient d'être valider pour l'etape " . $dto->status, $userRepository->findOneBy(['personne' => $professionnel->getId()]), $userRepository->find($data['userUpdate']));
+
             return $this->responseData($info_user, 'group_pro', ['Content-Type' => 'application/json']);
         } catch (\Exception $exception) {
             return $this->json([
