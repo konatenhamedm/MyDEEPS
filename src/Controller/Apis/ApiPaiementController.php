@@ -122,9 +122,9 @@ class ApiPaiementController extends ApiInterface
                     ] : [
                         "code" => $personne->getCode(),
                         "email" => $personne->getEmail(),
-                        "nom" => $$personne->getTypeSociete()->getLibelle() == "PHYSIQUE" ? $personne->getNom() : "",
-                        "denomination" => $$personne->getTypeSociete()->getLibelle() == "MORALE" ? $personne->getDenomination() : "",
-                        "prenoms" => $$personne->getTypeSociete()->getLibelle() == "PHYSIQUE" ? $personne->getPrenoms() : "",
+                        "nom" => $personne->getTypeSociete()->getLibelle() == "PHYSIQUE" ? $personne->getNom() : "",
+                        "denomination" => $personne->getTypeSociete()->getLibelle() == "MORALE" ? $personne->getDenomination() : "",
+                        "prenoms" => $personne->getTypeSociete()->getLibelle() == "PHYSIQUE" ? $personne->getPrenoms() : "",
                         "createdAt" => $personne->getCreatedAt()->format('Y-m-d H:i:s')
                     ],
 
