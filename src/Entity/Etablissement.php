@@ -17,7 +17,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 class Etablissement extends Entite
 {
     #[ORM\ManyToOne(inversedBy: 'etablissements')]
-    #[Group(["group_pro"])]
+    #[Group(["group_pro","group_user"])]
     private ?TypePersonne $typePersonne = null;
 
     /**
@@ -28,11 +28,11 @@ class Etablissement extends Entite
     private Collection $documents;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Group(["group_pro"])]
+    #[Group(["group_pro","group_user"])]
     private ?string $nom = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Group(["group_pro"])]
+    #[Group(["group_pro","group_user"])]
     private ?string $prenoms = null;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -52,7 +52,7 @@ class Etablissement extends Entite
     private ?string $typeSociete = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Group(["group_pro"])]
+    #[Group(["group_pro","group_user"])]
     private ?string $denomination = null;
 
     #[ORM\Column(length: 255, nullable: true)]
