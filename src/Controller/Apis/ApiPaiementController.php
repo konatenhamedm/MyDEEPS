@@ -35,7 +35,7 @@ class ApiPaiementController extends ApiInterface
 {
 
 
-    #[Route('/historique', methods: ['GET'])]
+    #[Route('/historique/{type}', methods: ['GET'])]
     /**
      * liste historique.
      * 
@@ -50,7 +50,7 @@ class ApiPaiementController extends ApiInterface
     )]
     #[OA\Tag(name: 'paiements')]
     // #[Security(name: 'Bearer')]
-    public function index(TransactionRepository $transactionRepository, ProfessionRepository $professionRepository): Response
+    public function index(TransactionRepository $transactionRepository, ProfessionRepository $professionRepository, $type): Response
     {
         try {
 
@@ -85,10 +85,10 @@ class ApiPaiementController extends ApiInterface
                 "createdAt": "2025-05-09T13:08:52+02:00"
             }, */
 
-            $transactions = $transactionRepository->getAllTransaction();
+            $transactions = $transactionRepository->getAllTransaction($type);
 
 
-            $formattedTransactions = array_map(function (Transaction $transaction) use ($professionRepository) {
+            $formattedTransactions = array_map(function (Transaction $transaction) use ($professionRepository, $type) {
                 $personne = $transaction->getUser()->getPersonne();
                 $profession = $personne->getProfession() ? $professionRepository->findOneByCode($personne->getProfession()) : null;
 
@@ -102,7 +102,7 @@ class ApiPaiementController extends ApiInterface
                     "typeUser" => $transaction->getUser()->getTypeUser(),
                     "createdAt" => $transaction->getCreatedAt()->format('Y-m-d H:i:s'),
                     "email" => $transaction->getUser()->getEmail(),
-                    'personne' => [
+                    'personne' => $type == "professionnel" ? [
                         'profession' => $profession ? [
                             'libelle' => $profession->getLibelle() ?? "",
                             'id' => $profession->getId(),
@@ -120,7 +120,11 @@ class ApiPaiementController extends ApiInterface
                         "quartier" => $personne->getQuartier(),
                         "id" => $personne->getId(),
                         "createdAt" => $personne->getCreatedAt()->format('Y-m-d H:i:s')
-                    ] ?? null,
+                    ] : [
+                        "code" => $personne->getCode(),
+                         "email" => $personne->getEmail(),
+                        "createdAt" => $personne->getCreatedAt()->format('Y-m-d H:i:s')
+                    ],
 
                 ];
             }, $transactions);
