@@ -120,7 +120,8 @@ class ApiPaiementController extends ApiInterface
                         "number" => $personne->getNumber(),
                         "quartier" => $personne->getQuartier(),
                         "id" => $personne->getId(),
-                        "createdAt" => $personne->getCreatedAt()->format('Y-m-d H:i:s')
+                        "data" => json_decode($transaction->getData() ?? "[]", true),
+                        "createdAt" =>  $personne->getCreatedAt() ? $personne->getCreatedAt()->format('Y-m-d H:i:s'):null
                     ] : [
                         "code" => $personne->getCode(),
                         "email" => $personne->getEmail(),
