@@ -130,7 +130,8 @@ class ApiPaiementController extends ApiInterface
                         "nom" => $personne->getTypePersonne()->getLibelle() == "PHYSIQUE" ? $personne->getNom() : "",
                         "denomination" => $personne->getTypePersonne()->getLibelle() == "MORALE" ? $personne->getDenomination() : "",
                         "prenoms" => $personne->getTypePersonne()->getLibelle() == "PHYSIQUE" ? $personne->getPrenoms() : "",
-                        "createdAt" => $personne->getCreatedAt() ?  $personne->getCreatedAt()->format('Y-m-d H:i:s') : null
+                        "createdAt" => $personne->getCreatedAt() ?  $personne->getCreatedAt()->format('Y-m-d H:i:s') : null,
+                        "data" => json_decode($transaction->getData() ?? "[]", true),
                     ],
                     
 
