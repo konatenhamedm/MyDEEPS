@@ -91,6 +91,7 @@ class ApiPaiementController extends ApiInterface
             $formattedTransactions = array_map(function (Transaction $transaction) use ($professionRepository, $type) {
                 $personne = $transaction->getUser()->getPersonne();
                 $profession =  $type == "professionnel" ? $personne->getProfession() ? $professionRepository->findOneByCode($personne->getProfession()) : null : null;
+                dd($personne);
                 return [
                     "montant" => $transaction->getMontant(),
                     "reference" => $transaction->getReference(),
