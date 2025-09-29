@@ -124,7 +124,7 @@ class ApiPaiementController extends ApiInterface
                     ] : [
                         "code" => $personne->getCode(),
                         "email" => $personne->getEmail(),
-                        "number" => $personne->getNumber(),
+                       /*  "number" => $personne->getNumber(), */
                         "typePersonne"=> $personne->getTypePersonne()->getLibelle(),
                         "typeUser"=> $transaction->getUser()->getTypeUser(),
                         "nom" => $personne->getTypePersonne()->getLibelle() == "PHYSIQUE" ? $personne->getNom() : "",
