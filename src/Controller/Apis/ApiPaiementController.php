@@ -122,7 +122,10 @@ class ApiPaiementController extends ApiInterface
                         "createdAt" => $personne->getCreatedAt()->format('Y-m-d H:i:s')
                     ] : [
                         "code" => $personne->getCode(),
-                         "email" => $personne->getEmail(),
+                        "email" => $personne->getEmail(),
+                        "nom" => $$personne->getTypeSociete()->getLibelle() == "PHYSIQUE" ? $personne->getNom() : "",
+                        "denomination" => $$personne->getTypeSociete()->getLibelle() == "MORALE" ? $personne->getDenomination() : "",
+                        "prenoms" => $$personne->getTypeSociete()->getLibelle() == "PHYSIQUE" ? $personne->getPrenoms() : "",
                         "createdAt" => $personne->getCreatedAt()->format('Y-m-d H:i:s')
                     ],
 
@@ -976,16 +979,16 @@ class ApiPaiementController extends ApiInterface
                         'path',
                     ]; */
 
-                  /*   foreach ($fileKeys as $key) { */
-                        if (!empty($uploadedFiles[$index]['path'])) {
-                            $uploadedFile = $uploadedFiles[$index]['path'];
-                            $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedFile, self::UPLOAD_PATH);
-                            if ($fichier) {
-                             /*    $setter = 'set' . ucfirst($key); */
-                                $newDocument->setPath($fichier);
-                            }
+                    /*   foreach ($fileKeys as $key) { */
+                    if (!empty($uploadedFiles[$index]['path'])) {
+                        $uploadedFile = $uploadedFiles[$index]['path'];
+                        $fichier = $this->utils->sauvegardeFichier($filePath, $filePrefix, $uploadedFile, self::UPLOAD_PATH);
+                        if ($fichier) {
+                            /*    $setter = 'set' . ucfirst($key); */
+                            $newDocument->setPath($fichier);
                         }
-                  /*   } */
+                    }
+                    /*   } */
                 }
 
                 $etablissement->addDocumentTemporaire($newDocument);
