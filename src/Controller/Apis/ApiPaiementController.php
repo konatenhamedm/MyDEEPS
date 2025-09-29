@@ -92,7 +92,7 @@ class ApiPaiementController extends ApiInterface
                 $personne = $transaction->getUser()->getPersonne();
 
                 // Cas professionnel
-                $profession = $type == "professionnel" || $type == "admin"
+                $profession = $personne->getTypeUser() == "professionnel" 
                     ? ($personne->getProfession() ? $professionRepository->findOneByCode($personne->getProfession()) : null)
                     : null;
 
