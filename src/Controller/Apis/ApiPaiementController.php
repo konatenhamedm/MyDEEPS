@@ -90,8 +90,12 @@ class ApiPaiementController extends ApiInterface
 
             $formattedTransactions = array_map(function (Transaction $transaction) use ($professionRepository, $type) {
                 $personne = $transaction->getUser()->getPersonne();
-                $profession =  $type == "professionnel" ? $personne->getProfession() ? $professionRepository->findOneByCode($personne->getProfession()) : null : null;
-                //dd($personne);
+
+                // Cas professionnel
+                $profession = $type == "professionnel" || $type == "admin"
+                    ? ($personne->getProfession() ? $professionRepository->findOneByCode($personne->getProfession()) : null)
+                    : null;
+
                 return [
                     "montant" => $transaction->getMontant(),
                     "reference" => $transaction->getReference(),
@@ -102,7 +106,9 @@ class ApiPaiementController extends ApiInterface
                     "typeUser" => $transaction->getUser()->getTypeUser(),
                     "createdAt" => $transaction->getCreatedAt()->format('Y-m-d H:i:s'),
                     "email" => $transaction->getUser()->getEmail(),
-                    'user' => $type == "professionnel" ? [
+
+                    "user" => $type == "professionnel" ? [
+                        // bloc professionnel
                         'profession' => $profession ? [
                             'libelle' => $profession->getLibelle() ?? "",
                             'id' => $profession->getId(),
@@ -110,7 +116,7 @@ class ApiPaiementController extends ApiInterface
                             'montantNouvelleDemande' => $profession->getMontantNouvelleDemande(),
                             'montantRenouvellement' => $profession->getMontantRenouvellement(),
                         ] : null,
-                        "typeUser"=> $transaction->getUser()->getTypeUser(),
+                        "typeUser" => $transaction->getUser()->getTypeUser(),
                         "code" => $personne->getCode(),
                         "poleSanitaire" => $personne->getPoleSanitaire(),
                         "nom" => $personne->getNom(),
@@ -121,23 +127,60 @@ class ApiPaiementController extends ApiInterface
                         "quartier" => $personne->getQuartier(),
                         "id" => $personne->getId(),
                         "data" => json_decode($transaction->getData() ?? "[]", true),
-                        "createdAt" =>  $personne->getCreatedAt() ? $personne->getCreatedAt()->format('Y-m-d H:i:s'):null
-                    ] : [
+                        "createdAt" => $personne->getCreatedAt()?->format('Y-m-d H:i:s'),
+                    ] : ($type == "etablissement" ? [
+                        // bloc établissement
                         "code" => $personne->getCode(),
                         "email" => $personne->getEmail(),
-                       /*  "number" => $personne->getNumber(), */
-                        "typePersonne"=> $personne->getTypePersonne()->getLibelle(),
-                        "typeUser"=> $transaction->getUser()->getTypeUser(),
+                        "typePersonne" => $personne->getTypePersonne()->getLibelle(),
+                        "typeUser" => $transaction->getUser()->getTypeUser(),
                         "nom" => $personne->getTypePersonne()->getLibelle() == "PHYSIQUE" ? $personne->getNom() : "",
                         "denomination" => $personne->getTypePersonne()->getLibelle() == "MORALE" ? $personne->getDenomination() : "",
                         "prenoms" => $personne->getTypePersonne()->getLibelle() == "PHYSIQUE" ? $personne->getPrenoms() : "",
-                        "createdAt" => $personne->getCreatedAt() ?  $personne->getCreatedAt()->format('Y-m-d H:i:s') : null,
+                        "createdAt" => $personne->getCreatedAt()?->format('Y-m-d H:i:s'),
                         "data" => json_decode($transaction->getData() ?? "[]", true),
-                    ],
-                    
+                    ] : ($type == "admin" ? (
 
+                        $transaction->getUser()->getTypeUser() === "PROFESSIONNEL" ? [
+                            'profession' => $profession ? [
+                                'libelle' => $profession->getLibelle() ?? "",
+                                'id' => $profession->getId(),
+                                'code' => $profession->getCode(),
+                                'montantNouvelleDemande' => $profession->getMontantNouvelleDemande(),
+                                'montantRenouvellement' => $profession->getMontantRenouvellement(),
+                            ] : null,
+                            "typeUser" => $transaction->getUser()->getTypeUser(),
+                            "code" => $personne->getCode(),
+                            "poleSanitaire" => $personne->getPoleSanitaire(),
+                            "nom" => $personne->getNom(),
+                            "prenoms" => $personne->getPrenoms(),
+                            "lieuExercicePro" => $personne->getLieuExercicePro(),
+                            "email" => $personne->getEmail(),
+                            "number" => $personne->getNumber(),
+                            "quartier" => $personne->getQuartier(),
+                            "id" => $personne->getId(),
+                            "data" => json_decode($transaction->getData() ?? "[]", true),
+                            "createdAt" => $personne->getCreatedAt()?->format('Y-m-d H:i:s'),
+                        ] : [
+                            "code" => $personne->getCode(),
+                            "email" => $personne->getEmail(),
+                            "typePersonne" => $personne->getTypePersonne()->getLibelle(),
+                            "typeUser" => $transaction->getUser()->getTypeUser(),
+                            "nom" => $personne->getTypePersonne()->getLibelle() == "PHYSIQUE" ? $personne->getNom() : "",
+                            "denomination" => $personne->getTypePersonne()->getLibelle() == "MORALE" ? $personne->getDenomination() : "",
+                            "prenoms" => $personne->getTypePersonne()->getLibelle() == "PHYSIQUE" ? $personne->getPrenoms() : "",
+                            "createdAt" => $personne->getCreatedAt()?->format('Y-m-d H:i:s'),
+                            "data" => json_decode($transaction->getData() ?? "[]", true),
+                        ]
+                    ) : [
+                        // fallback
+                        "code" => $personne->getCode(),
+                        "email" => $personne->getEmail(),
+                        "typePersonne" => $personne->getTypePersonne()->getLibelle(),
+                    ])),
                 ];
             }, $transactions);
+
 
             $response = $this->responseData($formattedTransactions, 'group_user_trx', ['Content-Type' => 'application/json']);
         } catch (\Exception $exception) {

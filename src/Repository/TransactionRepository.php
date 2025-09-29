@@ -131,17 +131,26 @@ class TransactionRepository extends ServiceEntityRepository
 
     public function getAllTransaction($type): array
     {
-        return $this->createQueryBuilder('t')
-            ->andWhere('t.user is not null')
-            ->andWhere('t.state = :state')
-            ->andWhere('t.typeUser = :type')
-            ->setParameter('state', 1)
-            ->setParameter('type', $type)
-            ->orderBy('t.id', 'ASC')
+        if ($type == 'ADMIN') {
+            $query = $this->createQueryBuilder('t')
+                ->andWhere('t.user is not null')
+                ->andWhere('t.state = :state')
+                ->setParameter('state', 1)
+                ->orderBy('t.id', 'ASC');
+        } else {
+            $query = $this->createQueryBuilder('t')
+                ->andWhere('t.user is not null')
+                ->andWhere('t.state = :state')
+                ->andWhere('t.typeUser = :type')
+                ->setParameter('state', 1)
+                ->setParameter('type', $type)
+                ->orderBy('t.id', 'ASC')
 
-            ->getQuery()
-            ->getResult()
-        ;
+                ->getQuery()
+                ->getResult();
+        }
+
+        return $query->getQuery()->getResult();
     }
     public function getAllTransactionByUser($user): array
     {
