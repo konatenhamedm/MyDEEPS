@@ -91,7 +91,7 @@ class ApiPaiementController extends ApiInterface
             $formattedTransactions = array_map(function (Transaction $transaction) use ($professionRepository, $type) {
                 $personne = $transaction->getUser()->getPersonne();
                 $profession =  $type == "professionnel" ? $personne->getProfession() ? $professionRepository->findOneByCode($personne->getProfession()) : null : null;
-                dd($personne);
+                //dd($personne);
                 return [
                     "montant" => $transaction->getMontant(),
                     "reference" => $transaction->getReference(),
@@ -123,9 +123,9 @@ class ApiPaiementController extends ApiInterface
                     ] : [
                         "code" => $personne->getCode(),
                         "email" => $personne->getEmail(),
-                        "nom" => $personne->getTypeSociete()->getLibelle() == "PHYSIQUE" ? $personne->getNom() : "",
-                        "denomination" => $personne->getTypeSociete()->getLibelle() == "MORALE" ? $personne->getDenomination() : "",
-                        "prenoms" => $personne->getTypeSociete()->getLibelle() == "PHYSIQUE" ? $personne->getPrenoms() : "",
+                        "nom" => $personne->getTypePersonne()->getLibelle() == "PHYSIQUE" ? $personne->getNom() : "",
+                        "denomination" => $personne->getTypePersonne()->getLibelle() == "MORALE" ? $personne->getDenomination() : "",
+                        "prenoms" => $personne->getTypePersonne()->getLibelle() == "PHYSIQUE" ? $personne->getPrenoms() : "",
                         "createdAt" => $personne->getCreatedAt()->format('Y-m-d H:i:s')
                     ],
 
