@@ -131,7 +131,7 @@ class TransactionRepository extends ServiceEntityRepository
 
     public function getAllTransaction($type): array
     {
-        if ($type == 'ADMIN') {
+        if ($type == 'admin') {
             $query = $this->createQueryBuilder('t')
                 ->andWhere('t.user is not null')
                 ->andWhere('t.state = :state')
