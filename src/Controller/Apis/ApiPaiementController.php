@@ -102,7 +102,7 @@ class ApiPaiementController extends ApiInterface
                     "typeUser" => $transaction->getUser()->getTypeUser(),
                     "createdAt" => $transaction->getCreatedAt()->format('Y-m-d H:i:s'),
                     "email" => $transaction->getUser()->getEmail(),
-                    'personne' => $type == "professionnel" ? [
+                    'user' => $type == "professionnel" ? [
                         'profession' => $profession ? [
                             'libelle' => $profession->getLibelle() ?? "",
                             'id' => $profession->getId(),
@@ -110,6 +110,7 @@ class ApiPaiementController extends ApiInterface
                             'montantNouvelleDemande' => $profession->getMontantNouvelleDemande(),
                             'montantRenouvellement' => $profession->getMontantRenouvellement(),
                         ] : null,
+                        "typeUser"=> $transaction->getUser()->getTypeUser(),
                         "code" => $personne->getCode(),
                         "poleSanitaire" => $personne->getPoleSanitaire(),
                         "nom" => $personne->getNom(),
@@ -123,11 +124,14 @@ class ApiPaiementController extends ApiInterface
                     ] : [
                         "code" => $personne->getCode(),
                         "email" => $personne->getEmail(),
+                        "typePersonne"=> $personne->getTypePersonne()->getLibelle(),
+                        "typeUser"=> $transaction->getUser()->getTypeUser(),
                         "nom" => $personne->getTypePersonne()->getLibelle() == "PHYSIQUE" ? $personne->getNom() : "",
                         "denomination" => $personne->getTypePersonne()->getLibelle() == "MORALE" ? $personne->getDenomination() : "",
                         "prenoms" => $personne->getTypePersonne()->getLibelle() == "PHYSIQUE" ? $personne->getPrenoms() : "",
                         "createdAt" => $personne->getCreatedAt() ?  $personne->getCreatedAt()->format('Y-m-d H:i:s') : null
                     ],
+                    
 
                 ];
             }, $transactions);
