@@ -144,10 +144,8 @@ class TransactionRepository extends ServiceEntityRepository
                 ->andWhere('t.typeUser = :type')
                 ->setParameter('state', 1)
                 ->setParameter('type', $type)
-                ->orderBy('t.id', 'ASC')
+                ->orderBy('t.id', 'ASC');
 
-                ->getQuery()
-                ->getResult();
         }
 
         return $query->getQuery()->getResult();
