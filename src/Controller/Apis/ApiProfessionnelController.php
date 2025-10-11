@@ -436,13 +436,13 @@ class ApiProfessionnelController extends ApiInterface
 
     #[OA\Tag(name: 'professionnel')]
     // #[Security(name: 'Bearer')]
-    public function indexEtat(ProfessionnelRepository $professionnelRepository, $status, ProfessionRepository $professionRepository): Response
+    public function indexEtat(ProfessionnelRepository $professionnelRepository, $status,UserRepository $userRepository, ProfessionRepository $professionRepository): Response
     {
         try {
 
 
             // $professionnels = $userRepository->findActiveProfessionnelsByImputationWithouParam();
-            $professionnels = $professionnelRepository->getProfessionnelByetat($status);
+            $professionnels = $userRepository->getProfessionnelByetat($status);
 
             //$professionnels = $userRepository->findBy(['typeUser' => 'PROFESSIONNEL'], ['id' => 'DESC']);
 

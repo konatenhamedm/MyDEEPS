@@ -66,6 +66,17 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->getResult();
     }
 
+    public function getProfessionnelByetat($status)
+    {
+
+        return $this->createQueryBuilder('u')
+            ->innerJoin('u.personne', 'p')
+            ->andWhere('p.status = :val')
+            ->setParameter('val', $status)
+            ->getQuery()
+            ->getResult();
+    }
+
     public function findActiveProfessionnelsByImputationWithouParam()
     {
         return $this->createQueryBuilder('u')
@@ -105,7 +116,7 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         return $this->createQueryBuilder('u')
             ->andWhere('u.roles LIKE :role')
             /* ->andWhere('u.typeUser = :typeUser') */
-             ->andWhere('u.deleteAt IS  NULL')
+            ->andWhere('u.deleteAt IS  NULL')
             ->setParameter('role', '%"ROLE_ADMIN"%')
             /*  ->setParameter('typeUser', 'ADMINISTRATEUR') */
             ->getQuery()
