@@ -436,12 +436,85 @@ class ApiProfessionnelController extends ApiInterface
 
     #[OA\Tag(name: 'professionnel')]
     // #[Security(name: 'Bearer')]
-    public function indexEtat(ProfessionnelRepository $professionnelRepository, $status): Response
+    public function indexEtat(ProfessionnelRepository $professionnelRepository, $status, ProfessionRepository $professionRepository): Response
     {
         try {
 
+
+            // $professionnels = $userRepository->findActiveProfessionnelsByImputationWithouParam();
             $professionnels = $professionnelRepository->getProfessionnelByetat($status);
-            $response = $this->responseData($professionnels, 'group_pro', ['Content-Type' => 'application/json']);
+
+            //$professionnels = $userRepository->findBy(['typeUser' => 'PROFESSIONNEL'], ['id' => 'DESC']);
+
+         // dd($professionnels);
+
+            $formattedProfessionnels = array_map(function ($professionnel) use ($professionRepository) {
+                $personne = $professionnel->getPersonne();
+                $profession = $personne->getProfession() ? $professionRepository->findOneByCode($personne->getProfession()) : null;
+
+                return [
+                    'username' => $professionnel->getUsername(),
+                    'id' => $professionnel->getId(),
+                    'email' => $professionnel->getEmail(),
+                    'typeUser' => $professionnel->getTypeUser(),
+                    'personne' => [
+                        'profession' => $profession ? [
+                            'libelle' => $profession->getLibelle() ?? "",
+                            'id' => $profession->getId(),
+                            'code' => $profession->getCode(),
+                            'montantNouvelleDemande' => $profession->getMontantNouvelleDemande(),
+                            'montantRenouvellement' => $profession->getMontantRenouvellement(),
+                        ] : null,
+                        'id' => $personne->getId(),
+                        'imputation' => $personne->getImputation() ? $personne->getImputation()->getId() : null,
+                        'imputationData' => $personne->getImputation() ? [
+                            'id' =>  $personne->getImputation()->getId(),
+                            'username' =>  $personne->getImputation()->getUsername(),
+                            'email' =>  $personne->getImputation()->getEmail(),
+                        ] : null,
+                        'appartenirOrdre' => $personne->getAppartenirOrdre() ?? "",
+                        'numeroInscription' => $personne->getNumeroInscription() ?? "",
+                        'emailPro' => $personne->getEmailPro(),
+                        'nom' => $personne->getNom(),
+                        'lieuDiplome' => $personne->getLieuDiplome(),
+                        'code' => $personne->getCode(),
+                        'prenoms' => $personne->getPrenoms(),
+                        'number' => $personne->getNumber(),
+                        'email' => $personne->getEmail(),
+                        'type' => "professionnel",
+                        'status' => $personne->getStatus(),
+                        'quartier' => $personne->getQuartier(),
+                        'reason' => $personne->getReason() ?? "",
+                        'professionnel' => $personne->getProfessionnel() ?? "",
+                        'civilite' => $this->formatEntity($personne->getCivilite()),
+                        'region' => $this->formatEntity($personne->getRegion()),
+                        'district' => $this->formatEntity($personne->getDistrict()),
+                        'commune' => $this->formatEntity($personne->getCommune()),
+                        'ville' => $this->formatEntity($personne->getVille()),
+                        'nationate' => $this->formatEntity($personne->getNationate()),
+                        'situationPro' => $this->formatEntity($personne->getSituationPro()),
+                        'dateNaissance' => $this->formatDate($personne->getDateNaissance()),
+                        'dateDiplome' => $this->formatDate($personne->getDateDiplome()),
+                        'diplome' => $personne->getDiplome() ?? "",
+                        'poleSanitaire' => $personne->getPoleSanitaire() ?? "",
+                        'organisationNom' => $personne->getOrganisationNom() ?? "",
+                        'poleSanitairePro' => $personne->getPoleSanitairePro() ?? "",
+                        'lieuExercicePro' => $personne->getLieuExercicePro() ?? "",
+                        'datePremierDiplome' => $this->formatDate($personne->getDatePremierDiplome()),
+                        'situation' => $personne->getSituation() ?? "",
+                        'appartenirOrganisation' => $personne->getAppartenirOrganisation() ?? "",
+                        'photo' => $this->formatFile($personne->getPhoto()),
+                        'cv' => $this->formatFile($personne->getCv()),
+                        'casier' => $this->formatFile($personne->getCasier()),
+                        'certificat' => $this->formatFile($personne->getCertificat()),
+                        'diplomeFile' => $this->formatFile($personne->getDiplomeFile()),
+                        'cni' => $this->formatFile($personne->getCni()),
+                    ]
+
+                ];
+            }, $professionnels);
+
+            $response = $this->responseData($formattedProfessionnels, 'group_pro', ['Content-Type' => 'application/json']);
         } catch (\Exception $exception) {
             $this->setMessage("");
             $response = $this->response('[]');
